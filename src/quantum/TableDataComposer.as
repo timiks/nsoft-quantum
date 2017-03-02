@@ -163,11 +163,12 @@ package quantum {
 
 					// Canton
 					(emptyFile ? dstr : "") + "\t" +
-					(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") +
-					"\t" + (emptyFile ? "1" : "") +
-					"\t" + itemImgPath + "\t" + "1" + "\t" + processedResult :
+					(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
+					(emptyFile ? "1" : "") + "\t" +
+					itemImgPath + "\t" + "1" + "\t" + processedResult
 
 					// [Else (if not Canton) ↓]
+					:
 
 					// Beijing
 					(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedResult;
