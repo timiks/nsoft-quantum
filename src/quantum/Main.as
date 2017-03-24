@@ -29,7 +29,7 @@ package quantum {
 
 		// Version
 		private const $version:int 				= 2;
-		private const $versionService:int 		= 1;
+		private const $versionService:int 		= 2;
 		private const $betaVersion:Boolean 		= false;
 		private const bugs:Boolean 				= false;
 

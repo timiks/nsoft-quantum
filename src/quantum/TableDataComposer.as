@@ -33,6 +33,8 @@ package quantum {
 		private var lineEnding:String;
 		private var lastContent:String;
 		private var lastResult:ProcessingResult;
+		private var shippingValues:Object;
+		private var shippingFileLoadingTS:Number;
 
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
@@ -79,6 +81,9 @@ package quantum {
 			lastContent = "";
 			lastResult = new ProcessingResult(-1);
 
+			// Shipping file
+			loadShippingFile(true);
+
 		}
 
 		private function onTextChange(e:Event):void {
@@ -97,7 +102,7 @@ package quantum {
 				var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
 				var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
 				var itemImgPath:String = grpCnt.selectedItem.imagePath;
-				var processedResult:String;
+				var processedAddress:String;
 				var composedLine:String;
 
 				tableDataFile =
@@ -105,7 +110,7 @@ package quantum {
 						(groupWarehouse == Warehouse.CANTON ? "canton" : "beijing") + ".txt"
 					);
 
-				processedResult =
+				processedAddress =
 					groupWarehouse == Warehouse.CANTON ?
 						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_CNT_WH) :
 						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_STR);
@@ -158,6 +163,10 @@ package quantum {
 				dtf.setDateTimePattern("dd.MM.yyyy");
 				dstr = dtf.format(date);
 
+				// Shipping column value
+				loadShippingFile();
+				var shippingValue:String = getCntShippingValue(prcResult.resultObj.country);
+
 				// Compose line
 				composedLine = groupWarehouse == Warehouse.CANTON ?
 
@@ -165,13 +174,14 @@ package quantum {
 					(emptyFile ? dstr : "") + "\t" +
 					(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
 					(emptyFile ? "1" : "") + "\t" +
-					itemImgPath + "\t" + "1" + "\t" + processedResult
+					itemImgPath + "\t" + "1" + "\t" + processedAddress +
+					(shippingValue != null ? "\t" + shippingValue : "")
 
 					// [Else (if not Canton) ↓]
 					:
 
 					// Beijing
-					(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedResult;
+					(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedAddress;
 
 				// Add line to file lines
 				if (groupExistInFile) {
@@ -288,6 +298,91 @@ package quantum {
 
 		}
 
+		private function getCntShippingValue(cnt:String):String {
+
+			var shipStr:String = null;
+
+			if (shippingValues[cnt] != null)
+				shipStr = shippingValues[cnt] as String;
+
+			return shipStr;
+
+		}
+
+		private function loadShippingFile(firstTime:Boolean = false):void {
+
+			// Shipping text file
+			var shippingFile:File = File.applicationStorageDirectory.resolvePath("shipping.txt");
+
+			if (shippingFile.exists) {
+				if (shippingFile.modificationDate.time < shippingFileLoadingTS)
+					if (!firstTime) return;
+			}
+
+			if (!shippingFile.exists) {
+				fst = new FileStream();
+				fst.open(shippingFile, FileMode.WRITE);
+				fst.writeUTFBytes(shippingFileDefaultContent);
+				fst.close();
+			}
+
+			// Load shipping file
+			fst = new FileStream();
+			fst.open(shippingFile, FileMode.READ);
+			var shippingFileString:String = fst.readUTFBytes(fst.bytesAvailable);
+			fst.close();
+
+			shippingValues = parseShippingFile(shippingFileString);
+			shippingFileLoadingTS = new Date().getTime();
+
+		}
+
+		private function parseShippingFile(fileString:String):Object {
+
+			var file:String = fileString;
+			var lineEnding:String = "\r\n"; // Windows style
+
+			// > check CRLF. if not > error
+			if (file.search(lineEnding) == -1) {
+				//outputLogLine("Ошибка в файле Shipping: Wrong Line Ending", COLOR_BAD);
+				return null;
+			}
+
+			var shipValues:Object = {};
+			var reArr:Array = [];
+			var re1:RegExp = /^(.+) \[(.+)\]/;
+
+			var cnt:String;
+			var shipStr:String;
+
+			var arr:Array = file.split(lineEnding);
+
+			for each (var line:String in arr) {
+
+				// Comment
+				if (line.search(/^# ?/) != -1)
+					continue;
+
+				// Empty Line
+				if (line == "")
+					continue;
+
+				if (line.search(re1) == -1) {
+					//outputLogLine("Ошибка в строке файла Shipping: " + line, COLOR_BAD);
+					continue;
+				}
+
+				reArr = line.match(re1);
+				cnt = reArr[1];
+				shipStr = reArr[2];
+
+				shipValues[cnt] = shipStr;
+			}
+
+			return shipValues;
+
+		}
+
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
@@ -306,6 +401,9 @@ package quantum {
 			return $adrInputTextArea;
 		}
 
+		// ================================================================================
+
+		private const shippingFileDefaultContent:String = "# Значения колонки Shipping на основе страны адреса\r\n# Формат отдельной строки:\r\n# Country [shipping_value]\r\n\r\n";
 	}
 
 }
