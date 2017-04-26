@@ -251,6 +251,7 @@ package quantum.adr.processing {
 				// #SPECIAL: Сингапур
 				rePattern = /^Singapore/;
 				reArr = theLastLine.match(rePattern);
+				reArr = reArr == null ? (lines[lines.length-2] as String).match(rePattern) : reArr;
 				if (reArr != null) {
 					lines.push("Singapore");
 					lc = lines.length;
