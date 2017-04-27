@@ -24,7 +24,7 @@ package quantum.data {
 		public static const OP_REMOVE:String = "rem";
 		public static const OP_UPDATE:String = "upd";
 
-		private static const dataFileVersion:int = 1;
+		private static const dataFileVersion:int = 2;
 
 		private var main:Main;
 
@@ -92,6 +92,12 @@ package quantum.data {
 					var dfv:String = dataXml.@dataFileVersion;
 					if (dfv == "" || dfv == null)
 						dataXml.@dataFileVersion = String(dataFileVersion);
+
+					// {Here should be version check of loaded data file and
+					// transforming loaded format to actual version format, if differ}
+
+					if (dataXml.@dataFileVersion != dataFileVersion)
+						dataXml.@dataFileVersion = dataFileVersion
 
 				}
 
@@ -231,7 +237,7 @@ package quantum.data {
 
 			var newItem:SquareItem;
 			for each (var itm:XML in grp.item) {
-				newItem = new SquareItem(itm.@imgPath, int(itm.@count));
+				newItem = new SquareItem(itm.@imgPath, int(itm.@count), itm.@details);
 				newItem.dataXml = itm;
 				items.push(newItem);
 			}

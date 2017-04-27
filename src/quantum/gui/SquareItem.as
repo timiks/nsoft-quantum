@@ -34,14 +34,18 @@ package quantum.gui {
 		private const DEF_COUNT_VALUE:int = 1;
 		private const SQUARE_SIZE:int = 40; // Def: 68 58
 
+		// App properties
 		private var $position:int;
-		private var $count:int;
-		private var $id:int;
-		private var $imagePath:String;
 		private var $imageCacheID:int;
 		private var $selected:Boolean;
 		private var $parentItemsGroup:ItemsGroup;
 		private var $dataXml:XML;
+
+		// Data properties
+		private var $id:int;
+		private var $count:int;
+		private var $imagePath:String;
+		private var $details:String;
 
 		private var ldr:Loader; // Internal Loader for image
 		private var ba:ByteArray;
@@ -61,10 +65,11 @@ package quantum.gui {
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
 
-		public function SquareItem(imgPath:String, count:int):void {
+		public function SquareItem(imgPath:String, count:int, details:String = ""):void {
 
 			this.imagePath = imgPath;
 			this.count = count == 0 ? DEF_COUNT_VALUE : count;
+			this.details = details;
 
 			main = Main.ins;
 
@@ -308,14 +313,14 @@ package quantum.gui {
 		//{ region Properties
 
 		/**
-		 * Порядковый номер в группе
+		 * Идентификатор этого объекта
 		 */
-		public function get position():int {
-			return $position;
+		public function get id():int {
+			return $id;
 		}
 
-		public function set position(value:int):void {
-			$position = value;
+		public function set id(value:int):void {
+			$id = value;
 		}
 
 		/**
@@ -342,17 +347,6 @@ package quantum.gui {
 		}
 
 		/**
-		 * Идентификатор этого объекта
-		 */
-		public function get id():int {
-			return $id;
-		}
-
-		public function set id(value:int):void {
-			$id = value;
-		}
-
-		/**
 		 * Путь до оригинальной картинки в файловой системе
 		 */
 		public function get imagePath():String {
@@ -361,6 +355,32 @@ package quantum.gui {
 
 		public function set imagePath(value:String):void {
 			$imagePath = value;
+		}
+
+		public function get details():String {
+			return $details;
+		}
+
+		public function set details(value:String):void {
+
+			$details = value;
+
+			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "details", value);
+			if (selected) main.stQuantumMgr.updateUiElement("selItemDetails", details);
+
+		}
+
+		// ================================================================================
+
+		/**
+		 * Порядковый номер в группе
+		 */
+		public function get position():int {
+			return $position;
+		}
+
+		public function set position(value:int):void {
+			$position = value;
 		}
 
 		/**

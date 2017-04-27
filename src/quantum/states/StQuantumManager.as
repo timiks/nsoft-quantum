@@ -98,7 +98,7 @@ package quantum.states {
 			uicm.setStyle(ui.taAdr);
 			uicm.setStyle(ui.nsCount);
 			uicm.setStyle(ui.nsCount.textField);
-			//uicm.setStyle(ui.tiGrpTitle);
+			uicm.setStyle(ui.tiDetails);
 
 			// Table data composer
 			tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -109,15 +109,12 @@ package quantum.states {
 			grpTitleTextInput.tf = ui.tiGrpTitle;
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
 
-			// Listeners
-			/*
-			ui.tiGrpTitle.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selGrpTitle", ui.tiGrpTitle.text);
-			});
-			*/
-
 			ui.nsCount.addEventListener("change", function(e:Event):void {
 				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
+			});
+
+			ui.tiDetails.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemDetails", ui.tiDetails.text);
 			});
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
@@ -210,13 +207,12 @@ package quantum.states {
 
 			switch (elmID) {
 
-				/*
-				case "selGrpTitle":
-					ui.tiGrpTitle.text = val as String;
-					break; */
-
 				case "selItemCount":
 					ui.nsCount.value = val;
+					break;
+
+				case "selItemDetails":
+					ui.tiDetails.text = val;
 					break;
 
 			}

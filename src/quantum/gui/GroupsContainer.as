@@ -312,6 +312,10 @@ package quantum.gui {
 					if (selectedItem != null) selectedItem.count = int(val);
 					break;
 
+				case "selItemDetails":
+					if (selectedItem != null) selectedItem.details = String(val);
+					break;
+
 			}
 
 		}
@@ -380,6 +384,7 @@ package quantum.gui {
 			$selectedItem = value;
 
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
+			baseState.updateUiElement("selItemDetails", value == null ? "" : value.details);
 			baseState.focusAdrTextArea(value == null ? false : true);
 		}
 
