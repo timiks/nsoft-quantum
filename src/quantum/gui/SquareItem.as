@@ -190,6 +190,9 @@ package quantum.gui {
 			focusRect = false;
 			cacheAsBitmap = true;
 
+			// Hint
+			grpCnt.registerItemsHint(this, hintTextHandler);
+
 			// Start loading image
 			fst.openAsync(imgFile, FileMode.READ);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
@@ -303,6 +306,16 @@ package quantum.gui {
 
 		public function startLoadingImage():void {
 			fst.openAsync(imgFile, FileMode.READ);
+		}
+
+		public function hintTextHandler():String {
+
+			if (details == null || details == "") {
+				return null;
+			}
+
+			return details;
+
 		}
 
 		/**

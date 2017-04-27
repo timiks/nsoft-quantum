@@ -3,6 +3,8 @@ package quantum.gui {
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.InteractiveObject;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -317,6 +319,12 @@ package quantum.gui {
 					break;
 
 			}
+
+		}
+
+		public function registerItemsHint(itemsDisOb:InteractiveObject, itemsHintHandler:Function):void {
+
+			baseState.hintMgr.registerHintWithHandler(itemsDisOb, itemsHintHandler);
 
 		}
 

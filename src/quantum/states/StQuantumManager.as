@@ -19,6 +19,7 @@ package quantum.states {
 	import flash.ui.Mouse;
 	import quantum.gui.BigTextInput;
 	import quantum.gui.GroupsContainer;
+	import quantum.gui.HintMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
@@ -34,10 +35,12 @@ package quantum.states {
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
 		private var grpCnt:GroupsContainer;
+		private var hintsCnt:Sprite;
 
 		// Public modules
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
+		private var $hintMgr:HintMgr;
 
 		public function StQuantumManager():void {
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
@@ -68,9 +71,6 @@ package quantum.states {
 			 * ================================================================================
 			 */
 
-			grpCnt = new GroupsContainer(this);
-			ui.addChildAt(grpCnt, 0);
-
 			// BUTTONS
 			// Exit
 			ui.btnExit.tabEnabled = false;
@@ -94,11 +94,32 @@ package quantum.states {
 
 			});
 
+			// Styles
 			var uicm:UIComponentsMgr = main.uiCmpMgr;
 			uicm.setStyle(ui.taAdr);
 			uicm.setStyle(ui.nsCount);
 			uicm.setStyle(ui.nsCount.textField);
 			uicm.setStyle(ui.tiDetails);
+
+			// Hints
+			hintsCnt = new Sprite;
+			//hintsCnt.width = ui.width;
+			//hintsCnt.height = ui.height;
+			addChildAt(hintsCnt, numChildren);
+			hintMgr = new HintMgr();
+			hintMgr.init(hintsCnt);
+
+			ui.nsCount.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
+			});
+
+			ui.tiDetails.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemDetails", ui.tiDetails.text);
+			});
+
+			// Groups Container
+			grpCnt = new GroupsContainer(this);
+			ui.addChildAt(grpCnt, 0);
 
 			// Table data composer
 			tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -108,14 +129,6 @@ package quantum.states {
 			grpTitleTextInput = new BigTextInput();
 			grpTitleTextInput.tf = ui.tiGrpTitle;
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
-
-			ui.nsCount.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
-			});
-
-			ui.tiDetails.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selItemDetails", ui.tiDetails.text);
-			});
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 
@@ -142,11 +155,13 @@ package quantum.states {
 
 			// F8
 			if (e.keyCode == Keyboard.F8) {
+
 				if (grpCnt.stage != null) {
 					ui.removeChild(grpCnt);
 				} else {
 					ui.addChild(grpCnt);
 				}
+
 			}
 
 		}
@@ -256,6 +271,14 @@ package quantum.states {
 
 		public function set tableDataComposer(value:TableDataComposer):void {
 			$tableDataComposer = value;
+		}
+
+		public function get hintMgr():HintMgr {
+			return $hintMgr;
+		}
+
+		public function set hintMgr(value:HintMgr):void {
+			$hintMgr = value;
 		}
 
 	}
