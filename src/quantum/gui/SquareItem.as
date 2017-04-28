@@ -58,6 +58,7 @@ package quantum.gui {
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
 		private var countTextField:TextField;
+		private var hintCircle:Shape;
 
 		private var imgFile:File;
 		private var fst:FileStream;
@@ -149,6 +150,15 @@ package quantum.gui {
 			countTextField.text = String(count);
 			countTextField.cacheAsBitmap = true;
 
+			// Hint circle
+			hintCircle = new Shape();
+			hintCircle.graphics.beginFill(0xD3ED1A);
+			hintCircle.graphics.drawEllipse(0, 0, 8, 8);
+			hintCircle.graphics.endFill();
+			hintCircle.filters = [new DropShadowFilter(1, 45, 0, 0.5, 1, 1, 1)];
+			hintCircle.x = 2;
+			hintCircle.y = 2;
+
 			// Functional stuff
 			ldr = new Loader();
 			ba = new ByteArray();
@@ -161,6 +171,7 @@ package quantum.gui {
 			addChild(errorFrame);
 			addChild(selectedFrame);
 			addChild(overFrame);
+			addChild(hintCircle);
 			addChild(triangles);
 			addChild(countTextField);
 			addChild($frame);
@@ -171,6 +182,9 @@ package quantum.gui {
 			selectedFrame.visible = false;
 			errorFrame.visible = false;
 			imgMask.visible = false;
+
+			if (details == "")
+				hintCircle.visible = false;
 
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
@@ -377,6 +391,13 @@ package quantum.gui {
 		public function set details(value:String):void {
 
 			$details = value;
+
+			if ($details == "") {
+				if (hintCircle != null) hintCircle.visible = false;
+			}
+			else {
+				if (hintCircle != null) hintCircle.visible = true;
+			}
 
 			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "details", value);
 			if (selected) main.stQuantumMgr.updateUiElement("selItemDetails", details);
