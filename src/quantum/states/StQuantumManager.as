@@ -99,7 +99,7 @@ package quantum.states {
 			uicm.setStyle(ui.taAdr);
 			uicm.setStyle(ui.nsCount);
 			uicm.setStyle(ui.nsCount.textField);
-			uicm.setStyle(ui.tiDetails);
+			uicm.setStyle(ui.taDetails);
 
 			// Hints
 			hintsCnt = new Sprite;
@@ -113,8 +113,8 @@ package quantum.states {
 				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
 			});
 
-			ui.tiDetails.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selItemDetails", ui.tiDetails.text);
+			ui.taDetails.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemDetails", ui.taDetails.text);
 			});
 
 			// Groups Container
@@ -227,7 +227,7 @@ package quantum.states {
 					break;
 
 				case "selItemDetails":
-					ui.tiDetails.text = val;
+					ui.taDetails.text = val;
 					break;
 
 			}

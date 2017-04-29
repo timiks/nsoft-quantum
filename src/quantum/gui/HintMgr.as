@@ -72,7 +72,7 @@ package quantum.gui {
 			if (hint == null) return;
 
 			// Prepare text
-			var hintText:String = "";
+			var hintText:String;
 			switch (hint.type) {
 
 				case HINT_WITH_HANDLER:
@@ -93,9 +93,8 @@ package quantum.gui {
 			hintDisOb.y = e.target.y;
 			hintDisOb.txt.autoSize = TextFieldAutoSize.LEFT;
 			hintDisOb.txt.text = hintText; // Assign text to hint
-			hintDisOb.scaleFrame.width = hintDisOb.txt.width + 5;
-			trace("hintDisOb.scaleFrame.width:", hintDisOb.scaleFrame.width);
-			trace("hintDisOb.txt.width:", hintDisOb.txt.width);
+			hintDisOb.scaleFrame.width = hintDisOb.txt.width + 8;
+			hintDisOb.scaleFrame.height = hintDisOb.txt.textHeight + 6;
 
 			alignHint(null);
 			hintsContainer.addChild(hintDisOb);
