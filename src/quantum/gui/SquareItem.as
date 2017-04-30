@@ -53,7 +53,7 @@ package quantum.gui {
 		private var $frame:Shape; // Top frame of the square
 		private var imgMask:Shape;
 		private var overFrame:Shape;
-		private var selectedFrame:Shape;
+		private var selectedFrame:Sprite;
 		private var errorFrame:Shape;
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
@@ -100,10 +100,10 @@ package quantum.gui {
 			overFrame.graphics.endFill();
 
 			// Selected frame
-			selectedFrame = new Shape();
-			selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
-			selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
-			selectedFrame.graphics.endFill();
+			selectedFrame = new Sprite();
+			//selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
+			//selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
+			//selectedFrame.graphics.endFill();
 
 			// Error frame
 			errorFrame = new Shape();
@@ -443,10 +443,16 @@ package quantum.gui {
 
 			if (value == true) {
 				selectedFrame.visible = true;
+				var anm:MovieClip = new SelectFrameAnimation();
+				anm.width = SQUARE_SIZE;
+				anm.height = SQUARE_SIZE;
+				selectedFrame.addChild(anm);
+
 				overFrame.visible = false;
 				triangles.visible = true;
 			} else {
 				selectedFrame.visible = false;
+				selectedFrame.removeChildAt(0);
 			}
 		}
 
