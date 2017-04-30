@@ -11,7 +11,7 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 20;
+		private const $version:int = 21;
 
 		// Data
 		private var usRegions:Vector.<Object>;
