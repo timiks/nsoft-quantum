@@ -58,7 +58,7 @@ package quantum.gui {
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
 		private var countTextField:TextField;
-		private var hintCircle:Shape;
+		private var hintCorner:Shape;
 
 		private var imgFile:File;
 		private var fst:FileStream;
@@ -150,14 +150,17 @@ package quantum.gui {
 			countTextField.text = String(count);
 			countTextField.cacheAsBitmap = true;
 
-			// Hint circle
-			hintCircle = new Shape();
-			hintCircle.graphics.beginFill(0xD3ED1A);
-			hintCircle.graphics.drawEllipse(0, 0, 8, 8);
-			hintCircle.graphics.endFill();
-			hintCircle.filters = [new DropShadowFilter(1, 45, 0, 0.5, 1, 1, 1)];
-			hintCircle.x = 2;
-			hintCircle.y = 2;
+			// Hint corner
+			hintCorner = new Shape();
+			hintCorner.graphics.beginFill(0xD3ED1A);
+			hintCorner.graphics.moveTo(10, 0);
+			hintCorner.graphics.lineTo(0, 0);
+			hintCorner.graphics.lineTo(0, 10);
+			hintCorner.graphics.lineTo(10, 0);
+			hintCorner.graphics.endFill();
+			hintCorner.filters = [new DropShadowFilter(1, 45, 0, 0.3, 1, 1, 1)];
+			//hintCorner.x = 2;
+			//hintCorner.y = 2;
 
 			// Functional stuff
 			ldr = new Loader();
@@ -171,7 +174,7 @@ package quantum.gui {
 			addChild(errorFrame);
 			addChild(selectedFrame);
 			addChild(overFrame);
-			addChild(hintCircle);
+			addChild(hintCorner);
 			addChild(triangles);
 			addChild(countTextField);
 			addChild($frame);
@@ -184,7 +187,7 @@ package quantum.gui {
 			imgMask.visible = false;
 
 			if (details == "")
-				hintCircle.visible = false;
+				hintCorner.visible = false;
 
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
@@ -393,10 +396,10 @@ package quantum.gui {
 			$details = value;
 
 			if ($details == "") {
-				if (hintCircle != null) hintCircle.visible = false;
+				if (hintCorner != null) hintCorner.visible = false;
 			}
 			else {
-				if (hintCircle != null) hintCircle.visible = true;
+				if (hintCorner != null) hintCorner.visible = true;
 			}
 
 			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "details", value);
