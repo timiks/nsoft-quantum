@@ -2,9 +2,14 @@ package quantum.gui {
 
 	import flash.display.DisplayObject;
 	import flash.display.InteractiveObject;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
+	import flash.geom.Rectangle;
+	import flash.text.AntiAliasType;
+	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
 	import flash.utils.Dictionary;
 
 	/**
@@ -16,9 +21,12 @@ package quantum.gui {
 		private const HINT_STANDART:int = 1;
 		private const HINT_WITH_HANDLER:int = 2;
 
-		private var hints:Dictionary;
-		private var hintDisOb:HintDisOb;
 		private var hintsContainer:Sprite;
+		private var hints:Dictionary;
+		private var hintDisOb:Sprite;
+		private var txt:TextField;
+		private var scaleFrame:Shape;
+		private var rect:Rectangle;
 
 		public function HintMgr():void {}
 
@@ -26,6 +34,25 @@ package quantum.gui {
 
 			hintsContainer = container;
 			hints = new Dictionary();
+
+			// Display object of a hint
+			hintDisOb = new Sprite();
+			hintDisOb.mouseEnabled = false;
+
+			// Hint text field
+			txt = new TextField();
+			txt.defaultTextFormat = new TextFormat("Tahoma", 15, 0x585F63);
+			txt.embedFonts = false;
+			txt.autoSize = TextFieldAutoSize.LEFT;
+			txt.multiline = true;
+			txt.x = 2;
+
+			// Scale frame
+			scaleFrame = new Shape();
+			rect = new Rectangle();
+
+			hintDisOb.addChild(scaleFrame);
+			hintDisOb.addChild(txt);
 
 		}
 
@@ -45,7 +72,8 @@ package quantum.gui {
 		public function unregisterHint(disOb:InteractiveObject):void {
 
 			switchListeners(disOb, false);
-			// [To-Do Here ↓]: Set hint object in dictionary to null where disOb is a key
+			hints[disOb] = null;
+			delete hints[disOb];
 
 		}
 
@@ -87,14 +115,20 @@ package quantum.gui {
 
 			if (hintText == null) return;
 
-			hintDisOb = new HintDisOb();
-			hintDisOb.mouseEnabled = false;
 			hintDisOb.x = e.target.x;
 			hintDisOb.y = e.target.y;
-			hintDisOb.txt.autoSize = TextFieldAutoSize.LEFT;
-			hintDisOb.txt.text = hintText; // Assign text to hint
-			hintDisOb.scaleFrame.width = hintDisOb.txt.width + 8;
-			hintDisOb.scaleFrame.height = hintDisOb.txt.textHeight + 6;
+			txt.text = hintText; // Assign text to hint
+
+			rect.width = txt.textWidth + 7;
+			rect.height = txt.textHeight + 4;
+
+			scaleFrame.graphics.clear();
+			scaleFrame.graphics.beginFill(0xF9F9F9);
+			scaleFrame.graphics.drawRect(0, 0, rect.width, rect.height);
+			scaleFrame.graphics.endFill();
+
+			scaleFrame.graphics.lineStyle(1, 0xB7BABC);
+			scaleFrame.graphics.drawRect(0, 0, rect.width, rect.height);
 
 			alignHint(null);
 			hintsContainer.addChild(hintDisOb);
