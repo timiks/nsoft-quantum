@@ -152,7 +152,7 @@ package quantum.gui {
 
 			// Hint corner
 			hintCorner = new Shape();
-			hintCorner.graphics.beginFill(0xD3ED1A);
+			hintCorner.graphics.beginFill(0xED1614);
 			hintCorner.graphics.moveTo(10, 0);
 			hintCorner.graphics.lineTo(0, 0);
 			hintCorner.graphics.lineTo(0, 10);
