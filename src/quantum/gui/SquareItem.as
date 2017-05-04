@@ -45,7 +45,6 @@ package quantum.gui {
 		private var $id:int;
 		private var $count:int;
 		private var $imagePath:String;
-		private var $details:String;
 
 		private var ldr:Loader; // Internal Loader for image
 		private var ba:ByteArray;
@@ -66,11 +65,10 @@ package quantum.gui {
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
 
-		public function SquareItem(imgPath:String, count:int, details:String = ""):void {
+		public function SquareItem(imgPath:String, count:int):void {
 
 			this.imagePath = imgPath;
 			this.count = count == 0 ? DEF_COUNT_VALUE : count;
-			this.details = details;
 
 			main = Main.ins;
 
@@ -159,8 +157,6 @@ package quantum.gui {
 			hintCorner.graphics.lineTo(10, 0);
 			hintCorner.graphics.endFill();
 			hintCorner.filters = [new DropShadowFilter(1, 45, 0, 0.3, 1, 1, 1)];
-			//hintCorner.x = 2;
-			//hintCorner.y = 2;
 
 			// Functional stuff
 			ldr = new Loader();
@@ -186,8 +182,9 @@ package quantum.gui {
 			errorFrame.visible = false;
 			imgMask.visible = false;
 
-			if (details == "")
+			if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
 				hintCorner.visible = false;
+			main.stQuantumMgr.notesMgr.events.addEventListener(Event.CHANGE, notesChange);
 
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
@@ -214,6 +211,10 @@ package quantum.gui {
 			fst.openAsync(imgFile, FileMode.READ);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
 
+		}
+
+		private function notesChange(e:Event):void {
+			main.stQuantumMgr.notesMgr.getNote(imagePath) == "" ? hintCorner.visible = false : hintCorner.visible = true;
 		}
 
 		private function ioError(e:IOErrorEvent):void {
@@ -259,8 +260,6 @@ package quantum.gui {
 				// Set mask
 				ldr.mask = imgMask;
 				imgMask.visible = true;
-
-				//parentItemsGroup.loadNext();
 
 			});
 
@@ -382,26 +381,6 @@ package quantum.gui {
 
 		public function set imagePath(value:String):void {
 			$imagePath = value;
-		}
-
-		public function get details():String {
-			return $details;
-		}
-
-		public function set details(value:String):void {
-
-			$details = value;
-
-			if ($details == "") {
-				if (hintCorner != null) hintCorner.visible = false;
-			}
-			else {
-				if (hintCorner != null) hintCorner.visible = true;
-			}
-
-			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "details", value);
-			if (selected) main.stQuantumMgr.updateUiElement("selItemDetails", details);
-
 		}
 
 		// ================================================================================

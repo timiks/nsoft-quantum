@@ -252,7 +252,7 @@ package quantum.data {
 
 			var newItem:SquareItem;
 			for each (var itm:XML in grp.item) {
-				newItem = new SquareItem(itm.@imgPath, int(itm.@count), itm.@details);
+				newItem = new SquareItem(itm.@imgPath, int(itm.@count));
 				newItem.dataXml = itm;
 				items.push(newItem);
 			}

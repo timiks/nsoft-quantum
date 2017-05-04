@@ -1,5 +1,7 @@
 package quantum.data {
 
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import quantum.Main;
 
 	/**
@@ -12,11 +14,14 @@ package quantum.data {
 
 		private var records:Object;
 
+		private var $events:EventDispatcher;
+
 		public function NotesMgr():void {}
 
 		public function init():void {
 
 			main = Main.ins;
+			$events = new EventDispatcher();
 			records = new Object();
 
 			// Record object format: {imgPath: $, noteText: $})
@@ -45,16 +50,23 @@ package quantum.data {
 
 		public function setNote(imgPath:String, noteText:String):void {
 
+			events.dispatchEvent(new Event(Event.CHANGE));
+
 			if (noteText == "") {
 				delete records[imgPath];
 				main.dataMgr.opNote(DataMgr.OP_REMOVE, imgPath);
+				events.dispatchEvent(new Event(Event.CHANGE));
 				return;
 			}
 
 			main.dataMgr.opNote(records[imgPath] == null ? DataMgr.OP_ADD : DataMgr.OP_UPDATE, imgPath, noteText);
-
 			records[imgPath] = noteText;
+			events.dispatchEvent(new Event(Event.CHANGE));
 
+		}
+
+		public function get events():EventDispatcher {
+			return $events;
 		}
 
 	}
