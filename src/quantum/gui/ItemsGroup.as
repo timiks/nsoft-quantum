@@ -235,7 +235,7 @@ package quantum.gui {
 			//imgFile.browseForOpen("Выберите картинку для объекта", [new FileFilter("Изображение", "*.jpg;*.png;*.gif")]);
 			imgFile.browseForOpenMultiple(
 				"Выберите картинку (или несколько)",
-				[new FileFilter("Изображение", "*.jpg;*.png;*.gif")]
+				[new FileFilter("Изображение", "*.jpg;*.png;*.gif;*.jpeg")]
 			);
 
 		}
