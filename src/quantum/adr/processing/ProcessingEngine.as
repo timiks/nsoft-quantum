@@ -11,7 +11,7 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 21;
+		private const $version:int = 22;
 
 		// Data
 		private var usRegions:Vector.<Object>;
@@ -214,6 +214,7 @@ package quantum.adr.processing {
 			var lineXObj:Object;
 			var lc:uint = lines.length; // Lines Count — число строк
 			var theLastLine:String = lines[lines.length-1] as String;
+			var theLineBeforeLast:String = lines[lines.length-2] as String;
 			var reArr:Array;
 			var rePattern:RegExp;
 
@@ -334,12 +335,38 @@ package quantum.adr.processing {
 				lc = lines.length; // Обновить число строк
 			}
 
-			// CANADA. Converting to Canada special TPL #1
-			/*
+			// CANADA. Converting to TPL #2
 			if (country == "Canada") {
 
+				rePattern = /^([A-Za-z]{2})\s+/;
+
+				reArr = theLineBeforeLast.match(rePattern); // Предпоследняя строка
+
+				if (reArr != null) {
+
+					var canadianAbbrRegion:String = reArr[1];
+
+					// Process canadian states
+					for (i = 0; i < caRegions.length; i++) {
+						if (
+						(caRegions[i].ab == canadianAbbrRegion.toUpperCase())
+							||
+						((caRegions[i].name as String).toUpperCase() == canadianAbbrRegion.toUpperCase())
+						) {
+
+							theLineBeforeLast = theLineBeforeLast.replace(rePattern, "");
+							lines[lines.length-2] = theLineBeforeLast;
+							canadianAbbrRegion = trimSpaces(canadianAbbrRegion);
+							lines[lines.length-3] = trimSpaces(lines[lines.length-3]);
+							lines[lines.length-3] += ", " + canadianAbbrRegion;
+							break;
+
+						}
+					}
+
+				}
+
 			}
-			*/
 
 			/**
 			 * Pre-processing Step #4 — Identifying
@@ -881,6 +908,11 @@ package quantum.adr.processing {
 
 		private function resetResultObject():void {
 			$resultObj.reset();
+		}
+
+		private function trimSpaces(str:String):String {
+			var ret:String = str.replace(/^\s*(.*?)\s*$/, "$1");
+			return ret;
 		}
 
 		/**
