@@ -17,6 +17,7 @@ package quantum.states {
 	import flash.text.TextFormatAlign;
 	import flash.ui.Keyboard;
 	import flash.ui.Mouse;
+	import quantum.data.NotesMgr;
 	import quantum.gui.BigTextInput;
 	import quantum.gui.GroupsContainer;
 	import quantum.gui.HintMgr;
@@ -41,6 +42,7 @@ package quantum.states {
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
+		private var $notesMgr:NotesMgr;
 
 		public function StQuantumManager():void {
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
@@ -114,8 +116,12 @@ package quantum.states {
 			});
 
 			ui.taDetails.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selItemDetails", ui.taDetails.text);
+				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
 			});
+
+			// Notes
+			notesMgr = new NotesMgr();
+			notesMgr.init();
 
 			// Groups Container
 			grpCnt = new GroupsContainer(this);
@@ -226,7 +232,7 @@ package quantum.states {
 					ui.nsCount.value = val;
 					break;
 
-				case "selItemDetails":
+				case "selItemTypeNotes":
 					ui.taDetails.text = val;
 					break;
 
@@ -279,6 +285,14 @@ package quantum.states {
 
 		public function set hintMgr(value:HintMgr):void {
 			$hintMgr = value;
+		}
+
+		public function get notesMgr():NotesMgr {
+			return $notesMgr;
+		}
+
+		public function set notesMgr(value:NotesMgr):void {
+			$notesMgr = value;
 		}
 
 	}

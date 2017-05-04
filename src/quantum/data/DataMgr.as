@@ -96,6 +96,18 @@ package quantum.data {
 					// {Here should be version check of loaded data file and
 					// transforming loaded format to actual version format, if differ}
 
+					// [!] Separate function or module needed
+
+					// Data File v2
+					if (int(dfv) < 2) {
+
+						if (dataXml.notes == undefined) {
+							dataXml.prependChild(<notes/>);
+						}
+
+					}
+
+					// Updating data file version if differs
 					if (dataXml.@dataFileVersion != dataFileVersion)
 						dataXml.@dataFileVersion = dataFileVersion
 
@@ -118,6 +130,9 @@ package quantum.data {
 			dataXml.@appVersion = main.version;
 			dataXml.@dataFileVersion = String(dataFileVersion);
 
+			// DF v2 feature
+			dataXml.appendChild(<notes/>);
+
 			if (!createFile) return;
 
 			saveFile();
@@ -127,10 +142,10 @@ package quantum.data {
 		/**
 		 * Вызывать всякий раз при изменении данных, чтобы изменения можно было сохранить на диск
 		 */
-		private function dataUpdate():void {
+		private function dataUpdate(delay:int = 3000):void {
 
 			if (tmrSaveDelay == null) {
-				tmrSaveDelay = new Timer(3000, 1);
+				tmrSaveDelay = new Timer(delay, 1);
 				tmrSaveDelay.addEventListener(TimerEvent.TIMER, saveOnTimer);
 				tmrSaveDelay.start();
 			}
@@ -243,6 +258,52 @@ package quantum.data {
 			}
 
 			return items;
+
+		}
+
+		public function getAllNotes():Vector.<Object> {
+
+			var notes:Vector.<Object> = new Vector.<Object>();
+
+			for each (var noteRecord:XML in dataXml.notes.itemNote) {
+
+				notes.push({imgPath: noteRecord.@img, noteText: noteRecord.@text});
+
+			}
+
+			return notes;
+
+		}
+
+		public function opNote(op:String, imgPath:String, noteText:String = null):void {
+
+			if (op == OP_UPDATE) {
+
+				dataXml.notes.itemNote.(@img == imgPath)[0].@text = noteText;
+
+			}
+
+			else
+
+			if (op == OP_ADD) {
+
+				var newNote:XML = <itemNote/>
+				newNote.@img = imgPath;
+				newNote.@text = noteText;
+				dataXml.notes.appendChild(newNote);
+
+			}
+
+			else
+
+			if (op == OP_REMOVE) {
+
+				delete dataXml.notes.itemNote.(@img == imgPath)[0];
+
+			}
+
+			dataUpdate(5500);
+
 
 		}
 

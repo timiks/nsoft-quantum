@@ -327,11 +327,8 @@ package quantum.gui {
 
 		public function hintTextHandler():String {
 
-			if (details == null || details == "") {
-				return null;
-			}
-
-			return details;
+			var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
+			return note != "" ? note : null;
 
 		}
 
