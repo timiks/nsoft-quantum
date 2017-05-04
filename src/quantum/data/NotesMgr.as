@@ -50,8 +50,6 @@ package quantum.data {
 
 		public function setNote(imgPath:String, noteText:String):void {
 
-			events.dispatchEvent(new Event(Event.CHANGE));
-
 			if (noteText == "") {
 				delete records[imgPath];
 				main.dataMgr.opNote(DataMgr.OP_REMOVE, imgPath);
