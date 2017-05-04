@@ -3,6 +3,8 @@ package quantum.gui {
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.InteractiveObject;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -312,7 +314,17 @@ package quantum.gui {
 					if (selectedItem != null) selectedItem.count = int(val);
 					break;
 
+				case "selItemTypeNotes":
+					if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
+					break;
+
 			}
+
+		}
+
+		public function registerItemsHint(itemsDisOb:InteractiveObject, itemsHintHandler:Function):void {
+
+			baseState.hintMgr.registerHintWithHandler(itemsDisOb, itemsHintHandler);
 
 		}
 
@@ -380,6 +392,7 @@ package quantum.gui {
 			$selectedItem = value;
 
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
+			baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
 			baseState.focusAdrTextArea(value == null ? false : true);
 		}
 

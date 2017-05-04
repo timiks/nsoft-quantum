@@ -99,6 +99,9 @@ package quantum.gui {
 			ctxMenu.addItem(menuItmWarehouseSwitch);
 			btnNewItem.contextMenu = ctxMenu;
 
+			// Hint
+			grpCnt.registerItemsHint(btnNewItem, hintTextHandler);
+
 			// Listeners
 			btnNewItem.addEventListener(MouseEvent.CLICK, newItemBtnClick);
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OVER, newItemBtnOver);
@@ -232,7 +235,7 @@ package quantum.gui {
 			//imgFile.browseForOpen("Выберите картинку для объекта", [new FileFilter("Изображение", "*.jpg;*.png;*.gif")]);
 			imgFile.browseForOpenMultiple(
 				"Выберите картинку (или несколько)",
-				[new FileFilter("Изображение", "*.jpg;*.png;*.gif")]
+				[new FileFilter("Изображение", "*.jpg;*.png;*.gif;*.jpeg")]
 			);
 
 		}
@@ -384,6 +387,16 @@ package quantum.gui {
 			if (items.length == 0 && !brandNew) {
 				grpCnt.removeGroup(this);
 			}
+
+		}
+
+		public function hintTextHandler():String {
+
+			if (warehouseID == null || warehouseID == "") {
+				return null;
+			}
+
+			return (title == "" ? "[Без названия]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
 
 		}
 

@@ -34,14 +34,17 @@ package quantum.gui {
 		private const DEF_COUNT_VALUE:int = 1;
 		private const SQUARE_SIZE:int = 40; // Def: 68 58
 
+		// App properties
 		private var $position:int;
-		private var $count:int;
-		private var $id:int;
-		private var $imagePath:String;
 		private var $imageCacheID:int;
 		private var $selected:Boolean;
 		private var $parentItemsGroup:ItemsGroup;
 		private var $dataXml:XML;
+
+		// Data properties
+		private var $id:int;
+		private var $count:int;
+		private var $imagePath:String;
 
 		private var ldr:Loader; // Internal Loader for image
 		private var ba:ByteArray;
@@ -49,11 +52,12 @@ package quantum.gui {
 		private var $frame:Shape; // Top frame of the square
 		private var imgMask:Shape;
 		private var overFrame:Shape;
-		private var selectedFrame:Shape;
+		private var selectedFrame:Sprite;
 		private var errorFrame:Shape;
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
 		private var countTextField:TextField;
+		private var hintCorner:Shape;
 
 		private var imgFile:File;
 		private var fst:FileStream;
@@ -94,10 +98,10 @@ package quantum.gui {
 			overFrame.graphics.endFill();
 
 			// Selected frame
-			selectedFrame = new Shape();
-			selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
-			selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
-			selectedFrame.graphics.endFill();
+			selectedFrame = new Sprite();
+			//selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
+			//selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
+			//selectedFrame.graphics.endFill();
 
 			// Error frame
 			errorFrame = new Shape();
@@ -144,6 +148,16 @@ package quantum.gui {
 			countTextField.text = String(count);
 			countTextField.cacheAsBitmap = true;
 
+			// Hint corner
+			hintCorner = new Shape();
+			hintCorner.graphics.beginFill(0xED1614);
+			hintCorner.graphics.moveTo(10, 0);
+			hintCorner.graphics.lineTo(0, 0);
+			hintCorner.graphics.lineTo(0, 10);
+			hintCorner.graphics.lineTo(10, 0);
+			hintCorner.graphics.endFill();
+			hintCorner.filters = [new DropShadowFilter(1, 45, 0, 0.3, 1, 1, 1)];
+
 			// Functional stuff
 			ldr = new Loader();
 			ba = new ByteArray();
@@ -156,6 +170,7 @@ package quantum.gui {
 			addChild(errorFrame);
 			addChild(selectedFrame);
 			addChild(overFrame);
+			addChild(hintCorner);
 			addChild(triangles);
 			addChild(countTextField);
 			addChild($frame);
@@ -166,6 +181,10 @@ package quantum.gui {
 			selectedFrame.visible = false;
 			errorFrame.visible = false;
 			imgMask.visible = false;
+
+			if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
+				hintCorner.visible = false;
+			main.stQuantumMgr.notesMgr.events.addEventListener(Event.CHANGE, notesChange);
 
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
@@ -185,10 +204,17 @@ package quantum.gui {
 			focusRect = false;
 			cacheAsBitmap = true;
 
+			// Hint
+			grpCnt.registerItemsHint(this, hintTextHandler);
+
 			// Start loading image
 			fst.openAsync(imgFile, FileMode.READ);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
 
+		}
+
+		private function notesChange(e:Event):void {
+			main.stQuantumMgr.notesMgr.getNote(imagePath) == "" ? hintCorner.visible = false : hintCorner.visible = true;
 		}
 
 		private function ioError(e:IOErrorEvent):void {
@@ -234,8 +260,6 @@ package quantum.gui {
 				// Set mask
 				ldr.mask = imgMask;
 				imgMask.visible = true;
-
-				//parentItemsGroup.loadNext();
 
 			});
 
@@ -300,6 +324,13 @@ package quantum.gui {
 			fst.openAsync(imgFile, FileMode.READ);
 		}
 
+		public function hintTextHandler():String {
+
+			var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
+			return note != "" ? note : null;
+
+		}
+
 		/**
 		 * PROPERTIES
 		 * ================================================================================
@@ -308,14 +339,14 @@ package quantum.gui {
 		//{ region Properties
 
 		/**
-		 * Порядковый номер в группе
+		 * Идентификатор этого объекта
 		 */
-		public function get position():int {
-			return $position;
+		public function get id():int {
+			return $id;
 		}
 
-		public function set position(value:int):void {
-			$position = value;
+		public function set id(value:int):void {
+			$id = value;
 		}
 
 		/**
@@ -342,17 +373,6 @@ package quantum.gui {
 		}
 
 		/**
-		 * Идентификатор этого объекта
-		 */
-		public function get id():int {
-			return $id;
-		}
-
-		public function set id(value:int):void {
-			$id = value;
-		}
-
-		/**
 		 * Путь до оригинальной картинки в файловой системе
 		 */
 		public function get imagePath():String {
@@ -361,6 +381,19 @@ package quantum.gui {
 
 		public function set imagePath(value:String):void {
 			$imagePath = value;
+		}
+
+		// ================================================================================
+
+		/**
+		 * Порядковый номер в группе
+		 */
+		public function get position():int {
+			return $position;
+		}
+
+		public function set position(value:int):void {
+			$position = value;
 		}
 
 		/**
@@ -386,10 +419,16 @@ package quantum.gui {
 
 			if (value == true) {
 				selectedFrame.visible = true;
+				var anm:MovieClip = new SelectFrameAnimation();
+				anm.width = SQUARE_SIZE;
+				anm.height = SQUARE_SIZE;
+				selectedFrame.addChild(anm);
+
 				overFrame.visible = false;
 				triangles.visible = true;
 			} else {
 				selectedFrame.visible = false;
+				selectedFrame.removeChildAt(0);
 			}
 		}
 

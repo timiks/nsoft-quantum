@@ -349,15 +349,15 @@ package quantum {
 			}
 
 			var shipValues:Object = {};
-			var reArr:Array = [];
+			var reAr:Array = [];
 			var re1:RegExp = /^(.+) \[(.+)\]/;
 
 			var cnt:String;
 			var shipStr:String;
 
-			var arr:Array = file.split(lineEnding);
+			var lines:Array = file.split(lineEnding);
 
-			for each (var line:String in arr) {
+			for each (var line:String in lines) {
 
 				// Comment
 				if (line.search(/^# ?/) != -1)
@@ -372,9 +372,9 @@ package quantum {
 					continue;
 				}
 
-				reArr = line.match(re1);
-				cnt = reArr[1];
-				shipStr = reArr[2];
+				reAr = line.match(re1);
+				cnt = reAr[1];
+				shipStr = reAr[2];
 
 				shipValues[cnt] = shipStr;
 			}

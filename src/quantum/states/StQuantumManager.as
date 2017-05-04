@@ -17,8 +17,10 @@ package quantum.states {
 	import flash.text.TextFormatAlign;
 	import flash.ui.Keyboard;
 	import flash.ui.Mouse;
+	import quantum.data.NotesMgr;
 	import quantum.gui.BigTextInput;
 	import quantum.gui.GroupsContainer;
+	import quantum.gui.HintMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
@@ -34,10 +36,13 @@ package quantum.states {
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
 		private var grpCnt:GroupsContainer;
+		private var hintsCnt:Sprite;
 
 		// Public modules
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
+		private var $hintMgr:HintMgr;
+		private var $notesMgr:NotesMgr;
 
 		public function StQuantumManager():void {
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
@@ -68,9 +73,6 @@ package quantum.states {
 			 * ================================================================================
 			 */
 
-			grpCnt = new GroupsContainer(this);
-			ui.addChildAt(grpCnt, 0);
-
 			// BUTTONS
 			// Exit
 			ui.btnExit.tabEnabled = false;
@@ -94,11 +96,36 @@ package quantum.states {
 
 			});
 
+			// Styles
 			var uicm:UIComponentsMgr = main.uiCmpMgr;
 			uicm.setStyle(ui.taAdr);
 			uicm.setStyle(ui.nsCount);
 			uicm.setStyle(ui.nsCount.textField);
-			//uicm.setStyle(ui.tiGrpTitle);
+			uicm.setStyle(ui.taDetails);
+
+			// Hints
+			hintsCnt = new Sprite;
+			//hintsCnt.width = ui.width;
+			//hintsCnt.height = ui.height;
+			addChildAt(hintsCnt, numChildren);
+			hintMgr = new HintMgr();
+			hintMgr.init(hintsCnt);
+
+			ui.nsCount.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
+			});
+
+			ui.taDetails.addEventListener("change", function(e:Event):void {
+				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
+			});
+
+			// Notes
+			notesMgr = new NotesMgr();
+			notesMgr.init();
+
+			// Groups Container
+			grpCnt = new GroupsContainer(this);
+			ui.addChildAt(grpCnt, 0);
 
 			// Table data composer
 			tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -108,17 +135,6 @@ package quantum.states {
 			grpTitleTextInput = new BigTextInput();
 			grpTitleTextInput.tf = ui.tiGrpTitle;
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
-
-			// Listeners
-			/*
-			ui.tiGrpTitle.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selGrpTitle", ui.tiGrpTitle.text);
-			});
-			*/
-
-			ui.nsCount.addEventListener("change", function(e:Event):void {
-				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
-			});
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 
@@ -145,11 +161,13 @@ package quantum.states {
 
 			// F8
 			if (e.keyCode == Keyboard.F8) {
+
 				if (grpCnt.stage != null) {
 					ui.removeChild(grpCnt);
 				} else {
 					ui.addChild(grpCnt);
 				}
+
 			}
 
 		}
@@ -210,13 +228,12 @@ package quantum.states {
 
 			switch (elmID) {
 
-				/*
-				case "selGrpTitle":
-					ui.tiGrpTitle.text = val as String;
-					break; */
-
 				case "selItemCount":
 					ui.nsCount.value = val;
+					break;
+
+				case "selItemTypeNotes":
+					ui.taDetails.text = val;
 					break;
 
 			}
@@ -260,6 +277,22 @@ package quantum.states {
 
 		public function set tableDataComposer(value:TableDataComposer):void {
 			$tableDataComposer = value;
+		}
+
+		public function get hintMgr():HintMgr {
+			return $hintMgr;
+		}
+
+		public function set hintMgr(value:HintMgr):void {
+			$hintMgr = value;
+		}
+
+		public function get notesMgr():NotesMgr {
+			return $notesMgr;
+		}
+
+		public function set notesMgr(value:NotesMgr):void {
+			$notesMgr = value;
 		}
 
 	}

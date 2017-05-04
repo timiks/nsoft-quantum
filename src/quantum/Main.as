@@ -10,6 +10,7 @@ package quantum {
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
+	import flash.system.Capabilities;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
 
@@ -27,10 +28,11 @@ package quantum {
 
 		private static var $ins:Main;
 
-		// Version
-		private const $version:int 				= 2;
-		private const $versionService:int 		= 2;
+		// App Version
+		private const $version:int 				= 3;
+		private const $versionService:int 		= 0;
 		private const $betaVersion:Boolean 		= false;
+		private const $nextRelease:Boolean 		= false;
 		private const bugs:Boolean 				= false;
 
 		// Functional Members (Modules)
@@ -177,6 +179,7 @@ package quantum {
 		public function get version():String {
 			var vr:String = String($version);
 			if ($versionService > 0 || $version <= 3) vr += "." + String($versionService);
+			if (Capabilities.isDebugger && $nextRelease) vr += " NR";
 			if ($betaVersion) vr += " β";
 			return vr;
 		}

@@ -114,7 +114,7 @@ package quantum.adr {
 					break;
 
 				default:
-					output = "Ошибка форматирования";
+					output = "Ошибка форматирования. Неизвестный формат";
 					break;
 			}
 

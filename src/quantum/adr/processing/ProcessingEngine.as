@@ -11,7 +11,7 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 20;
+		private const $version:int = 21;
 
 		// Data
 		private var usRegions:Vector.<Object>;
@@ -217,7 +217,7 @@ package quantum.adr.processing {
 			var reArr:Array;
 			var rePattern:RegExp;
 
-			if (lc == 3 || lc == 4) {
+			if (lc == 3 || lc == 4 || lc == 5) {
 
 				// #SPECIAL: Проверка адреса без страны отдельно на последней строчке (Голландия)
 				rePattern = /(.+) ?(Netherlands)$/;
@@ -250,10 +250,26 @@ package quantum.adr.processing {
 
 				// #SPECIAL: Сингапур
 				rePattern = /^Singapore/;
-				reArr = theLastLine.match(rePattern);
+
+				reArr = (lines[lines.length-2] as String).match(rePattern);
+
 				if (reArr != null) {
-					lines.push("Singapore");
+
+					lines.pop(); // Delete last line with post code
+					lines.push(lines[lines.length-1]); // Add new line with string 'Singapore', which was on the last line before this op.
+					var lineBeforeLast:String = lines[lines.length-2] as String;
+					lineBeforeLast += " " + theLastLine; // Add post code to the line before last (Singapore)
+					lines[lines.length-2] = lineBeforeLast;
 					lc = lines.length;
+
+				} else {
+
+					reArr = theLastLine.match(rePattern);
+					if (reArr != null) {
+						lines.push("Singapore");
+						lc = lines.length;
+					}
+
 				}
 
 			}
