@@ -30,12 +30,7 @@ package quantum.gui {
 		private const ITEMS_SPACING:int = 6; // In pixels
 		private const ITEMS_PLACING_Y_OFFSET:int = 45;
 
-		private var totalItems:int;
-		private var totalColumns:int;
-		private var items:Vector.<SquareItem>;
-		private var nextPlace:Point;
-		private var imgFile:File;
-
+		// Fields of app properties
 		private var $displayObject:ItemsGroupMC;
 		private var $id:int;
 		private var $selected:Boolean;
@@ -44,11 +39,17 @@ package quantum.gui {
 		private var $brandNew:Boolean;
 		private var $empty:Boolean;
 
-		// Data fields
+		// Fields of data properties
 		private var $title:String;
 		private var $warehouseID:String;
 
 		private var main:Main;
+
+		private var totalItems:int;
+		private var totalColumns:int;
+		private var items:Vector.<SquareItem>;
+		private var nextPlace:Point;
+		private var imgFile:File;
 
 		private var btnSelGrp:MovieClip;
 		private var btnNewItem:SimpleButton;
@@ -77,7 +78,6 @@ package quantum.gui {
 			nextPlace = new Point();
 			imgFile = new File();
 			constructGrid();
-			//startLoadingItemsImages(items);
 
 			/**
 			 * UI functionality
@@ -160,41 +160,7 @@ package quantum.gui {
 			trace("Group contents has been exported to file: " + exportFile.name);
 
 		}
-/*
-		private var imgLoadTimer:Timer;
-		private var loadIdx:int;
-		private var loadItems:Vector.<SquareItem>;
-		private function startLoadingItemsImages(items:Vector.<SquareItem>):void {
-			if (items.length == 0) return;
-			//imgLoadTimer = new Timer(10, items.length);
-			//imgLoadTimer.addEventListener(TimerEvent.TIMER, onTimer);
-			//imgLoadTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-			loadItems = items;
-			loadIdx = 0;
-			//imgLoadTimer.start();
-			onTimer(null);
-		}
 
-		private function onTimer(e:TimerEvent):void {
-			if (loadIdx < loadItems.length) {
-				loadItems[loadIdx].startLoadingImage();
-				loadIdx++;
-			} else {
-				loadItems = null;
-			}
-		}
-
-		public function loadNext():void {
-			onTimer(null);
-		}
-
-		private function onTimerComplete(e:TimerEvent):void {
-			imgLoadTimer.removeEventListener(TimerEvent.TIMER, onTimer);
-			imgLoadTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-			imgLoadTimer = null;
-			loadItems = null;
-		}
-*/
 		private function multipleFilesSelect(e:FileListEvent):void {
 
 			for each (var file:File in e.files) {
@@ -213,26 +179,9 @@ package quantum.gui {
 			grpCnt.compositionChanged();
 
 		}
-/*
-		private function onImgFileSelect(e:Event):void {
 
-			var file:File = e.target as File;
-			var newItem:SquareItem = addItem(file.nativePath); // "D:\\Картинки\\Всякое\\Panda.jpg"
-			newItem.parentItemsGroup = this;
-			displayObject.addChild(newItem);
-			newItem.init();
-			calculateNextPlace();
-			newItem.x = nextPlace.x;
-			newItem.y = nextPlace.y;
-			grpCnt.compositionChanged();
-			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
-			brandNew = false;
-
-		}
-*/
 		private function newItemBtnClick(e:MouseEvent):void {
 
-			//imgFile.browseForOpen("Выберите картинку для объекта", [new FileFilter("Изображение", "*.jpg;*.png;*.gif")]);
 			imgFile.browseForOpenMultiple(
 				"Выберите картинку (или несколько)",
 				[new FileFilter("Изображение", "*.jpg;*.png;*.gif;*.jpeg")]

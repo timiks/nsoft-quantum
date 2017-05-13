@@ -56,6 +56,11 @@ package quantum.gui {
 
 		}
 
+		/**
+		 * PUBLIC INTERFACE
+		 * ================================================================================
+		 */
+
 		public function registerHint(disOb:InteractiveObject, hint:Hint):void {
 
 		}
