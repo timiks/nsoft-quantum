@@ -30,9 +30,9 @@ package quantum {
 
 		// App Version
 		private const $version:int 				= 3;
-		private const $versionService:int 		= 1;
+		private const $versionService:int 		= 2;
 		private const $betaVersion:Boolean 		= false;
-		private const $nextRelease:Boolean 		= false;
+		private const $nextRelease:Boolean 		= true;
 		private const bugs:Boolean 				= false;
 
 		// Functional Members (Modules)
