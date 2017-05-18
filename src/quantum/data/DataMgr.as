@@ -331,7 +331,7 @@ package quantum.data {
 
 			if (op == OP_REMOVE) {
 
-				delete dataXml.itemsGroup[grp.dataXml.childIndex()];
+				delete dataXml.children()[grp.dataXml.childIndex()];
 
 			}
 
