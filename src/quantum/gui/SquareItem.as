@@ -64,6 +64,7 @@ package quantum.gui {
 		private var triangles:Sprite;
 		private var countTextField:TextField;
 		private var hintCorner:Shape;
+		private var selectFrameAnimation:MovieClip;
 
 		public function SquareItem(imgPath:String, count:int):void {
 
@@ -98,6 +99,11 @@ package quantum.gui {
 			//selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
 			//selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
 			//selectedFrame.graphics.endFill();
+
+			// Selection animation
+			selectFrameAnimation = new SelectFrameAnimation();
+			selectFrameAnimation.width = SQUARE_SIZE;
+			selectFrameAnimation.height = SQUARE_SIZE;
 
 			// Error frame
 			errorFrame = new Shape();
@@ -407,21 +413,28 @@ package quantum.gui {
 		}
 
 		public function set selected(value:Boolean):void {
+
 			$selected = value;
 
 			if (value == true) {
+
 				selectedFrame.visible = true;
-				var anm:MovieClip = new SelectFrameAnimation();
-				anm.width = SQUARE_SIZE;
-				anm.height = SQUARE_SIZE;
-				selectedFrame.addChild(anm);
+
+				if (selectedFrame.numChildren == 0)
+					selectedFrame.addChild(selectFrameAnimation);
 
 				overFrame.visible = false;
 				triangles.visible = true;
+
 			} else {
+
 				selectedFrame.visible = false;
-				selectedFrame.removeChildAt(0);
+
+				if (selectedFrame.numChildren > 0)
+					selectedFrame.removeChildAt(0);
+
 			}
+
 		}
 
 		public function get frame():Shape {
