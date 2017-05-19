@@ -63,6 +63,11 @@ package quantum.data {
 
 		}
 
+		/**
+		 * PROPERTIES
+		 * ================================================================================
+		 */
+
 		public function get events():EventDispatcher {
 			return $events;
 		}

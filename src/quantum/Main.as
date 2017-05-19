@@ -29,10 +29,10 @@ package quantum {
 		private static var $ins:Main;
 
 		// App Version
-		private const $version:int 				= 3;
-		private const $versionService:int 		= 2;
+		private const $version:int 				= 4;
+		private const $versionService:int 		= 0;
 		private const $betaVersion:Boolean 		= false;
-		private const $nextRelease:Boolean 		= false;
+		private const $nextRelease:Boolean 		= true;
 		private const bugs:Boolean 				= false;
 
 		// Functional Members (Modules)
@@ -42,6 +42,7 @@ package quantum {
 		private var $trayMgr:TrayMgr;
 		private var $uiCmpMgr:UIComponentsMgr;
 		private var $soundMgr:SoundMgr;
+		private var $backupMst:BackupMaster;
 
 		// Addressy
 		private var $prcEng:ProcessingEngine;
@@ -107,6 +108,9 @@ package quantum {
 			$dataMgr = new DataMgr();
 			$dataMgr.load();
 
+			// Backup Master
+			$backupMst = new BackupMaster();
+
 			// Tray
 			$trayMgr = new TrayMgr();
 			$trayMgr.initTray();
@@ -154,7 +158,7 @@ package quantum {
 			NativeApplication.nativeApplication.dispatchEvent(new Event(Event.EXITING));
 			settings.saveFile();
 			dataMgr.saveFile();
-			if (!dataMgr.backupDone) dataMgr.backUpData();
+			// {place for backup call}
 			NativeApplication.nativeApplication.exit();
 
 		}
@@ -234,6 +238,10 @@ package quantum {
 
 		public function get soundMgr():SoundMgr {
 			return $soundMgr;
+		}
+
+		public function get backupMst():BackupMaster {
+			return $backupMst;
 		}
 
 	}

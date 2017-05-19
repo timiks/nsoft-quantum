@@ -1,5 +1,6 @@
 package quantum.data {
 
+	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
@@ -7,6 +8,7 @@ package quantum.data {
 	import flash.globalization.DateTimeFormatter;
 	import flash.net.FileReference;
 	import flash.utils.Timer;
+	import quantum.events.DataEvent;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.Main;
@@ -33,11 +35,9 @@ package quantum.data {
 		private var fstream:FileStream;
 
 		private var tmrSaveDelay:Timer;
-		private var backUpTimer:Timer;
 		private var loaded:Boolean = false;
-		private var backupOn:Boolean;
 
-		private var $backupDone:Boolean = false;
+		private var $events:EventDispatcher;
 
 		public function DataMgr():void {}
 
@@ -51,6 +51,7 @@ package quantum.data {
 
 			main = Main.ins;
 
+			$events = new EventDispatcher();
 			dataFile = File.applicationStorageDirectory.resolvePath("data.xml");
 			fstream = new FileStream();
 
@@ -115,9 +116,6 @@ package quantum.data {
 
 				// [To-Do Here ↓]: Errors check
 
-				// Check backup settings
-				backupOn = main.settings.getKey(Settings.backupData);
-
 				loaded = true;
 
 			}
@@ -150,8 +148,7 @@ package quantum.data {
 				tmrSaveDelay.start();
 			}
 
-			if (backupOn && backUpTimer == null)
-				startBackUpCountdown();
+			events.dispatchEvent(new DataEvent(DataEvent.DATA_UPDATE));
 
 		}
 
@@ -159,24 +156,6 @@ package quantum.data {
 			saveFile();
 			tmrSaveDelay.removeEventListener(TimerEvent.TIMER, saveOnTimer);
 			tmrSaveDelay = null;
-		}
-
-		private function startBackUpCountdown():void {
-
-			if (backUpTimer == null) {
-				backUpTimer = new Timer(21600000, 1); // 6 hours after first data update
-				backUpTimer.addEventListener(TimerEvent.TIMER, timeToBackUp);
-				backUpTimer.start();
-			}
-
-		}
-
-		private function timeToBackUp(e:TimerEvent):void {
-
-			backUpData();
-			backUpTimer.removeEventListener(TimerEvent.TIMER, timeToBackUp);
-			backUpTimer = null;
-
 		}
 
 		public function saveFile():void {
@@ -191,27 +170,12 @@ package quantum.data {
 			main.logRed("Data File Saved");
 		}
 
-		public function backUpData():void {
-
-			if (!backupOn) return;
-
-			// Back up data file
-			var date:Date = new Date();
-			var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
-			var dstr:String;
-			dtf.setDateTimePattern("dd.MM.yyyy-HH.mm.ss");
-			dstr = dtf.format(date);
-
-			var dataFileBackup:FileReference = File.applicationStorageDirectory.resolvePath("backup\\data-"+dstr+".bak");
-			dataFile.copyTo(dataFileBackup, true);
-
-			$backupDone = true;
-			main.logRed("Backup Done");
-
-		}
-
 		public function dataHasBeenUpdated():void {
 			dataUpdate();
+		}
+
+		public function getDataFileRef():File {
+			return dataFile;
 		}
 
 		/**
@@ -377,8 +341,8 @@ package quantum.data {
 		 * ================================================================================
 		 */
 
-		public function get backupDone():Boolean {
-			return $backupDone;
+		public function get events():EventDispatcher {
+			return $events;
 		}
 
 	}
