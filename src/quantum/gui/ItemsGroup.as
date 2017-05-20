@@ -115,13 +115,18 @@ package quantum.gui {
 		}
 
 		private function menuItmWarehouseSwitchClick(e:Event):void {
+
 			if (warehouseID == Warehouse.BEIJING) {
+
 				warehouseID = Warehouse.CANTON;
+
 			} else {
+
 				warehouseID = Warehouse.BEIJING;
+
 			}
+
 			menuItmWarehouseSwitch.label = getMenuItmWarehouseSwitchLabel();
-			main.dataMgr.dataHasBeenUpdated();
 		}
 
 		private function menuItmExportClick(e:Event):void {

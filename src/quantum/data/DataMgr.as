@@ -170,10 +170,6 @@ package quantum.data {
 			main.logRed("Data File Saved");
 		}
 
-		public function dataHasBeenUpdated():void {
-			dataUpdate();
-		}
-
 		public function getDataFileRef():File {
 			return dataFile;
 		}
@@ -267,7 +263,6 @@ package quantum.data {
 			}
 
 			dataUpdate(5500);
-
 
 		}
 
