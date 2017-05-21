@@ -19,6 +19,7 @@ package quantum.states {
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
 	import flash.events.TimerEvent;
+	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
@@ -85,7 +86,7 @@ package quantum.states {
 			win.stage.align = StageAlign.TOP_LEFT;
 			win.stage.stageWidth = 550;
 			win.stage.stageHeight = 610;
-			win.visible = true;
+			//win.visible = true;
 			win.title = "Addressy";
 
 			win.stage.addChild(this);
@@ -620,7 +621,12 @@ package quantum.states {
 
 			if (act == true) {
 
-				if (!isVisible) win.visible = true;
+				if (!isVisible) {
+					win.x = (Capabilities.screenResolutionX / 2) - (win.width / 2);
+					win.y = (Capabilities.screenResolutionY / 2) - (win.height / 2);
+					win.visible = true;
+				}
+
 				NativeApplication.nativeApplication.activate(win);
 
 			} else {
