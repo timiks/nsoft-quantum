@@ -7,9 +7,11 @@ package quantum {
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.net.FileReference;
+	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	import quantum.adr.FormatMgr;
+	import quantum.dev.DevSettings;
 	import quantum.events.SettingEvent;
 
 	/**
@@ -156,10 +158,14 @@ package quantum {
 		}
 
 		public function saveFile():void {
+
+			if (Capabilities.isDebugger && !DevSettings.appSettingsSaveOn) return;
+
 			fstream.open(settingsFile, FileMode.WRITE);
 			fstream.writeUTFBytes(packJSON(sets));
 			fstream.close();
 			main.logRed("Settings File Saved");
+
 		}
 
 		private function packJSON(obj:Object):String {

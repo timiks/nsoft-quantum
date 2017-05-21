@@ -13,9 +13,11 @@ package quantum.gui {
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Rectangle;
+	import flash.system.Capabilities;
 	import flash.ui.Keyboard;
 	import flash.utils.Timer;
 	import quantum.data.DataMgr;
+	import quantum.dev.DevSettings;
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.states.StQuantumManager;
@@ -61,6 +63,8 @@ package quantum.gui {
 
 			cnt.y = CNT_Y_OFFSET;
 			focusRect = false;
+
+			if (Capabilities.isDebugger && !DevSettings.loadData) return;
 
 			// Load groups
 			groups = main.dataMgr.getAllGroups();

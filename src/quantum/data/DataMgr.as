@@ -7,7 +7,9 @@ package quantum.data {
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
 	import flash.net.FileReference;
+	import flash.system.Capabilities;
 	import flash.utils.Timer;
+	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
@@ -159,6 +161,9 @@ package quantum.data {
 		}
 
 		public function saveFile():void {
+
+			if (Capabilities.isDebugger && !DevSettings.dataSaveOn) return;
+
 			// XML output settings
 			XML.prettyPrinting = true;
 			XML.prettyIndent = 4;
@@ -168,6 +173,7 @@ package quantum.data {
 			fstream.close();
 
 			main.logRed("Data File Saved");
+
 		}
 
 		public function getDataFileRef():File {
