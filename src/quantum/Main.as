@@ -13,6 +13,7 @@ package quantum {
 	import flash.system.Capabilities;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.states.StSettings;
 
 	import quantum.adr.processing.ProcessingEngine;
 	import quantum.adr.BgProcessor;
@@ -52,6 +53,7 @@ package quantum {
 		// States
 		private var $stQuantumMgr:StQuantumManager;
 		private var $stAddressyUI:StAddressyUI;
+		private var $stSettings:StSettings;
 
 		private var inited:Boolean;
 		private var args:Array;
@@ -133,6 +135,9 @@ package quantum {
 
 			// Addressy UI State [with Window]
 			$stAddressyUI = new StAddressyUI();
+
+			// Settings State [with Window]
+			$stSettings = new StSettings();
 
 			// Addressy's Background Processing Service
 			$bgProcessor = new BgProcessor();
@@ -230,6 +235,10 @@ package quantum {
 
 		public function get stQuantumMgr():StQuantumManager {
 			return $stQuantumMgr;
+		}
+
+		public function get stSettings():StSettings {
+			return $stSettings;
 		}
 
 		public function get uiCmpMgr():UIComponentsMgr {

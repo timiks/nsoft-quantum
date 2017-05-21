@@ -88,6 +88,14 @@ package quantum.states {
 
 			});
 
+			// Settings window show
+			ui.btnSettings.tabEnabled = false;
+			ui.btnSettings.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+
+				main.stSettings.showWindow(true);
+
+			});
+
 			// New group
 			ui.btnNewGroup.tabEnabled = false;
 			ui.btnNewGroup.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
