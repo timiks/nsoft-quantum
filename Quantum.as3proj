@@ -54,6 +54,7 @@
   <libraryPaths>
     <element path="lib\UI.swc" />
     <element path="..\..\..\Bin\Hub\AS3 Libs\Flash UI Components\Components.swc" />
+    <element path="D:\Bin\Hub\AS3 Libs\Async Image Encoders 1.0.4.swc" />
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>

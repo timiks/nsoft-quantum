@@ -2,6 +2,7 @@ package quantum.gui {
 
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.InteractiveObject;
@@ -424,6 +425,12 @@ package quantum.gui {
 			selectRect.visible = true;
 
 			//baseState.updateUiElement("selGrpTitle", value == null ? "" : value.title);
+		}
+
+		public function get image():Bitmap {
+			var bd:BitmapData = new BitmapData(cnt.width + SIDE_MARGIN, cnt.height + SIDE_MARGIN, false, 0xFFFFFF);
+			bd.draw(cnt);
+			return new Bitmap(bd);
 		}
 
 	}

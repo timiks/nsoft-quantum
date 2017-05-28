@@ -35,10 +35,10 @@ package quantum.states {
 		private var main:Main;
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
-		private var grpCnt:GroupsContainer;
 		private var hintsCnt:Sprite;
 
 		// Public modules
+		private var $grpCnt:GroupsContainer;
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
@@ -132,7 +132,7 @@ package quantum.states {
 			notesMgr.init();
 
 			// Groups Container
-			grpCnt = new GroupsContainer(this);
+			$grpCnt = new GroupsContainer(this);
 			ui.addChildAt(grpCnt, 0);
 
 			// Table data composer
@@ -170,7 +170,7 @@ package quantum.states {
 			// F8
 			if (e.keyCode == Keyboard.F8) {
 
-				main.backupMst.backUpData();
+				main.backupMst.doBackUp();
 				/*
 				if (grpCnt.stage != null) {
 					ui.removeChild(grpCnt);
@@ -304,6 +304,10 @@ package quantum.states {
 
 		public function set notesMgr(value:NotesMgr):void {
 			$notesMgr = value;
+		}
+
+		public function get grpCnt():GroupsContainer {
+			return $grpCnt;
 		}
 
 	}

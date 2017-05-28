@@ -34,6 +34,7 @@ package quantum {
 		public static const defaultWarehouse:String = "defaultWarehouse";
 		public static const lastBackupTime:String = "lastBackupTime";
 		public static const backupInterval:String = "backupInterval";
+		public static const backupCreateImage:String = "backupCreateImage";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -70,6 +71,7 @@ package quantum {
 	/*GUI*/	allSets[defaultWarehouse]				= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
 			allSets[lastBackupTime]					= new Setting(lastBackupTime, Number, 0, "4.0");
 	/*GUI*/	allSets[backupInterval]					= new Setting(backupInterval, int, 60, "4.0"); // In minutes
+	/*GUI*/	allSets[backupCreateImage]				= new Setting(backupCreateImage, Boolean, true, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
