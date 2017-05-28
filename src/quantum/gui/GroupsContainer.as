@@ -30,8 +30,17 @@ package quantum.gui {
 	 */
 	public class GroupsContainer extends Sprite {
 
+		private const SIDE_MARGIN:int = 14;
+		private const CNT_Y_OFFSET:int = 42;
+		private const GRP_SPACING:int = 14; // 30
+		
+		// Fields of app properties
+		private var $selectedItem:SquareItem;
+		private var $selectedGroup:ItemsGroup;
+
 		private var main:Main;
 		private var baseState:StQuantumManager;
+		
 		private var groups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
 		private var cnt:Sprite;
 		private var scb:UIScrollBar;
@@ -40,13 +49,6 @@ package quantum.gui {
 		private var selectRect:Shape;
 		private var selectTimer:Timer;
 		private var centeringOffsetRatio:int;
-
-		private var $selectedItem:SquareItem;
-		private var $selectedGroup:ItemsGroup;
-
-		private const SIDE_MARGIN:int = 14;
-		private const CNT_Y_OFFSET:int = 42;
-		private const GRP_SPACING:int = 14; // 30
 
 		public function GroupsContainer(baseState:StQuantumManager):void {
 			this.baseState = baseState;

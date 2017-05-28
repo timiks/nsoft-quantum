@@ -77,7 +77,9 @@ package quantum.states {
 			// Exit
 			ui.btnExit.tabEnabled = false;
 			ui.btnExit.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+
 				main.exitApp();
+
 			});
 
 			// Addressy UI show
