@@ -55,7 +55,7 @@ package quantum {
 		private var $stAddressyUI:StAddressyUI;
 		private var $stSettings:StSettings;
 
-		private var inited:Boolean;
+		private var $inited:Boolean;
 		private var args:Array;
 
 		public function Main():void {
@@ -66,7 +66,7 @@ package quantum {
 		private function appInvoke(e:InvokeEvent):void {
 			args = e.arguments;
 
-			if (inited) {
+			if ($inited) {
 
 				if (args[0] == "/toggleBgPrc") {
 
@@ -145,7 +145,7 @@ package quantum {
 				$bgProcessor.on();
 			}
 
-			inited = true;
+			$inited = true;
 		}
 
 		/**
@@ -251,6 +251,10 @@ package quantum {
 
 		public function get backupMst():BackupMaster {
 			return $backupMst;
+		}
+		
+		public function get inited():Boolean {
+			return $inited;
 		}
 
 	}
