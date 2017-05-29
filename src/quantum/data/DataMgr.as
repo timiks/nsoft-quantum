@@ -173,6 +173,7 @@ package quantum.data {
 			fstream.close();
 
 			main.logRed("Data File Saved");
+			events.dispatchEvent(new DataEvent(DataEvent.DATA_SAVE));
 
 		}
 

@@ -10,6 +10,7 @@ package quantum.events {
 	public class DataEvent extends Event {
 
 		public static const DATA_UPDATE:String = "dataUpdate";
+		public static const DATA_SAVE:String = "dataSave";
 
 		private var $dataFileRef:File;
 

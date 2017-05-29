@@ -430,11 +430,28 @@ package quantum.gui {
 		}
 
 		public function get image():Bitmap {
-			var bd:BitmapData = new BitmapData(cnt.width + SIDE_MARGIN, cnt.height + SIDE_MARGIN, false, 0xFFFFFF);
-			bd.draw(cnt);
+			
+			var imgSprite:Sprite = new Sprite();
+			
+			var grpImage:Bitmap;
+			var sizesSum:int = 0;
+			for each (var g:ItemsGroup in groups) 
+			{
+				grpImage = new Bitmap(new BitmapData(g.realWidth, g.displayObject.height));
+				grpImage.bitmapData.draw(g.displayObject);
+				grpImage.x = SIDE_MARGIN + sizesSum;
+				grpImage.y = SIDE_MARGIN;
+				imgSprite.addChild(grpImage);
+				sizesSum += g.realWidth + GRP_SPACING;
+			}
+			
+			var bd:BitmapData = new BitmapData(imgSprite.width + SIDE_MARGIN*2, imgSprite.height + SIDE_MARGIN*2, false, 0xFFFFFF);
+			bd.draw(imgSprite);
+			
 			return new Bitmap(bd);
+			
 		}
-
+			
 	}
 
 }

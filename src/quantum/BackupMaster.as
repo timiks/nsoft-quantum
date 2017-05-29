@@ -1,7 +1,5 @@
 package quantum
 {
-	import com.leeburrows.encoders.AsyncJPGEncoder;
-	import com.leeburrows.encoders.supportClasses.AsyncImageEncoderEvent;
 	import flash.display.Bitmap;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
@@ -12,6 +10,8 @@ package quantum
 	import flash.utils.ByteArray;
 	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
+	import com.leeburrows.encoders.AsyncJPGEncoder;
+	import com.leeburrows.encoders.supportClasses.AsyncImageEncoderEvent;
 	
 	/**
 	 * ...
@@ -20,10 +20,12 @@ package quantum
 	public class BackupMaster
 	{
 		private const backupDirName:String = "backup"; // Relative to APD directory
-		
-		private var backupOn:Boolean;
+		private const cleanupInterval:int = 20;
 		
 		private var main:Main;
+		
+		private var backupDir:File;
+		private var backupOn:Boolean;
 		
 		public function BackupMaster():void
 		{
@@ -32,11 +34,42 @@ package quantum
 			// Check backup settings
 			backupOn = main.settings.getKey(Settings.backupData);
 			
-			// Subscribe to data update event
-			main.dataMgr.events.addEventListener(DataEvent.DATA_UPDATE, dataUpdated);
+			// Reference to backup directory root
+			backupDir = File.applicationStorageDirectory.resolvePath(backupDirName);
+			
+			// Process backup copies
+			if (main.settings.getKey(Settings.backupCleanup)) 
+			{
+				processBackupCopies();
+			}
+			
+			// Subscribe to data save event
+			main.dataMgr.events.addEventListener(DataEvent.DATA_SAVE, dataSaved);
 		}
 		
-		private function dataUpdated(e:DataEvent):void
+		private function processBackupCopies():void 
+		{
+			var dirContents:Array = backupDir.getDirectoryListing();
+			
+			if (dirContents.length == 0)
+				return;
+			
+			var d:Date = new Date();
+			for each (var f:File in dirContents) 
+			{
+				if (f.isDirectory) 
+				{
+					var timeLapseMs:Number = d.time - f.creationDate.time;
+					if (millisecondsToDays(timeLapseMs) >= cleanupInterval) 
+					{
+						main.logRed("Deleting old backup: " + f.name);
+						f.deleteDirectoryAsync(true);
+					}
+				}
+			}
+		}
+		
+		private function dataSaved(e:DataEvent):void
 		{
 			doBackUp();
 		}
@@ -76,15 +109,13 @@ package quantum
 			dstr = dtf.format(date);
 			
 			// Back up data file
-			var dataFileBackup:FileReference =
-				File.applicationStorageDirectory.resolvePath(backupDirName + "\\" + dateDirName + "\\" + "data-" + dstr + ".bak");
+			var dataFileBackup:FileReference = backupDir.resolvePath(dateDirName + "\\" + "data-" + dstr + ".bak");
 			dataFile.copyToAsync(dataFileBackup, true);
 			
 			// Save image
 			if (main.settings.getKey(Settings.backupCreateImage))
 			{
-				var backupImg:File =
-					File.applicationStorageDirectory.resolvePath(backupDirName + "\\" + dateDirName + "\\" + "image-" + dstr + ".jpg");
+				var backupImg:File = backupDir.resolvePath(dateDirName + "\\" + "image-" + dstr + ".jpg");
 				
 				var img:Bitmap = main.stQuantumMgr.grpCnt.image;
 				
@@ -101,7 +132,7 @@ package quantum
 				function imageEncodeComplete(e:AsyncImageEncoderEvent):void 
 				{
 					var fstream:FileStream = new FileStream();
-					fstream.openAsync(backupImg, FileMode.WRITE);
+					fstream.open(backupImg, FileMode.WRITE);
 					fstream.writeBytes(jpegEncoder.encodedBytes);
 					fstream.close();
 					
@@ -124,6 +155,11 @@ package quantum
 		private function millisecondsToMinutes(ms:Number):int
 		{
 			return int(Math.round(ms / 60 / 1000));
+		}
+		
+		private function millisecondsToDays(ms:Number):int 
+		{
+			return int(Math.round(ms / 60 / 1000 / 60 / 24));
 		}
 	}
 }
