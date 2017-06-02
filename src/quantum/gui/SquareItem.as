@@ -209,9 +209,10 @@ package quantum.gui {
 			// Hint
 			grpCnt.registerItemsHint(this, hintTextHandler);
 
-			// Start loading image
-			fst.openAsync(imgFile, FileMode.READ);
+			// Prepare for loading image (GroupsContainer will start it)
+			fst.addEventListener(Event.COMPLETE, onImgLoad);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
+			grpCnt.registerItemForImgLoading(this);
 
 		}
 
@@ -221,10 +222,15 @@ package quantum.gui {
 
 		private function ioError(e:IOErrorEvent):void {
 			errorFrame.visible = true;
+			fst.removeEventListener(Event.COMPLETE, onImgLoad);
+			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
 		}
 
 		private function onImgLoad(e:Event):void {
-
+			
+			fst.removeEventListener(Event.COMPLETE, onImgLoad);
+			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
+			
 			fst.readBytes(ba, 0, fst.bytesAvailable);
 			fst.close();
 			ldr.loadBytes(ba);
@@ -327,6 +333,12 @@ package quantum.gui {
 			var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
 			return note != "" ? note : null;
 
+		}
+		
+		public function startLoadingImage():void 
+		{
+			// Start loading image
+			fst.openAsync(imgFile, FileMode.READ);
 		}
 
 		/**

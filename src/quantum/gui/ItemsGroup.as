@@ -51,6 +51,7 @@ package quantum.gui {
 		private var items:Vector.<SquareItem>;
 		private var nextPlace:Point;
 		private var imgFile:File;
+		private var multipleAddingMode:Boolean;
 
 		private var btnSelGrp:MovieClip;
 		private var btnNewItem:SimpleButton;
@@ -108,6 +109,7 @@ package quantum.gui {
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OVER, newItemBtnOver);
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OUT, newItemBtnOut);
 			imgFile.addEventListener(FileListEvent.SELECT_MULTIPLE, multipleFilesSelect);
+			grpCnt.events.addEventListener(GroupsContainer.EVENT_ITEMS_IMG_LOADING_COMPLETE, grpCntImgLoadingComplete);
 
 		}
 
@@ -169,10 +171,19 @@ package quantum.gui {
 
 		private function multipleFilesSelect(e:FileListEvent):void {
 
+			multipleAddingMode = true;
+			
 			for each (var file:File in e.files) {
 				addItem(file.nativePath);
 			}
-
+			
+			grpCnt.startItemsImgLoadingTimer();
+			
+		}
+		
+		private function grpCntImgLoadingComplete(e:Event):void 
+		{
+			if (multipleAddingMode) multipleAddingMode = false;
 		}
 
 		private function newItemBtnClick(e:MouseEvent):void {
@@ -324,6 +335,8 @@ package quantum.gui {
 			grpCnt.compositionChanged();
 			if (brandNew) brandNew = false;
 			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
+			
+			if (!multipleAddingMode) grpCnt.startItemsImgLoadingTimer();
 
 			return newItem;
 

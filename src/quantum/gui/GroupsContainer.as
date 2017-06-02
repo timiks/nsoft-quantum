@@ -10,6 +10,7 @@ package quantum.gui
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
@@ -30,6 +31,8 @@ package quantum.gui
 	 */
 	public class GroupsContainer extends Sprite
 	{
+		public static const EVENT_ITEMS_IMG_LOADING_COMPLETE:String = "eventItemsImgLoadingComplete";
+		
 		private const SIDE_MARGIN:int = 14;
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
@@ -37,6 +40,7 @@ package quantum.gui
 		// Fields of app properties
 		private var $selectedItem:SquareItem;
 		private var $selectedGroup:ItemsGroup;
+		private var $events:EventDispatcher;
 		
 		private var main:Main;
 		private var baseState:StQuantumManager;
@@ -49,6 +53,8 @@ package quantum.gui
 		private var selectRect:Shape;
 		private var selectTimer:Timer;
 		private var centeringOffsetRatio:int;
+		private var itemsImgLoadingQueue:Vector.<SquareItem>;
+		private var itemsImgLoadingTimer:Timer;
 		
 		public function GroupsContainer(baseState:StQuantumManager):void
 		{
@@ -60,6 +66,8 @@ package quantum.gui
 		private function init(e:Event = null):void
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
+			
+			$events = new EventDispatcher();
 			
 			groups = new Vector.<ItemsGroup>();
 			cnt = new Sprite();
@@ -80,6 +88,11 @@ package quantum.gui
 			
 			else
 			{
+				// Init items images loading queue
+				itemsImgLoadingQueue = new Vector.<SquareItem>();
+				itemsImgLoadingTimer = new Timer(200, 0);
+				itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
+				
 				// Construct groups
 				var sizesSum:int = 0;
 				
@@ -95,6 +108,9 @@ package quantum.gui
 				}
 				
 				sizesSum -= GRP_SPACING;
+				
+				// Start items images loading queue
+				itemsImgLoadingTimer.start();
 			}
 			
 			// Scroll
@@ -260,6 +276,28 @@ package quantum.gui
 			baseState.grpTitleTextInput.hide();
 		}
 		
+		private const simultaneousLoadingAmout:int = 4;
+		
+		private function onItemsImgLoadingTimer(e:TimerEvent):void 
+		{
+			if (itemsImgLoadingQueue.length == 0) {
+				itemsImgLoadingTimer.stop();
+				trace("Items images loading complete");
+				events.dispatchEvent(new Event(EVENT_ITEMS_IMG_LOADING_COMPLETE));
+				return;
+			}
+			
+			for (var i:int = 0; i < simultaneousLoadingAmout; i++) 
+			{	
+				if (itemsImgLoadingQueue.length == 0) break;
+				var l:int = itemsImgLoadingQueue.length;
+				var randomIdx:int = int(Math.random() * ((l-1) - 0 + 1)) + 0;
+				var firedItem:SquareItem = itemsImgLoadingQueue[randomIdx];
+				firedItem.startLoadingImage();
+				itemsImgLoadingQueue.splice(itemsImgLoadingQueue.indexOf(firedItem), 1);
+			}
+		}
+		
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
@@ -414,6 +452,16 @@ package quantum.gui
 			}
 		}
 		
+		public function registerItemForImgLoading(itm:SquareItem):void 
+		{
+			itemsImgLoadingQueue.push(itm);
+		}
+		
+		public function startItemsImgLoadingTimer():void 
+		{
+			itemsImgLoadingTimer.start();
+		}
+		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
@@ -482,6 +530,11 @@ package quantum.gui
 			bd.draw(imgSprite);
 			
 			return new Bitmap(bd);
+		}
+		
+		public function get events():EventDispatcher 
+		{
+			return $events;
 		}
 	}
 }
