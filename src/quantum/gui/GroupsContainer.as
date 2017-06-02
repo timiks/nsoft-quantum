@@ -1,5 +1,5 @@
-package quantum.gui {
-
+package quantum.gui
+{
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
 	import flash.display.Bitmap;
@@ -23,13 +23,13 @@ package quantum.gui {
 	import quantum.Settings;
 	import quantum.states.StQuantumManager;
 	import quantum.Warehouse;
-
+	
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class GroupsContainer extends Sprite {
-
+	public class GroupsContainer extends Sprite
+	{
 		private const SIDE_MARGIN:int = 14;
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
@@ -37,7 +37,7 @@ package quantum.gui {
 		// Fields of app properties
 		private var $selectedItem:SquareItem;
 		private var $selectedGroup:ItemsGroup;
-
+		
 		private var main:Main;
 		private var baseState:StQuantumManager;
 		
@@ -49,79 +49,80 @@ package quantum.gui {
 		private var selectRect:Shape;
 		private var selectTimer:Timer;
 		private var centeringOffsetRatio:int;
-
-		public function GroupsContainer(baseState:StQuantumManager):void {
+		
+		public function GroupsContainer(baseState:StQuantumManager):void
+		{
 			this.baseState = baseState;
 			main = Main.ins;
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
-
-		private function init(e:Event = null):void {
-
+		
+		private function init(e:Event = null):void
+		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
-
+			
 			groups = new Vector.<ItemsGroup>();
 			cnt = new Sprite();
 			addChild(cnt);
-
+			
 			cnt.y = CNT_Y_OFFSET;
 			focusRect = false;
-
+			
 			if (Capabilities.isDebugger && !DevSettings.loadData) return;
-
+			
 			// Load groups
 			groups = main.dataMgr.getAllGroups();
-
-			if (groups.length == 0) {
-
+			
+			if (groups.length == 0)
+			{
 				main.logRed("No groups found");
-
-			} else {
-
+			}
+			
+			else
+			{
 				// Construct groups
 				var sizesSum:int = 0;
-
-				for each (var itmGrp:ItemsGroup in groups) {
-
+				
+				for each (var itmGrp:ItemsGroup in groups)
+				{
 					itmGrp.grpCnt = this;
 					itmGrp.init();
-
+					
 					cnt.addChild(itmGrp.displayObject);
 					itmGrp.displayObject.x = SIDE_MARGIN + sizesSum;
 					itmGrp.displayObject.y = SIDE_MARGIN;
 					sizesSum += itmGrp.realWidth + GRP_SPACING;
-
 				}
-
+				
 				sizesSum -= GRP_SPACING;
-
 			}
-
+			
 			// Scroll
 			cropRect = new Rectangle(0, 0, stage.stageWidth, 538);
 			cnt.scrollRect = cropRect;
-
+			
 			scb = new UIScrollBar;
 			scb.direction = "horizontal";
 			scb.setScrollProperties(cropRect.width, 0, calculateMaxScrollPosition(groups.length > 0 ? sizesSum : 0));
 			scb.width = cropRect.width;
 			scb.y = cnt.y + cropRect.height - scb.height;
 			scb.x = 0;
-
+			
 			main.logRed("Container width (init): " + cnt.width);
 			main.logRed("Max scroll position (init): " + scb.maxScrollPosition);
-
+			
 			addChild(scb);
 			scb.update();
-
+			
 			scb.addEventListener(ScrollEvent.SCROLL, scroll);
-			stage.addEventListener(MouseEvent.MOUSE_WHEEL, function(e:MouseEvent):void {
-					if (!scb.visible) return;
-					var ratio:int = 25;
-					if (e.delta > 0) ratio = -ratio
-					scb.scrollPosition += -e.delta + ratio;
+			stage.addEventListener(MouseEvent.MOUSE_WHEEL, function(e:MouseEvent):void
+			{
+				if (!scb.visible) return;
+				var wheelRatio:int = 25;
+				if (e.delta > 0) wheelRatio = -wheelRatio;
+				scb.scrollPosition += -e.delta + wheelRatio;
 			});
-
+			
 			// Hit box
 			cntHitBox = new Sprite();
 			cntHitBox.graphics.beginFill(0xF7EBEC, 0);
@@ -130,213 +131,195 @@ package quantum.gui {
 			cntHitBox.y = CNT_Y_OFFSET;
 			addChildAt(cntHitBox, 0);
 			cntHitBox.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
-
+			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
-
+			
 			// Check empty groups
-			if (main.settings.getKey(Settings.deleteEmptyGroupsOnStartup)) {
-
+			if (main.settings.getKey(Settings.deleteEmptyGroupsOnStartup))
+			{
 				var emptyGroups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
-				for each (var grp:ItemsGroup in groups) {
-					if (grp.empty) {
-						emptyGroups.push(grp);
-					}
+				for each (var grp:ItemsGroup in groups)
+				{
+					if (grp.empty) emptyGroups.push(grp);
 				}
-
-				if (emptyGroups.length > 0) {
-
-					for each (var emptyGrp:ItemsGroup in emptyGroups) {
+				
+				if (emptyGroups.length > 0)
+				{
+					for each (var emptyGrp:ItemsGroup in emptyGroups)
+					{
 						removeGroup(emptyGrp);
 						trace("EMPTY GROUP REMOVED");
 					}
-
+					emptyGroups = null;
 				}
-
 			}
-
+			
 			// Select rect
 			selectRect = new Shape();
 			selectRect.visible = false;
 			cnt.addChildAt(selectRect, 0);
-
+			
 			// Select timer
 			selectTimer = new Timer(2000, 1);
 			selectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
-
 		}
-
-		private function keyDown(e:KeyboardEvent):void {
-
+		
+		private function keyDown(e:KeyboardEvent):void
+		{
 			// DELETE
-			if (e.keyCode == Keyboard.DELETE) {
-
-				/* Feature 'Delete by pressing Del key' is removed due to using Del key in text editing
-				if (stage.focus == baseState.tableDataComposer.adrInputTextArea.textField) return;
-				if (selectedItem != null) selectedItem.remove();
-				*/
-
+			if (e.keyCode == Keyboard.DELETE)
+			{
+				
 			}
-
+			
 			else
-
+				
 			// F8
-			if (e.keyCode == Keyboard.F8) {
-
+			if (e.keyCode == Keyboard.F8)
+			{
 				compositionChanged();
-
 			}
-
 		}
-
-		private function cntHitBoxClick(e:MouseEvent):void {
-
+		
+		private function cntHitBoxClick(e:MouseEvent):void
+		{
 			resetSelected();
-
+			
 			if (baseState.grpTitleTextInput.tf.visible && !baseState.grpTitleTextInput.focused)
 				baseState.grpTitleTextInput.hide();
-
+			
 			stage.focus = this;
-
 		}
-
-		private function scroll(e:Event):void {
+		
+		private function scroll(e:Event):void
+		{
 			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
 			rct.x = scb.scrollPosition;
 			cnt.scrollRect = rct;
 		}
-
-		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number {
-
+		
+		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
+		{
 			cnt.scrollRect = null;
-
+			
 			var bd:BitmapData = new BitmapData(1, 1, false);
 			bd.draw(cnt);
 			bd.dispose();
-
-			var msp:Number = (/*cnt.width*/ groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
-
+			
+			var msp:Number = (/*cnt.width*/groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
+			
 			cnt.scrollRect = cropRect;
 			scb.visible = msp > 0 ? true : false;
-
+			
 			return msp;
-
 		}
-
-		private function resetSelected(onlyGroup:Boolean = false):void {
-
-			if (selectedGroup != null) {
+		
+		private function resetSelected(onlyGroup:Boolean = false):void
+		{
+			if (selectedGroup != null)
+			{
 				selectedGroup.selected = false;
 				selectedGroup = null;
 			}
-
+			
 			if (onlyGroup) return;
-
-			if (selectedItem != null) {
+			
+			if (selectedItem != null)
+			{
 				selectedItem.selected = false;
 				selectedItem = null;
 			}
-
 		}
-
-		private function rearrange():void {
-
+		
+		private function rearrange():void
+		{
 			var sizesSum:int = 0;
-			for each (var grp:ItemsGroup in groups) {
+			for each (var grp:ItemsGroup in groups)
+			{
 				grp.displayObject.x = SIDE_MARGIN + sizesSum;
 				grp.displayObject.y = SIDE_MARGIN;
 				sizesSum += grp.realWidth + GRP_SPACING;
 			}
-
+			
 			sizesSum -= GRP_SPACING;
-
+			
 			//if (selectedGroup != null && selectRect.visible) selectRect.x = selectedGroup.displayObject.x - GRP_SPACING / 2;
-
+			
 			var prevScrollPos:Number = scb.scrollPosition;
 			scb.maxScrollPosition = calculateMaxScrollPosition(sizesSum);
 			scb.update();
 			scb.scrollPosition = prevScrollPos;
-
-			/*
-			// Centering
-			if (sizesSum < cropRect.width) {
-				centeringOffsetRatio = (cropRect.width - sizesSum) / 2;
-				for each (var grp:ItemsGroup in groups) {
-					grp.displayObject.x = grp.displayObject.x - SIDE_MARGIN + centeringOffsetRatio;
-				}
-			}
-			*/
-
+		
 			main.logRed("Max scroll position (rearrange): " + scb.maxScrollPosition);
 			main.logRed("Container width (rearrange): " + cnt.width);
-
 		}
-
-		private function onSelectTimer(e:TimerEvent):void {
+		
+		private function onSelectTimer(e:TimerEvent):void
+		{
 			resetSelected(true);
 			baseState.grpTitleTextInput.hide();
 		}
-
+		
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
 		 */
-
-		public function selectItem(item:SquareItem):void {
-
+		
+		public function selectItem(item:SquareItem):void
+		{
 			if (selectedItem != null && selectedItem !== item)
 				selectedItem.selected = false;
-
+			
 			selectedItem = item;
 			selectedItem.selected = true;
-
+			
 			baseState.tableDataComposer.launchAdrProcessing();
-
 		}
-
-		public function selectGroup(grp:ItemsGroup):void {
-
-			if (baseState.grpTitleTextInput.focused) return;
-
+		
+		public function selectGroup(grp:ItemsGroup):void 
+		{
+			// Check existed selection
 			if (selectedGroup != null && selectedGroup !== grp)
 				selectedGroup.selected = false;
-
+			
+			// Set new selection
 			selectedGroup = grp;
 			selectedGroup.selected = true;
-
-			baseState.grpTitleTextInput.show(selectedGroup.title);
-
-			if (selectTimer.running) selectTimer.stop();
-
 		}
-
-		public function updateUiElementData(elmDataID:String, val:*):void {
-
-			switch (elmDataID) {
-
+		
+		public function selectGroupWithTimer(grp:ItemsGroup):void
+		{
+			if (baseState.grpTitleTextInput.focused) return;
+			selectGroup(grp);
+			baseState.grpTitleTextInput.show(selectedGroup.title);
+			if (selectTimer.running) selectTimer.stop();
+		}
+		
+		public function updateUiElementData(elmDataID:String, val:*):void
+		{
+			switch (elmDataID)
+			{
 				case "selGrpTitle":
 					if (selectedGroup != null) selectedGroup.title = String(val);
 					break;
-
+				
 				case "selItemCount":
 					if (selectedItem != null) selectedItem.count = int(val);
 					break;
-
+				
 				case "selItemTypeNotes":
 					if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
 					break;
-
 			}
-
 		}
-
-		public function registerItemsHint(itemsDisOb:InteractiveObject, itemsHintHandler:Function):void {
-
+		
+		public function registerItemsHint(itemsDisOb:InteractiveObject, itemsHintHandler:Function):void
+		{
 			baseState.hintMgr.registerHintWithHandler(itemsDisOb, itemsHintHandler);
-
 		}
-
-		public function addNewGroup():void {
-
+		
+		public function addNewGroup():ItemsGroup
+		{
 			var newGroup:ItemsGroup = new ItemsGroup("", main.settings.getKey(Settings.defaultWarehouse));
 			main.dataMgr.opGroup(newGroup, DataMgr.OP_ADD);
 			groups.push(newGroup);
@@ -345,77 +328,127 @@ package quantum.gui {
 			newGroup.init();
 			cnt.addChild(newGroup.displayObject);
 			compositionChanged();
-
-			if(scb.maxScrollPosition > 0) scb.scrollPosition = scb.maxScrollPosition;
-
+			
+			if (scb.maxScrollPosition > 0) scb.scrollPosition = scb.maxScrollPosition;
+			
+			return newGroup;
 		}
-
-		public function removeGroup(removingGroup:ItemsGroup):void {
-
+		
+		public function removeGroup(removingGroup:ItemsGroup):void
+		{
 			trace("REMOVING GROUP");
 			main.dataMgr.opGroup(removingGroup, DataMgr.OP_REMOVE);
 			cnt.removeChild(removingGroup.displayObject);
 			groups.splice(groups.indexOf(removingGroup), 1);
 			compositionChanged();
-
 		}
-
-		public function itemRemoved():void {
+		
+		public function itemRemoved():void
+		{
 			resetSelected();
 			compositionChanged();
 		}
-
-		public function compositionChanged():void {
+		
+		public function compositionChanged():void
+		{
 			rearrange();
 		}
-
-		public function stopSelTimer():void {
+		
+		public function stopSelTimer():void
+		{
 			if (selectTimer.running) selectTimer.stop();
 		}
-
-		public function grpTitleInputFocusOut():void {
+		
+		public function grpTitleInputFocusOut():void
+		{
 			onSelectTimer(null);
 		}
-
-		public function selectedGrpButtonMouseOut():void {
-
+		
+		public function selectedGrpButtonMouseOut():void
+		{
 			if (baseState.grpTitleTextInput.focused) return;
-
+			
 			selectTimer.reset();
 			selectTimer.start();
-
 		}
-
+		
+		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:SquareItem):void 
+		{
+			var suchItemExists:Boolean = false; // At least one in all groups space
+			var untitledGroup:ItemsGroup;
+			for each (var g:ItemsGroup in groups) 
+			{
+				if (untitledGroup == null && g.title == "") untitledGroup = g;
+				
+				if (g.checkItemExistenceByImgPath(deletedItem.imagePath)) {
+					suchItemExists = true;
+					break;
+				}
+			}
+			
+			if (suchItemExists) return;
+			
+			// Check untitled group
+			if (untitledGroup == null) 
+			{
+				for each (g in groups) 
+				{
+					if (g.title == "")
+					{
+						untitledGroup = g;
+						break;
+					}
+				}
+			}
+			
+			if (untitledGroup == null)
+			{
+				// Create new
+				var newUntitledGroup:ItemsGroup = addNewGroup();
+				newUntitledGroup.addItem(deletedItem.imagePath);
+			}
+			else
+			{
+				// Use found untitled group
+				untitledGroup.addItem(deletedItem.imagePath);
+			}
+		}
+		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
 		 */
-
-		public function get selectedItem():SquareItem {
+		
+		public function get selectedItem():SquareItem
+		{
 			return $selectedItem;
 		}
-
-		public function set selectedItem(value:SquareItem):void {
+		
+		public function set selectedItem(value:SquareItem):void
+		{
 			$selectedItem = value;
-
+			
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
 			baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
 			baseState.focusAdrTextArea(value == null ? false : true);
 		}
-
-		public function get selectedGroup():ItemsGroup {
+		
+		public function get selectedGroup():ItemsGroup
+		{
 			return $selectedGroup;
 		}
-
-		public function set selectedGroup(value:ItemsGroup):void {
+		
+		public function set selectedGroup(value:ItemsGroup):void
+		{
 			$selectedGroup = value;
-
-			if (value == null) {
+			
+			if (value == null)
+			{
 				selectRect.graphics.clear();
 				selectRect.visible = false;
 				return;
 			}
-
+			
 			// Select rect
 			var g:ItemsGroup = value;
 			selectRect.graphics.clear();
@@ -425,17 +458,17 @@ package quantum.gui {
 			selectRect.x = g.displayObject.x - GRP_SPACING / 2;
 			//selectRect.y = cnt.y;
 			selectRect.visible = true;
-
+		
 			//baseState.updateUiElement("selGrpTitle", value == null ? "" : value.title);
 		}
-
-		public function get image():Bitmap {
-			
+		
+		public function get image():Bitmap
+		{
 			var imgSprite:Sprite = new Sprite();
 			
 			var grpImage:Bitmap;
 			var sizesSum:int = 0;
-			for each (var g:ItemsGroup in groups) 
+			for each (var g:ItemsGroup in groups)
 			{
 				grpImage = new Bitmap(new BitmapData(g.realWidth, g.displayObject.height));
 				grpImage.bitmapData.draw(g.displayObject);
@@ -445,13 +478,10 @@ package quantum.gui {
 				sizesSum += g.realWidth + GRP_SPACING;
 			}
 			
-			var bd:BitmapData = new BitmapData(imgSprite.width + SIDE_MARGIN*2, imgSprite.height + SIDE_MARGIN*2, false, 0xFFFFFF);
+			var bd:BitmapData = new BitmapData(imgSprite.width + SIDE_MARGIN * 2, imgSprite.height + SIDE_MARGIN * 2, false, 0xFFFFFF);
 			bd.draw(imgSprite);
 			
 			return new Bitmap(bd);
-			
 		}
-			
 	}
-
 }

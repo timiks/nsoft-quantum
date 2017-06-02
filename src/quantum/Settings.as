@@ -36,6 +36,7 @@ package quantum {
 		public static const backupInterval:String = "backupInterval";
 		public static const backupCreateImage:String = "backupCreateImage";
 		public static const backupCleanup:String = "backupCleanup";
+		public static const moveDeletedItemsToUntitledGroup:String = "moveDeletedItemsToUntitledGroup";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -59,21 +60,22 @@ package quantum {
 			main = Main.ins;
 			$eventDsp = new EventDispatcher();
 
-			allSets = {}; 							// Name / Data type / Default value / Version introduced in
-	/*GUI*/	allSets[outputFormat] 					= new Setting(outputFormat, String, FormatMgr.FRM_STR, "1.0");
-	/*GUI*/	allSets[clearSourceAreaOnSuccess] 		= new Setting(clearSourceAreaOnSuccess, Boolean, false, "1.0");
-	/*GUI*/	allSets[uiAutomaticCopy] 				= new Setting(uiAutomaticCopy, Boolean, true, "1.0");
-	/*GUI*/	allSets[startInTray] 					= new Setting(startInTray, Boolean, false, "1.0");
-	/*GUI*/	allSets[stayOnWindowClosing] 			= new Setting(stayOnWindowClosing, Boolean, true, "1.0");
-			allSets[winPos]							= new Setting(winPos, String, "374:163", "1.0");
-	/*GUI*/	allSets[bgClipboardProcessing]			= new Setting(bgClipboardProcessing, Boolean, false, "1.0");
-	/*GUI*/	allSets[deleteEmptyGroupsOnStartup]		= new Setting(deleteEmptyGroupsOnStartup, Boolean, true, "1.0");
-	/*GUI*/	allSets[backupData]						= new Setting(backupData, Boolean, true, "1.1");
-	/*GUI*/	allSets[defaultWarehouse]				= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
-			allSets[lastBackupTime]					= new Setting(lastBackupTime, Number, 0, "4.0");
-	/*GUI*/	allSets[backupInterval]					= new Setting(backupInterval, int, 60, "4.0"); // In minutes
-	/*GUI*/	allSets[backupCreateImage]				= new Setting(backupCreateImage, Boolean, true, "4.0");
-	/*GUI*/	allSets[backupCleanup]					= new Setting(backupCleanup, Boolean, true, "4.0");
+			allSets = {}; 								// Name / Data type / Default value / Version introduced in
+	/*GUI*/	allSets[outputFormat] 						= new Setting(outputFormat, String, FormatMgr.FRM_STR, "1.0");
+	/*GUI*/	allSets[clearSourceAreaOnSuccess] 			= new Setting(clearSourceAreaOnSuccess, Boolean, false, "1.0");
+	/*GUI*/	allSets[uiAutomaticCopy] 					= new Setting(uiAutomaticCopy, Boolean, true, "1.0");
+	/*GUI*/	allSets[startInTray] 						= new Setting(startInTray, Boolean, false, "1.0");
+	/*GUI*/	allSets[stayOnWindowClosing] 				= new Setting(stayOnWindowClosing, Boolean, true, "1.0");
+			allSets[winPos]								= new Setting(winPos, String, "374:163", "1.0");
+	/*GUI*/	allSets[bgClipboardProcessing]				= new Setting(bgClipboardProcessing, Boolean, false, "1.0");
+	/*GUI*/	allSets[deleteEmptyGroupsOnStartup]			= new Setting(deleteEmptyGroupsOnStartup, Boolean, true, "1.0");
+	/*GUI*/	allSets[backupData]							= new Setting(backupData, Boolean, true, "1.1");
+	/*GUI*/	allSets[defaultWarehouse]					= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
+			allSets[lastBackupTime]						= new Setting(lastBackupTime, Number, 0, "4.0");
+	/*GUI*/	allSets[backupInterval]						= new Setting(backupInterval, int, 60, "4.0"); // In minutes
+	/*GUI*/	allSets[backupCreateImage]					= new Setting(backupCreateImage, Boolean, true, "4.0");
+	/*GUI*/	allSets[backupCleanup]						= new Setting(backupCleanup, Boolean, true, "4.0");
+	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");

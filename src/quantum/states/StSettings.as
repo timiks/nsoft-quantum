@@ -1,5 +1,5 @@
-package quantum.states {
-
+package quantum.states
+{
 	import fl.controls.CheckBox;
 	import fl.controls.ComboBox;
 	import fl.core.UIComponent;
@@ -23,42 +23,42 @@ package quantum.states {
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.Warehouse;
-
+	
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class StSettings extends Sprite {
-
+	public class StSettings extends Sprite
+	{
 		private var main:Main;
 		private var st:Settings;
-
+		
 		private var win:NativeWindow;
 		private var inited:Boolean = false;
 		private var uiCmpList:Vector.<UIComponent>;
-
+		
 		private var topBar:Sprite;
 		private var contentCnt:Sprite;
-
+		
 		public function StSettings():void {}
-
-		public function init():void {
-
+		
+		public function init():void
+		{
 			main = Main.ins;
 			st = main.settings;
-
+			
 			/**
 			 * Window
 			 * ================================================================================
 			 */
-
+			
 			var winOpts:NativeWindowInitOptions = new NativeWindowInitOptions();
 			winOpts.transparent = false;
 			winOpts.systemChrome = NativeWindowSystemChrome.STANDARD;
 			winOpts.type = NativeWindowType.NORMAL;
 			winOpts.maximizable = false;
 			winOpts.resizable = false;
-
+			
 			win = new NativeWindow(winOpts);
 			win.stage.scaleMode = StageScaleMode.NO_SCALE;
 			win.stage.align = StageAlign.TOP_LEFT;
@@ -66,22 +66,23 @@ package quantum.states {
 			win.stage.stageHeight = 400;
 			//win.visible = true;
 			win.title = "Настройки Квантума";
-
+			
 			win.stage.addChild(this);
-
-			win.addEventListener(Event.CLOSING, function(e:Event):void {
+			
+			win.addEventListener(Event.CLOSING, function(e:Event):void
+			{
 				e.preventDefault();
 				win.visible = false;
 			});
-
+			
 			/**
 			 * State visual composition
 			 * ================================================================================
 			 */
-
+			
 			// Top bar
 			topBar = new Sprite();
-
+			
 			// Top bar → Top background plate
 			var bgPlate:Shape = new Shape();
 			bgPlate.graphics.beginFill(0xF9F9F9);
@@ -91,7 +92,7 @@ package quantum.states {
 			bgPlate.graphics.moveTo(0, 40);
 			bgPlate.graphics.lineTo(stage.stageWidth, 40);
 			topBar.addChild(bgPlate);
-
+			
 			// Top bar → Caption title
 			var captionTitle:TextField = new TextField();
 			captionTitle.defaultTextFormat = new TextFormat("Tahoma", 16, 0);
@@ -101,13 +102,13 @@ package quantum.states {
 			captionTitle.x = 20;
 			captionTitle.y = (topBar.height / 2) - (captionTitle.height / 2);
 			topBar.addChild(captionTitle);
-
+			
 			// Content container
 			contentCnt = new Sprite();
-
+			
 			var uiPlate:StSettingsComponents = new StSettingsComponents();
 			contentCnt.addChild(uiPlate);
-
+			
 			uiCmpList = new Vector.<UIComponent>();
 			uiCmpList.push(uiPlate.cbStartInTray);
 			uiCmpList.push(uiPlate.cbStayOnWindowClosing);
@@ -119,61 +120,69 @@ package quantum.states {
 			uiCmpList.push(uiPlate.cbBackupOn);
 			uiCmpList.push(uiPlate.cbBackupImg);
 			uiCmpList.push(uiPlate.cbBackupCleanup);
+			uiCmpList.push(uiPlate.cbMoveDeletedItemsToUntitledGroup);
 			uiCmpList.push(uiPlate.lblBuInt);
 			uiCmpList.push(uiPlate.selBackupInterval);
 			uiCmpList.push(uiPlate.selBackupInterval.textField);
 			uiCmpList.push(uiPlate.selBackupInterval.dropdown);
-
+			
 			// Style
 			var uim:UIComponentsMgr = main.uiCmpMgr;
 			var uiCmp:UIComponent;
-			for each (uiCmp in uiCmpList) {
+			for each (uiCmp in uiCmpList)
+			{
 				uim.setStyle(uiCmp);
 			}
-
+			
 			// Main display order
 			addChild(topBar);
 			addChild(contentCnt);
-
+			
 			/**
 			 * UI functionality
 			 * ================================================================================
 			 */
-
-			function setupCheckbox(cb:CheckBox, setting:String):void {
+			
+			function setupCheckbox(cb:CheckBox, setting:String):void
+			{
 				cb.selected = main.settings.getKey(setting);
-				cb.addEventListener("change", function(e:Event):void {
+				cb.addEventListener("change", function(e:Event):void
+				{
 					main.settings.setKey(setting, cb.selected);
 				});
 			}
-
-			function setupSelect(sel:ComboBox, setting:String, itemsList:Vector.<Object>):void {
-
-				for each (var itm:Object in itemsList) {
+			
+			function setupSelect(sel:ComboBox, setting:String, itemsList:Vector.<Object>):void
+			{
+				for each (var itm:Object in itemsList)
+				{
 					sel.addItem(itm);
 				}
-
-				sel.addEventListener("change", function(e:Event):void {
+				
+				sel.addEventListener("change", function(e:Event):void
+				{
 					var currentItem:Object = sel.getItemAt(sel.selectedIndex);
 					main.settings.setKey(setting, currentItem.data);
 				});
-
+				
 				var selItem:Object;
 				var settingValue:String = main.settings.getKey(setting);
-				for (var i:int = 0; i < sel.length; i++) {
+				for (var i:int = 0; i < sel.length; i++)
+				{
 					selItem = sel.getItemAt(i);
-					if (selItem.data == settingValue) {
+					if (selItem.data == settingValue)
+					{
 						sel.selectedIndex = i;
 						break;
 					}
 				}
-
 			}
-
-			for each (uiCmp in uiCmpList) {
+			
+			for each (uiCmp in uiCmpList)
+			{
 				uiCmp.tabEnabled = false;
 			}
-
+			
 			// Checkboxes
 			setupCheckbox(uiPlate.cbStartInTray, Settings.startInTray);
 			setupCheckbox(uiPlate.cbStayOnWindowClosing, Settings.stayOnWindowClosing);
@@ -181,16 +190,17 @@ package quantum.states {
 			setupCheckbox(uiPlate.cbBackupOn, Settings.backupData);
 			setupCheckbox(uiPlate.cbBackupImg, Settings.backupCreateImage);
 			setupCheckbox(uiPlate.cbBackupCleanup, Settings.backupCleanup);
-
+			setupCheckbox(uiPlate.cbMoveDeletedItemsToUntitledGroup, Settings.moveDeletedItemsToUntitledGroup);
+			
 			// Selects (ComboBoxes)
 			var selItems:Vector.<Object>;
-
+			
 			// Default warehouse
 			selItems = new Vector.<Object>();
 			selItems.push({label: Warehouse.getRussianTitle(Warehouse.BEIJING), data: Warehouse.BEIJING});
 			selItems.push({label: Warehouse.getRussianTitle(Warehouse.CANTON), data: Warehouse.CANTON});
 			setupSelect(uiPlate.selDefWarehouse, Settings.defaultWarehouse, selItems);
-
+			
 			// Backup interval
 			selItems = new Vector.<Object>();
 			selItems.push({label: "1 час", data: 60});
@@ -208,51 +218,50 @@ package quantum.states {
 			selItems.push({label: "2 недели", data: 20160});
 			selItems.push({label: "1 месяц", data: 43200});
 			setupSelect(uiPlate.selBackupInterval, Settings.backupInterval, selItems);
-
+			
 			// ================================================================================
-
+			
 			inited = true;
-
 		}
-
+		
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
 		 */
-
-		public function showWindow(act:Boolean):void {
-
+		
+		public function showWindow(act:Boolean):void
+		{
 			if (!inited) init();
-
-			if (act == true) {
-
-				if (!isVisible) {
+			
+			if (act == true)
+			{
+				if (!isVisible)
+				{
 					win.x = (Capabilities.screenResolutionX / 2) - (win.width / 2);
 					win.y = (Capabilities.screenResolutionY / 2) - (win.height / 2);
 					win.visible = true;
 				}
-
+				
 				NativeApplication.nativeApplication.activate(win);
-
-			} else {
-
-				win.visible = false;
-
-				if (main.stQuantumMgr.stage.nativeWindow.visible) main.stQuantumMgr.stage.nativeWindow.activate();
-
 			}
-
+			
+			else
+			{
+				win.visible = false;
+				
+				if (main.stQuantumMgr.stage.nativeWindow.visible)
+					main.stQuantumMgr.stage.nativeWindow.activate();
+			}
 		}
-
+		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
 		 */
-
-		public function get isVisible():Boolean {
+		
+		public function get isVisible():Boolean
+		{
 			return win.visible;
 		}
-
 	}
-
 }

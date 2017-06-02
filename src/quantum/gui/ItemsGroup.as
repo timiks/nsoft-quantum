@@ -15,6 +15,7 @@ package quantum.gui {
 	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.utils.Timer;
+	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.Main;
 	import quantum.SoundMgr;
@@ -169,19 +170,8 @@ package quantum.gui {
 		private function multipleFilesSelect(e:FileListEvent):void {
 
 			for each (var file:File in e.files) {
-				var newItem:SquareItem = addItem(file.nativePath); // "D:\\Картинки\\Всякое\\Panda.jpg"
-				newItem.parentItemsGroup = this;
-				displayObject.addChild(newItem);
-				newItem.init();
-				calculateNextPlace();
-				newItem.x = nextPlace.x;
-				newItem.y = nextPlace.y;
-				//grpCnt.compositionChanged();
-				main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
+				addItem(file.nativePath);
 			}
-
-			brandNew = false;
-			grpCnt.compositionChanged();
 
 		}
 
@@ -195,7 +185,7 @@ package quantum.gui {
 		}
 
 		private function newItemBtnOver(e:MouseEvent):void {
-			grpCnt.selectGroup(this);
+			grpCnt.selectGroupWithTimer(this);
 		}
 
 		private function newItemBtnOut(e:MouseEvent):void {
@@ -312,7 +302,12 @@ package quantum.gui {
 
 		}
 
-		private function addItem(imgPath:String, countValue:int = 0):SquareItem {
+		/**
+		 * PUBLIC INTERFACE
+		 * ================================================================================
+		 */
+
+		public function addItem(imgPath:String, countValue:int = 0):SquareItem {
 
 			var newItem:SquareItem = new SquareItem(
 				imgPath,
@@ -320,15 +315,19 @@ package quantum.gui {
 			);
 
 			items.push(newItem);
+			newItem.parentItemsGroup = this;
+			displayObject.addChild(newItem);
+			newItem.init();
+			calculateNextPlace();
+			newItem.x = nextPlace.x;
+			newItem.y = nextPlace.y;
+			grpCnt.compositionChanged();
+			if (brandNew) brandNew = false;
+			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
 
 			return newItem;
 
 		}
-
-		/**
-		 * PUBLIC INTERFACE
-		 * ================================================================================
-		 */
 
 		public function removeItem(removingItem:SquareItem):void {
 
@@ -342,6 +341,11 @@ package quantum.gui {
 				grpCnt.removeGroup(this);
 			}
 
+			if (main.settings.getKey(Settings.moveDeletedItemsToUntitledGroup)) 
+			{
+				grpCnt.processDeletedItemAndMoveToUntitledGroup(removingItem);
+			}
+			
 		}
 
 		public function hintTextHandler():String {
@@ -352,6 +356,16 @@ package quantum.gui {
 
 			return (title == "" ? "[Без названия]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
 
+		}
+		
+		public function checkItemExistenceByImgPath(itemsImgPath:String):Boolean
+		{
+			for each (var i:SquareItem in items) 
+			{
+				if (i.imagePath == itemsImgPath) return true;
+			}
+			
+			return false;
 		}
 
 		/**
