@@ -182,6 +182,15 @@ package quantum.states {
 				*/
 
 			}
+			
+			else
+			
+			// F7
+			if (e.keyCode == Keyboard.F7) {
+				
+				
+				
+			}
 
 		}
 

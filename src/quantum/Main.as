@@ -186,10 +186,10 @@ package quantum {
 		}
 
 		public function get version():String {
-			var vr:String = String($version);
-			if ($versionService > 0 || $version <= 3) vr += "." + String($versionService);
-			if (Capabilities.isDebugger && $nextRelease) vr += " NR";
-			if ($betaVersion) vr += " β";
+			var vr:String = String($version); // Major version
+			vr += "." + String($versionService); // Service version
+			if (Capabilities.isDebugger && $nextRelease) vr += " NR"; // Next Release tag
+			if ($betaVersion) vr += " β"; // Beta tag
 			return vr;
 		}
 

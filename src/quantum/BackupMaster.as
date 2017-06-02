@@ -25,14 +25,10 @@ package quantum
 		private var main:Main;
 		
 		private var backupDir:File;
-		private var backupOn:Boolean;
 		
 		public function BackupMaster():void
 		{
 			main = Main.ins;
-			
-			// Check backup settings
-			backupOn = main.settings.getKey(Settings.backupData);
 			
 			// Reference to backup directory root
 			backupDir = File.applicationStorageDirectory.resolvePath(backupDirName);
@@ -76,7 +72,7 @@ package quantum
 		
 		public function doBackUp():void
 		{
-			if (!backupOn)
+			if (!main.settings.getKey(Settings.backupData))
 				return;
 			
 			main.logRed("Backup check");
