@@ -27,6 +27,8 @@ package quantum.data {
 		public static const OP_ADD:String = "add";
 		public static const OP_REMOVE:String = "rem";
 		public static const OP_UPDATE:String = "upd";
+		public static const OP_CHANGE_ORDER:String = "changeOrder";
+		public static const OP_SWAP_ELEMENTS:String = "swap";
 
 		private static const dataFileVersion:int = 2;
 
@@ -159,6 +161,45 @@ package quantum.data {
 			tmrSaveDelay.removeEventListener(TimerEvent.TIMER, saveOnTimer);
 			tmrSaveDelay = null;
 		}
+		
+		private function swapNodes(target:XML, indexa:int, indexb:int):void {
+			
+			// Sanity checks.
+			if (!target) return;
+			if (indexa < 0) return;
+			if (indexb < 0) return;
+			if (indexa == indexb) return;
+
+			var anIndex:int;
+
+			// Lets say indexa must be < indexb.
+			// Just for our own convenience.
+			if (indexb < indexa)
+			{
+				anIndex = indexa;
+				indexa = indexb;
+				indexb = anIndex;
+			}
+
+			var aList:XMLList = target.children();
+
+			// Last check.
+			if (indexb >= aList.length()) return;
+
+			var aNode:XML = aList[indexa];
+			var bNode:XML = aList[indexb];
+			var abNode:XML = aList[indexb - 1];
+
+			delete aList[indexb];
+			target.insertChildBefore(aNode, bNode)
+
+			if (indexb - indexa > 1)
+			{
+				delete aList[indexa];
+				target.insertChildAfter(abNode, aNode);
+			}
+			
+		}
 
 		public function saveFile():void {
 
@@ -273,7 +314,13 @@ package quantum.data {
 
 		}
 
-		public function opGroup(grp:ItemsGroup, op:String, field:String = null, value:* = null):void {
+		public function opGroup(
+						grp:ItemsGroup,
+						op:String,
+						field:String = null,
+						value:* = null,
+						swapNodeA:XML = null,
+						swapNodeB:XML = null):void {
 
 			if (op == OP_UPDATE) {
 
@@ -299,6 +346,14 @@ package quantum.data {
 
 				delete dataXml.children()[grp.dataXml.childIndex()];
 
+			}
+			
+			else
+			
+			if (op == OP_SWAP_ELEMENTS) {
+				
+				swapNodes(dataXml, swapNodeA.childIndex(), swapNodeB.childIndex());
+				
 			}
 
 			dataUpdate();

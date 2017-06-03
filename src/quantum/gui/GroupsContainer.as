@@ -90,7 +90,7 @@ package quantum.gui
 			{
 				// Init items images loading queue
 				itemsImgLoadingQueue = new Vector.<SquareItem>();
-				itemsImgLoadingTimer = new Timer(200, 0);
+				itemsImgLoadingTimer = new Timer(Capabilities.isDebugger ? 80 : 100, 0);
 				itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
 				
 				// Construct groups
@@ -193,7 +193,21 @@ package quantum.gui
 			// F8
 			if (e.keyCode == Keyboard.F8)
 			{
-				compositionChanged();
+				
+			}
+			
+			else
+			
+			if (e.keyCode == Keyboard.LEFT) 
+			{
+				moveSelectedGroup("left");
+			}
+			
+			else
+			
+			if (e.keyCode == Keyboard.RIGHT) 
+			{
+				moveSelectedGroup("right");
 			}
 		}
 		
@@ -295,6 +309,44 @@ package quantum.gui
 				var firedItem:SquareItem = itemsImgLoadingQueue[randomIdx];
 				firedItem.startLoadingImage();
 				itemsImgLoadingQueue.splice(itemsImgLoadingQueue.indexOf(firedItem), 1);
+			}
+		}
+		
+		private function moveSelectedGroup(direction:String):void 
+		{
+			if (selectedGroup == null) return;
+			
+			var idx:int;
+			var idxNext:int;
+			
+			if (direction == "left") 
+			{
+				idx = groups.indexOf(selectedGroup);
+				idxNext = idx-1;
+				if (idxNext < 0) return;
+				swapGroups(selectedGroup, groups[idxNext]);
+				selectedGroup = selectedGroup;
+			}
+			
+			else
+			
+			if (direction == "right") 
+			{
+				idx = groups.indexOf(selectedGroup);
+				idxNext = idx+1;
+				if (idxNext > groups.length-1) return;
+				swapGroups(selectedGroup, groups[idxNext]);
+				selectedGroup = selectedGroup;
+			}
+			
+			function swapGroups(grpA:ItemsGroup, grpB:ItemsGroup):void 
+			{
+				var idxA:int = groups.indexOf(grpA);
+				var idxB:int = groups.indexOf(grpB);
+				groups[idxA] = grpB;
+				groups[idxB] = grpA;
+				compositionChanged();
+				main.dataMgr.opGroup(null, DataMgr.OP_SWAP_ELEMENTS, null, null, grpA.dataXml, grpB.dataXml);
 			}
 		}
 		
