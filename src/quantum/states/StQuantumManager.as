@@ -200,7 +200,7 @@ package quantum.states {
 			win.title = "Quantum";
 
 			var winPosStr:String = main.settings.getKey(Settings.winPos);
-			var reResult:Array = winPosStr.match(/(\d+):(\d+)/);
+			var reResult:Array = winPosStr.match(/(-?\d+):(-?\d+)/);
 			win.x = Number(reResult[1]);
 			win.y = Number(reResult[2]);
 
