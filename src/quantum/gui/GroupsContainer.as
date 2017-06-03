@@ -466,12 +466,11 @@ package quantum.gui
 		
 		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:SquareItem):void 
 		{
+			var g:ItemsGroup;
 			var suchItemExists:Boolean = false; // At least one in all groups space
-			var untitledGroup:ItemsGroup;
-			for each (var g:ItemsGroup in groups) 
+			
+			for each (g in groups) 
 			{
-				if (untitledGroup == null && g.title == "") untitledGroup = g;
-				
 				if (g.checkItemExistenceByImgPath(deletedItem.imagePath)) {
 					suchItemExists = true;
 					break;
@@ -480,16 +479,16 @@ package quantum.gui
 			
 			if (suchItemExists) return;
 			
-			// Check untitled group
-			if (untitledGroup == null) 
-			{
-				for each (g in groups) 
+			var i:int;
+			var untitledGroup:ItemsGroup;
+			
+			for (i = groups.length-1; i >= 0; i--) 
+			{	
+				g = groups[i];
+				if (g.title == "")
 				{
-					if (g.title == "")
-					{
-						untitledGroup = g;
-						break;
-					}
+					untitledGroup = g;
+					break;
 				}
 			}
 			

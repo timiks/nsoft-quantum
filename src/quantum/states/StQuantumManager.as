@@ -172,14 +172,7 @@ package quantum.states {
 			// F8
 			if (e.keyCode == Keyboard.F8) {
 
-				main.backupMst.doBackUp();
-				/*
-				if (grpCnt.stage != null) {
-					ui.removeChild(grpCnt);
-				} else {
-					ui.addChild(grpCnt);
-				}
-				*/
+				infoPanel.showMessage("Удалённый только что товар закончился и был добавлен в безымянную группу");
 
 			}
 			
