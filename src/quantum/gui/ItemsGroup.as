@@ -200,7 +200,7 @@ package quantum.gui {
 		}
 
 		private function newItemBtnOut(e:MouseEvent):void {
-			grpCnt.selectedGrpButtonMouseOut();
+			//grpCnt.selectedGrpButtonMouseOut();
 		}
 
 		private function constructGrid():void {
