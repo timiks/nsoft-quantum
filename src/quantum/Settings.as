@@ -72,7 +72,7 @@ package quantum {
 	/*GUI*/	allSets[backupData]							= new Setting(backupData, Boolean, true, "1.1");
 	/*GUI*/	allSets[defaultWarehouse]					= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
 			allSets[lastBackupTime]						= new Setting(lastBackupTime, Number, 0, "4.0");
-	/*GUI*/	allSets[backupInterval]						= new Setting(backupInterval, int, 60, "4.0"); // In minutes
+	/*GUI*/	allSets[backupInterval]						= new Setting(backupInterval, int, 360, "4.0"); // In minutes
 	/*GUI*/	allSets[backupCreateImage]					= new Setting(backupCreateImage, Boolean, true, "4.0");
 	/*GUI*/	allSets[backupCleanup]						= new Setting(backupCleanup, Boolean, true, "4.0");
 	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");

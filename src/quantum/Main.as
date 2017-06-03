@@ -11,6 +11,7 @@ package quantum {
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.system.Capabilities;
+	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.states.StSettings;

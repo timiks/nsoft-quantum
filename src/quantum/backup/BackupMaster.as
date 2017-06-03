@@ -1,6 +1,7 @@
-package quantum
+package quantum.backup
 {
 	import flash.display.Bitmap;
+	import flash.events.TimerEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -8,6 +9,9 @@ package quantum
 	import flash.net.FileReference;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
+	import quantum.Main;
+	import quantum.Settings;
 	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
 	import com.leeburrows.encoders.AsyncJPGEncoder;
@@ -25,6 +29,7 @@ package quantum
 		private var main:Main;
 		
 		private var backupDir:File;
+		private var tmrImageSave:Timer;
 		
 		public function BackupMaster():void
 		{
@@ -111,41 +116,58 @@ package quantum
 			// Save image
 			if (main.settings.getKey(Settings.backupCreateImage))
 			{
-				var backupImg:File = backupDir.resolvePath(dateDirName + "\\" + "image-" + dstr + ".jpg");
+				if (tmrImageSave == null) tmrImageSave = new Timer(3000);
+				tmrImageSave.addEventListener(TimerEvent.TIMER, checkImageSave);
+				tmrImageSave.start();
 				
-				var img:Bitmap = main.stQuantumMgr.grpCnt.image;
-				
-				var jpegEncoder:AsyncJPGEncoder = new AsyncJPGEncoder(90);
-				jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, imageEncodeComplete);
-				jpegEncoder.addEventListener(AsyncImageEncoderEvent.PROGRESS, imageEncodeProgress);
-				jpegEncoder.start(img.bitmapData);
-				
-				function imageEncodeProgress(e:AsyncImageEncoderEvent):void 
+				function checkImageSave(e:TimerEvent):void 
 				{
-					trace("Backup image encoding progress:", Math.floor(e.percentComplete)+"% complete");
-				}
+					if (main.stQuantumMgr.grpCnt.loadingActive)
+					{
+						return;
+					}
+					else 
+					{
+						tmrImageSave.stop();
+						tmrImageSave.removeEventListener(TimerEvent.TIMER, checkImageSave);
+					}
+					
+					var backupImg:File = backupDir.resolvePath(dateDirName + "\\" + "image-" + dstr + ".jpg");
+					
+					var img:Bitmap = main.stQuantumMgr.grpCnt.image;
+					
+					var jpegEncoder:AsyncJPGEncoder = new AsyncJPGEncoder(90);
+					jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, imageEncodeComplete);
+					jpegEncoder.addEventListener(AsyncImageEncoderEvent.PROGRESS, imageEncodeProgress);
+					jpegEncoder.start(img.bitmapData);
+					
+					function imageEncodeProgress(e:AsyncImageEncoderEvent):void 
+					{
+						trace("Backup image encoding progress:", Math.floor(e.percentComplete)+"% complete");
+					}
 				
-				function imageEncodeComplete(e:AsyncImageEncoderEvent):void 
-				{
-					var fstream:FileStream = new FileStream();
-					fstream.open(backupImg, FileMode.WRITE);
-					fstream.writeBytes(jpegEncoder.encodedBytes);
-					fstream.close();
-					
-					img.bitmapData.dispose();
-					img = null;
-					
-					jpegEncoder.removeEventListener(AsyncImageEncoderEvent.PROGRESS, imageEncodeProgress);
-					jpegEncoder.removeEventListener(AsyncImageEncoderEvent.COMPLETE, imageEncodeComplete);
-					
-					main.logRed("Backup Image Saved");
+					function imageEncodeComplete(e:AsyncImageEncoderEvent):void 
+					{
+						var fstream:FileStream = new FileStream();
+						fstream.open(backupImg, FileMode.WRITE);
+						fstream.writeBytes(jpegEncoder.encodedBytes);
+						fstream.close();
+						
+						img.bitmapData.dispose();
+						img = null;
+						
+						jpegEncoder.removeEventListener(AsyncImageEncoderEvent.PROGRESS, imageEncodeProgress);
+						jpegEncoder.removeEventListener(AsyncImageEncoderEvent.COMPLETE, imageEncodeComplete);
+						
+						main.logRed("Backup Image Saved");
+					}
 				}
 			}
 			
 			// Remember backup time
 			main.settings.setKey(Settings.lastBackupTime, new Date().time);
 			
-			main.logRed("Main Backup Done");
+			main.logRed("Data File Backup Done");
 		}
 		
 		private function millisecondsToMinutes(ms:Number):int

@@ -41,6 +41,7 @@ package quantum.gui
 		private var $selectedItem:SquareItem;
 		private var $selectedGroup:ItemsGroup;
 		private var $events:EventDispatcher;
+		private var $loadingActive:Boolean;
 		
 		private var main:Main;
 		private var baseState:StQuantumManager;
@@ -110,7 +111,7 @@ package quantum.gui
 				sizesSum -= GRP_SPACING;
 				
 				// Start items images loading queue
-				itemsImgLoadingTimer.start();
+				startItemsImgLoadingTimer();
 			}
 			
 			// Scroll
@@ -298,6 +299,7 @@ package quantum.gui
 				itemsImgLoadingTimer.stop();
 				trace("Items images loading complete");
 				events.dispatchEvent(new Event(EVENT_ITEMS_IMG_LOADING_COMPLETE));
+				$loadingActive = false;
 				return;
 			}
 			
@@ -512,6 +514,7 @@ package quantum.gui
 		public function startItemsImgLoadingTimer():void 
 		{
 			itemsImgLoadingTimer.start();
+			$loadingActive = true;
 		}
 		
 		/**
@@ -587,6 +590,11 @@ package quantum.gui
 		public function get events():EventDispatcher 
 		{
 			return $events;
+		}
+		
+		public function get loadingActive():Boolean 
+		{
+			return $loadingActive;
 		}
 	}
 }
