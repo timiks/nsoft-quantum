@@ -72,6 +72,7 @@ package quantum.backup
 		
 		private function dataSaved(e:DataEvent):void
 		{
+			if (main.exiting) return;
 			doBackUp();
 		}
 		
@@ -91,8 +92,7 @@ package quantum.backup
 			if (minutesSinceLastBackup < backupInterval)
 			{
 				main.logRed("Not the time for backup. Last one was " + minutesSinceLastBackup + " min. ago");
-				if (Capabilities.isDebugger && !DevSettings.backupAlwaysDoesJob)
-					return;
+				return;
 			}
 			
 			var date:Date = new Date();
