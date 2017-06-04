@@ -57,6 +57,7 @@ package quantum {
 		private var $stSettings:StSettings;
 
 		private var $inited:Boolean;
+		private var $exiting:Boolean;
 		private var args:Array;
 
 		public function Main():void {
@@ -160,11 +161,11 @@ package quantum {
 
 		public function exitApp():void {
 
+			$exiting = true;
 			trace(""); trace("App is terminating");
 			NativeApplication.nativeApplication.dispatchEvent(new Event(Event.EXITING));
 			settings.saveFile();
 			dataMgr.saveFile();
-			// {place for backup call}
 			NativeApplication.nativeApplication.exit();
 
 		}
@@ -256,6 +257,11 @@ package quantum {
 		
 		public function get inited():Boolean {
 			return $inited;
+		}
+		
+		public function get exiting():Boolean 
+		{
+			return $exiting;
 		}
 
 	}
