@@ -367,7 +367,7 @@ package quantum.gui {
 				return null;
 			}
 
-			return (title == "" ? "[Без названия]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
+			return (title == "" ? "[Безымянная]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
 
 		}
 		
