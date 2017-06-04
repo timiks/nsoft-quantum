@@ -21,6 +21,7 @@ package quantum.states {
 	import quantum.gui.BigTextInput;
 	import quantum.gui.GroupsContainer;
 	import quantum.gui.HintMgr;
+	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
@@ -43,6 +44,7 @@ package quantum.states {
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
 		private var $notesMgr:NotesMgr;
+		private var $infoPanel:QnInfoPanel;
 
 		public function StQuantumManager():void {
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
@@ -145,6 +147,10 @@ package quantum.states {
 			grpTitleTextInput = new BigTextInput();
 			grpTitleTextInput.tf = ui.tiGrpTitle;
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
+			
+			// Info panel
+			$infoPanel = new QnInfoPanel(this, ui);
+			$infoPanel.init();
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 
@@ -312,6 +318,11 @@ package quantum.states {
 
 		public function get grpCnt():GroupsContainer {
 			return $grpCnt;
+		}
+		
+		public function get infoPanel():QnInfoPanel 
+		{
+			return $infoPanel;
 		}
 
 	}

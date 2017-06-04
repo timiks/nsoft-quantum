@@ -115,7 +115,7 @@ package quantum.gui
 			}
 			
 			// Scroll
-			cropRect = new Rectangle(0, 0, stage.stageWidth, 538);
+			cropRect = new Rectangle(0, 0, stage.stageWidth, 548);
 			cnt.scrollRect = cropRect;
 			
 			scb = new UIScrollBar;

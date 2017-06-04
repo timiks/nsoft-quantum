@@ -63,7 +63,7 @@ package quantum.states
 			win.stage.scaleMode = StageScaleMode.NO_SCALE;
 			win.stage.align = StageAlign.TOP_LEFT;
 			win.stage.stageWidth = 550;
-			win.stage.stageHeight = 400;
+			win.stage.stageHeight = 480;
 			//win.visible = true;
 			win.title = "Настройки Квантума";
 			
