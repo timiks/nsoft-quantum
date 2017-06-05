@@ -24,7 +24,7 @@ package quantum.backup
 	public class BackupMaster
 	{
 		private const backupDirName:String = "backup"; // Relative to APD directory
-		private const cleanupInterval:int = 20;
+		private const cleanupInterval:int = 20; // In days
 		
 		private var main:Main;
 		
@@ -50,6 +50,11 @@ package quantum.backup
 		
 		private function processBackupCopies():void 
 		{
+			if (!main.settings.getKey(Settings.backupData))
+				return;
+				
+			trace("Backup copies check");
+			
 			var dirContents:Array = backupDir.getDirectoryListing();
 			
 			if (dirContents.length == 0)
@@ -72,7 +77,6 @@ package quantum.backup
 		
 		private function dataSaved(e:DataEvent):void
 		{
-			if (main.exiting) return;
 			doBackUp();
 		}
 		
@@ -83,6 +87,15 @@ package quantum.backup
 			
 			main.logRed("Backup check");
 			
+			// General checks
+			if (main.exiting) return;
+			if (main.stQuantumMgr.grpCnt.empty)
+			{
+				main.logRed("Groups view is empty. Backup cancelled")
+				return;
+			}
+			
+			// Time check
 			var lastBackupTime:Number = main.settings.getKey(Settings.lastBackupTime); // Unix Time (in seconds)
 			var currentTime:Number = new Date().time;
 			var timeDif:Number = currentTime - lastBackupTime;

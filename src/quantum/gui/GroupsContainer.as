@@ -42,6 +42,7 @@ package quantum.gui
 		private var $selectedGroup:ItemsGroup;
 		private var $events:EventDispatcher;
 		private var $loadingActive:Boolean;
+		private var $empty:Boolean;
 		
 		private var main:Main;
 		private var baseState:StQuantumManager;
@@ -594,6 +595,11 @@ package quantum.gui
 		public function get loadingActive():Boolean 
 		{
 			return $loadingActive;
+		}
+		
+		public function get empty():Boolean 
+		{
+			return groups.length == 0 ? true : false;
 		}
 	}
 }
