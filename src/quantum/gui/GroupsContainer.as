@@ -78,6 +78,11 @@ package quantum.gui
 			cnt.y = CNT_Y_OFFSET;
 			focusRect = false;
 			
+			// Init items images loading queue
+			itemsImgLoadingQueue = new Vector.<SquareItem>();
+			itemsImgLoadingTimer = new Timer(Capabilities.isDebugger ? 80 : 100, 0);
+			itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
+			
 			if (Capabilities.isDebugger && !DevSettings.loadData) return;
 			
 			// Load groups
@@ -90,11 +95,6 @@ package quantum.gui
 			
 			else
 			{
-				// Init items images loading queue
-				itemsImgLoadingQueue = new Vector.<SquareItem>();
-				itemsImgLoadingTimer = new Timer(Capabilities.isDebugger ? 80 : 100, 0);
-				itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
-				
 				// Construct groups
 				var sizesSum:int = 0;
 				
@@ -318,6 +318,7 @@ package quantum.gui
 		private function moveSelectedGroup(direction:String):void 
 		{
 			if (selectedGroup == null) return;
+			if (groups.length <= 1) return;
 			
 			var idx:int;
 			var idxNext:int;
@@ -483,6 +484,7 @@ package quantum.gui
 			var i:int;
 			var untitledGroup:ItemsGroup;
 			
+			// Search from the end (add to last untitled group in list)
 			for (i = groups.length-1; i >= 0; i--) 
 			{	
 				g = groups[i];
@@ -558,7 +560,7 @@ package quantum.gui
 			var g:ItemsGroup = value;
 			selectRect.graphics.clear();
 			selectRect.graphics.beginFill(0xFFDD00, 0.3);
-			selectRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cnt.height);
+			selectRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cropRect.height);
 			selectRect.graphics.endFill();
 			selectRect.x = g.displayObject.x - GRP_SPACING / 2;
 			//selectRect.y = cnt.y;
