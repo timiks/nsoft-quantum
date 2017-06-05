@@ -90,6 +90,12 @@ package quantum {
 		private function onTextChange(e:Event):void {
 
 			if (grpCnt.selectedItem == null) return;
+			
+			if (grpCnt.selectedItem.parentItemsGroup.title == "")
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар с безымянной группы", Colors.BAD);
+				return;
+			}
 
 			// Process address
 			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
