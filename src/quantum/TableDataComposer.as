@@ -14,6 +14,7 @@ package quantum {
 	import flash.text.TextFormat;
 	import quantum.adr.FormatMgr;
 	import quantum.adr.processing.ProcessingResult;
+	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
 
 	/**
@@ -202,6 +203,14 @@ package quantum {
 
 				// Sound
 				main.soundMgr.play(SoundMgr.sndPrcSuccess);
+				
+				// Message
+				main.stQuantumMgr.infoPanel.showMessage(
+					"Товар оформлен для " + prcResult.resultObj.name +
+					" в " + prcResult.resultObj.country + " из склада " +
+					"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
+					Colors.SUCCESS
+				);
 
 				// Clear text area (success)
 				adrInputTextArea.text = "";

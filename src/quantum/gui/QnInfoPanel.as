@@ -3,6 +3,8 @@ package quantum.gui
 	import flash.display.DisplayObjectContainer;
 	import flash.display.MovieClip;
 	import flash.text.TextField;
+	import quantum.Main;
+	import quantum.SoundMgr;
 	import quantum.states.StQuantumManager;
 		
 	/**
@@ -11,8 +13,10 @@ package quantum.gui
 	 */
 	public class QnInfoPanel 
 	{
-		private var cmp:QnManagerComposition;
+		private var main:Main;
 		private var qnState:StQuantumManager;
+		
+		private var cmp:QnManagerComposition;
 		private var placementCoordY:Number;
 		private var disOb:QuantumInfoPanel;
 		
@@ -24,6 +28,7 @@ package quantum.gui
 		
 		public function init():void 
 		{
+			main = Main.ins;
 			disOb = cmp.infopanel;
 			disOb.mouseEnabled = false;
 			disOb.mouseChildren = false;
@@ -43,6 +48,16 @@ package quantum.gui
 			else
 			{
 				disOb.gotoAndPlay(1);
+			}
+			
+			switch (color) 
+			{
+				case Colors.BAD:
+					main.soundMgr.play(SoundMgr.sndPrcError);
+					break;
+				default:
+					
+					break;
 			}
 		}
 		

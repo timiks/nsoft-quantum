@@ -498,11 +498,13 @@ package quantum.gui
 				// Create new
 				var newUntitledGroup:ItemsGroup = addNewGroup();
 				newUntitledGroup.addItem(deletedItem.imagePath);
+				baseState.infoPanel.showMessage("Товар кончился и был добавлен в новую безымянную группу");
 			}
 			else
 			{
 				// Use found untitled group
 				untitledGroup.addItem(deletedItem.imagePath);
+				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
 			}
 		}
 		
