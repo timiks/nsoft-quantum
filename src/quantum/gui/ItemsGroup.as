@@ -161,10 +161,7 @@ package quantum.gui {
 			fst.open(exportFile, FileMode.WRITE);
 			fst.writeUTFBytes(fileStr);
 			fst.close();
-
-			// Sound
-			main.soundMgr.play(SoundMgr.sndPrcSuccess);
-
+			
 			trace("Group contents has been exported to file: " + exportFile.name);
 			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name);
 			

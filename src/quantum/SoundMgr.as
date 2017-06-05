@@ -11,6 +11,7 @@ package quantum {
 		public static const sndPrcSuccess:String = "sndPrcSuccess";
 		public static const sndPrcError:String = "sndPrcError";
 		public static const sndBgPrcToggle:String = "sndBgPrcToggle";
+		public static const sndMessage:String = "sndMessage";
 
 		// Assets
 		[Embed(source = "/../lib/sounds/snd-ok.mp3")]
@@ -21,6 +22,9 @@ package quantum {
 
 		[Embed(source = "/../lib/sounds/snd-toggle-bg-prc.mp3")]
 		private var ToggleBgPrcSound:Class;
+		
+		[Embed(source = "/../lib/sounds/snd-message.mp3")]
+		private var MessageSound:Class;
 
 		private var snd:Sound;
 
@@ -44,6 +48,11 @@ package quantum {
 
 				case sndBgPrcToggle:
 					snd = new ToggleBgPrcSound() as Sound;
+					snd.play();
+					break;
+					
+				case sndMessage:
+					snd = new MessageSound() as Sound;
 					snd.play();
 					break;
 			}
