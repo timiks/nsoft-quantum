@@ -61,8 +61,13 @@ package quantum.gui {
 		 * ================================================================================
 		 */
 
-		public function registerHint(disOb:InteractiveObject, hint:Hint):void {
+		public function registerHint(disOb:InteractiveObject, hintText:String):void {
+			
+			switchListeners(disOb);
 
+			if (hints[disOb] == null)
+				hints[disOb] = new Hint(disOb, HINT_STANDART, hintText);
+				
 		}
 
 		public function registerHintWithHandler(disOb:InteractiveObject, textHandler:Function):void {
@@ -107,7 +112,11 @@ package quantum.gui {
 			// Prepare text
 			var hintText:String;
 			switch (hint.type) {
-
+				
+				case HINT_STANDART:
+					hintText = hint.text;
+					break;
+				
 				case HINT_WITH_HANDLER:
 					hintText = hint.textHandler();
 					break;

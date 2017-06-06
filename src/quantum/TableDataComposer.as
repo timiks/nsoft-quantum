@@ -1,5 +1,6 @@
 package quantum {
 
+	import fl.controls.CheckBox;
 	import fl.controls.TextArea;
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
@@ -75,6 +76,20 @@ package quantum {
 			adrMiniLogoVerTF.y -= 2;
 			adrMiniLogo.x = adrInputTextArea.width - adrMiniLogo.width - 2;
 			adrMiniLogo.y = adrInputTextArea.height - adrMiniLogo.height - 2;
+			
+			var cb:CheckBox = new CheckBox();
+			cb.label = "";
+			cb.width = 23;
+			cb.x = adrInputTextArea.width - cb.width - 2;
+			cb.y = 2;
+			adrInputTextArea.addChild(cb);
+			main.stQuantumMgr.hintMgr.registerHint(cb, "Активировать обработку");
+			
+			cb.selected = main.settings.getKey(Settings.composerAdrProcessingActive);
+			cb.addEventListener("change", function(e:Event):void
+			{
+				main.settings.setKey(Settings.composerAdrProcessingActive, cb.selected);
+			});
 
 			// Listeners
 			adrInputTextArea.addEventListener("change", onTextChange);
@@ -88,7 +103,10 @@ package quantum {
 		}
 
 		private function onTextChange(e:Event):void {
-
+			
+			if (!main.settings.getKey(Settings.composerAdrProcessingActive))
+				return;
+			
 			if (grpCnt.selectedItem == null) return;
 			
 			if (grpCnt.selectedItem.parentItemsGroup.title == "")

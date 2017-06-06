@@ -38,6 +38,7 @@ package quantum {
 		public static const backupCleanup:String = "backupCleanup";
 		public static const moveDeletedItemsToUntitledGroup:String = "moveDeletedItemsToUntitledGroup";
 		public static const dimUntitledGroupButton:String = "dimUntitledGroupButton";
+		public static const composerAdrProcessingActive:String = "composerAdrProcessingActive";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -78,6 +79,7 @@ package quantum {
 	/*GUI*/	allSets[backupCleanup]						= new Setting(backupCleanup, Boolean, true, "4.0");
 	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");
 	/*GUI*/	allSets[dimUntitledGroupButton]				= new Setting(dimUntitledGroupButton, Boolean, true, "4.0");
+	/*GUI*/	allSets[composerAdrProcessingActive]		= new Setting(composerAdrProcessingActive, Boolean, true, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
