@@ -10,6 +10,7 @@ package quantum.states {
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
@@ -178,7 +179,10 @@ package quantum.states {
 			// F8
 			if (e.keyCode == Keyboard.F8) {
 
-				infoPanel.showMessage("Удалённый только что товар закончился и был добавлен в безымянную группу");
+				if (Capabilities.isDebugger)
+				{
+					infoPanel.showMessage("Проверка сообщения");
+				}
 
 			}
 			

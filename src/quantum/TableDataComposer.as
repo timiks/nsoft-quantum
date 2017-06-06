@@ -93,7 +93,7 @@ package quantum {
 			
 			if (grpCnt.selectedItem.parentItemsGroup.title == "")
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар с безымянной группы", Colors.BAD);
+				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
 				return;
 			}
 
