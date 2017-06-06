@@ -37,6 +37,7 @@ package quantum {
 		public static const backupCreateImage:String = "backupCreateImage";
 		public static const backupCleanup:String = "backupCleanup";
 		public static const moveDeletedItemsToUntitledGroup:String = "moveDeletedItemsToUntitledGroup";
+		public static const dimUntitledGroupButton:String = "dimUntitledGroupButton";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -76,6 +77,7 @@ package quantum {
 	/*GUI*/	allSets[backupCreateImage]					= new Setting(backupCreateImage, Boolean, true, "4.0");
 	/*GUI*/	allSets[backupCleanup]						= new Setting(backupCleanup, Boolean, true, "4.0");
 	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");
+	/*GUI*/	allSets[dimUntitledGroupButton]				= new Setting(dimUntitledGroupButton, Boolean, true, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
@@ -130,7 +132,7 @@ package quantum {
 
 			sets[key] = value;
 
-			if (key == bgClipboardProcessing)
+			if (key == bgClipboardProcessing || key == dimUntitledGroupButton)
 				$eventDsp.dispatchEvent(new SettingEvent(SettingEvent.VALUE_CHANGED, key, value));
 
 			if (tmrSaveDelay == null) {

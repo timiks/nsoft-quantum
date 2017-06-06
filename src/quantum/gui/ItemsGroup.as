@@ -20,6 +20,7 @@ package quantum.gui {
 	import quantum.Main;
 	import quantum.SoundMgr;
 	import quantum.Warehouse;
+	import quantum.events.SettingEvent;
 
 	/**
 	 * ...
@@ -110,7 +111,12 @@ package quantum.gui {
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OUT, newItemBtnOut);
 			imgFile.addEventListener(FileListEvent.SELECT_MULTIPLE, multipleFilesSelect);
 			grpCnt.events.addEventListener(GroupsContainer.EVENT_ITEMS_IMG_LOADING_COMPLETE, grpCntImgLoadingComplete);
-
+			
+			if (title == "")
+			{
+				checkTitleAndUpdateStyle();
+				main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+			}
 		}
 
 		private function getMenuItmWarehouseSwitchLabel():String {
@@ -310,6 +316,34 @@ package quantum.gui {
 			}
 
 		}
+		
+		private function checkTitleAndUpdateStyle():void 
+		{
+			if (displayObject == null) return;
+			
+			if (!main.settings.getKey(Settings.dimUntitledGroupButton) && btnNewItem.alpha != 1)
+			{
+				btnNewItem.alpha = 1;
+				return;
+			}
+			
+			if (!main.settings.getKey(Settings.dimUntitledGroupButton)) return;
+			
+			if (title == "") 
+			{
+				btnNewItem.alpha = 0.6;
+			}
+			
+			else {
+				btnNewItem.alpha = 1;
+			}
+		}
+		
+		private function onDimUntitledGroupSettingChange(e:SettingEvent):void 
+		{
+			if (e.settingName == Settings.dimUntitledGroupButton && title == "")
+				checkTitleAndUpdateStyle();
+		}
 
 		/**
 		 * PUBLIC INTERFACE
@@ -415,6 +449,21 @@ package quantum.gui {
 
 		public function set title(value:String):void {
 			$title = value;
+			
+			if (displayObject != null) 
+			{
+				if (title == "") 
+				{
+					main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+				}
+				
+				else {
+					main.settings.eventDsp.removeEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+				}
+			}
+			
+			checkTitleAndUpdateStyle();
+			
 			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "title", value);
 		}
 

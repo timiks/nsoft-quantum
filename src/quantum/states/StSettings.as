@@ -121,6 +121,7 @@ package quantum.states
 			uiCmpList.push(uiPlate.cbBackupImg);
 			uiCmpList.push(uiPlate.cbBackupCleanup);
 			uiCmpList.push(uiPlate.cbMoveDeletedItemsToUntitledGroup);
+			uiCmpList.push(uiPlate.cbDimUntitledGroupButton);
 			uiCmpList.push(uiPlate.lblBuInt);
 			uiCmpList.push(uiPlate.selBackupInterval);
 			uiCmpList.push(uiPlate.selBackupInterval.textField);
@@ -191,6 +192,7 @@ package quantum.states
 			setupCheckbox(uiPlate.cbBackupImg, Settings.backupCreateImage);
 			setupCheckbox(uiPlate.cbBackupCleanup, Settings.backupCleanup);
 			setupCheckbox(uiPlate.cbMoveDeletedItemsToUntitledGroup, Settings.moveDeletedItemsToUntitledGroup);
+			setupCheckbox(uiPlate.cbDimUntitledGroupButton, Settings.dimUntitledGroupButton);
 			
 			// Selects (ComboBoxes)
 			var selItems:Vector.<Object>;
