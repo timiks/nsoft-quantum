@@ -181,7 +181,11 @@ package quantum.states {
 
 				if (Capabilities.isDebugger)
 				{
-					infoPanel.showMessage("Проверка сообщения");
+					infoPanel.showMessage("Проверка сообщения 1");
+					infoPanel.showMessage("Проверка сообщения 2");
+					infoPanel.showMessage("Проверка сообщения 3");
+					infoPanel.showMessage("Проверка сообщения 4");
+					infoPanel.showMessage("Проверка сообщения 5");
 				}
 
 			}
