@@ -129,9 +129,6 @@ package quantum.gui
 			main.logRed("Container width (init): " + cnt.width);
 			main.logRed("Max scroll position (init): " + scb.maxScrollPosition);
 			
-			addChild(scb);
-			scb.update();
-			
 			scb.addEventListener(ScrollEvent.SCROLL, scroll);
 			stage.addEventListener(MouseEvent.MOUSE_WHEEL, function(e:MouseEvent):void
 			{
@@ -140,6 +137,22 @@ package quantum.gui
 				if (e.delta > 0) wheelRatio = -wheelRatio;
 				scb.scrollPosition += -e.delta + wheelRatio;
 			});
+			
+			// Set scroll position from settings (with a little delay due to bug)
+			var tmr:Timer = new Timer(200, 1);
+			tmr.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void 
+			{
+				var savedScrollPosition:Number = main.settings.getKey(Settings.groupsViewScrollPosition);
+				if (savedScrollPosition is Number && savedScrollPosition >= 0 && savedScrollPosition <= scb.maxScrollPosition)
+					scb.scrollPosition = savedScrollPosition;
+					
+				e.currentTarget.removeEventListener(e.type, arguments.callee);
+				tmr = null;
+			});
+			tmr.start();
+			
+			addChild(scb);
+			scb.update();
 			
 			// Hit box
 			cntHitBox = new Sprite();
@@ -228,6 +241,7 @@ package quantum.gui
 			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
 			rct.x = scb.scrollPosition;
 			cnt.scrollRect = rct;
+			main.settings.setKey(Settings.groupsViewScrollPosition, scb.scrollPosition);
 		}
 		
 		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
@@ -281,7 +295,7 @@ package quantum.gui
 			scb.maxScrollPosition = calculateMaxScrollPosition(sizesSum);
 			scb.update();
 			scb.scrollPosition = prevScrollPos;
-		
+			
 			main.logRed("Max scroll position (rearrange): " + scb.maxScrollPosition);
 			main.logRed("Container width (rearrange): " + cnt.width);
 		}

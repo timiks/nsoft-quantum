@@ -39,6 +39,7 @@ package quantum {
 		public static const moveDeletedItemsToUntitledGroup:String = "moveDeletedItemsToUntitledGroup";
 		public static const dimUntitledGroupButton:String = "dimUntitledGroupButton";
 		public static const composerAdrProcessingActive:String = "composerAdrProcessingActive";
+		public static const groupsViewScrollPosition:String = "groupsViewScrollPosition";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -80,6 +81,7 @@ package quantum {
 	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");
 	/*GUI*/	allSets[dimUntitledGroupButton]				= new Setting(dimUntitledGroupButton, Boolean, true, "4.0");
 	/*GUI*/	allSets[composerAdrProcessingActive]		= new Setting(composerAdrProcessingActive, Boolean, true, "4.0");
+			allSets[groupsViewScrollPosition]			= new Setting(groupsViewScrollPosition, Number, 0, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
