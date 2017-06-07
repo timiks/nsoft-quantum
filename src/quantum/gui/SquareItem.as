@@ -34,20 +34,26 @@ package quantum.gui {
 		private const DEF_COUNT_VALUE:int = 1;
 		private const SQUARE_SIZE:int = 40; // Def: 68 58
 
-		// App properties
+		// Fields of app properties
 		private var $position:int;
 		private var $imageCacheID:int;
 		private var $selected:Boolean;
 		private var $parentItemsGroup:ItemsGroup;
 		private var $dataXml:XML;
 
-		// Data properties
+		// Fields of data properties
 		private var $id:int;
 		private var $count:int;
 		private var $imagePath:String;
 
+		private var main:Main;
+		private var grpCnt:GroupsContainer;
+
 		private var ldr:Loader; // Internal Loader for image
 		private var ba:ByteArray;
+
+		private var imgFile:File;
+		private var fst:FileStream;
 
 		private var $frame:Shape; // Top frame of the square
 		private var imgMask:Shape;
@@ -59,12 +65,6 @@ package quantum.gui {
 		private var countTextField:TextField;
 		private var hintCorner:Shape;
 		private var selectFrameAnimation:MovieClip;
-
-		private var imgFile:File;
-		private var fst:FileStream;
-
-		private var main:Main;
-		private var grpCnt:GroupsContainer;
 
 		public function SquareItem(imgPath:String, count:int):void {
 
@@ -87,10 +87,6 @@ package quantum.gui {
 			$frame = new Shape();
 			$frame.graphics.lineStyle(1, 0xB7BABC);
 			$frame.graphics.drawRect(0, 0, w-1, h-1);
-			//$frame.graphics.lineTo(w, 0);
-			//$frame.graphics.lineTo(w, h);
-			//$frame.graphics.lineTo(0, h);
-			//$frame.graphics.lineTo(0, 0);
 
 			// Over frame
 			overFrame = new Shape();
@@ -213,9 +209,10 @@ package quantum.gui {
 			// Hint
 			grpCnt.registerItemsHint(this, hintTextHandler);
 
-			// Start loading image
-			fst.openAsync(imgFile, FileMode.READ);
+			// Prepare for loading image (GroupsContainer will start it)
+			fst.addEventListener(Event.COMPLETE, onImgLoad);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
+			grpCnt.registerItemForImgLoading(this);
 
 		}
 
@@ -225,10 +222,15 @@ package quantum.gui {
 
 		private function ioError(e:IOErrorEvent):void {
 			errorFrame.visible = true;
+			fst.removeEventListener(Event.COMPLETE, onImgLoad);
+			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
 		}
 
 		private function onImgLoad(e:Event):void {
-
+			
+			fst.removeEventListener(Event.COMPLETE, onImgLoad);
+			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
+			
 			fst.readBytes(ba, 0, fst.bytesAvailable);
 			fst.close();
 			ldr.loadBytes(ba);
@@ -326,15 +328,17 @@ package quantum.gui {
 			parentItemsGroup.removeItem(this);
 		}
 
-		public function startLoadingImage():void {
-			fst.openAsync(imgFile, FileMode.READ);
-		}
-
 		public function hintTextHandler():String {
 
 			var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
 			return note != "" ? note : null;
 
+		}
+		
+		public function startLoadingImage():void 
+		{
+			// Start loading image
+			fst.openAsync(imgFile, FileMode.READ);
 		}
 
 		/**

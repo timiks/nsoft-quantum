@@ -11,14 +11,14 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 22;
+		private const $version:int = 23;
 
 		// Data
 		private var usRegions:Vector.<Object>;
 		private var caRegions:Vector.<Object>;
 		private var auRegions:Vector.<Object>;
 		private var ndRegions:Vector.<Object>;
-
+		
 		private var main:Main;
 		private var $resultObj:ResultObject;
 		private var addrExamples:Array;
@@ -121,7 +121,7 @@ package quantum.adr.processing {
 			ndRegions.push({ab: "UT", name: "Utrecht"});
 			ndRegions.push({ab: "ZE", name: "Zeeland"});
 			ndRegions.push({ab: "ZH", name: "Zuid-Holland"});
-
+			
 			//} endregion
 
 			//{ region Samples
@@ -366,6 +366,20 @@ package quantum.adr.processing {
 
 				}
 
+			}
+			
+			// ITALY. Converting to TPL #1
+			if (country == "Italy" && lc >= 5)
+			{
+				rePattern = /[A-Z]{2}/;
+				reArr = theLineBeforeLast.match(rePattern);
+				
+				if (reArr != null) 
+				{
+					lines[lines.length-3] += ", " + theLineBeforeLast;
+					lines.splice(lines.length-2, 1);
+					lc = lines.length;
+				}
 			}
 
 			/**

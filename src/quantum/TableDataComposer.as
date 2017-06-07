@@ -1,5 +1,6 @@
 package quantum {
 
+	import fl.controls.CheckBox;
 	import fl.controls.TextArea;
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
@@ -14,6 +15,7 @@ package quantum {
 	import flash.text.TextFormat;
 	import quantum.adr.FormatMgr;
 	import quantum.adr.processing.ProcessingResult;
+	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
 
 	/**
@@ -74,6 +76,20 @@ package quantum {
 			adrMiniLogoVerTF.y -= 2;
 			adrMiniLogo.x = adrInputTextArea.width - adrMiniLogo.width - 2;
 			adrMiniLogo.y = adrInputTextArea.height - adrMiniLogo.height - 2;
+			
+			var cb:CheckBox = new CheckBox();
+			cb.label = "";
+			cb.width = 23;
+			cb.x = adrInputTextArea.width - cb.width - 2;
+			cb.y = 2;
+			adrInputTextArea.addChild(cb);
+			main.stQuantumMgr.hintMgr.registerHint(cb, "Активировать обработку");
+			
+			cb.selected = main.settings.getKey(Settings.composerAdrProcessingActive);
+			cb.addEventListener("change", function(e:Event):void
+			{
+				main.settings.setKey(Settings.composerAdrProcessingActive, cb.selected);
+			});
 
 			// Listeners
 			adrInputTextArea.addEventListener("change", onTextChange);
@@ -87,8 +103,17 @@ package quantum {
 		}
 
 		private function onTextChange(e:Event):void {
-
+			
+			if (!main.settings.getKey(Settings.composerAdrProcessingActive))
+				return;
+			
 			if (grpCnt.selectedItem == null) return;
+			
+			if (grpCnt.selectedItem.parentItemsGroup.title == "")
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
+				return;
+			}
 
 			// Process address
 			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
@@ -202,6 +227,14 @@ package quantum {
 
 				// Sound
 				main.soundMgr.play(SoundMgr.sndPrcSuccess);
+				
+				// Message
+				main.stQuantumMgr.infoPanel.showMessage(
+					"Товар оформлен для " + prcResult.resultObj.name +
+					" в " + prcResult.resultObj.country + " из склада " +
+					"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
+					Colors.SUCCESS
+				);
 
 				// Clear text area (success)
 				adrInputTextArea.text = "";

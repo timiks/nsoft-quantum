@@ -10,6 +10,7 @@ package quantum.states {
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
@@ -21,6 +22,7 @@ package quantum.states {
 	import quantum.gui.BigTextInput;
 	import quantum.gui.GroupsContainer;
 	import quantum.gui.HintMgr;
+	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
@@ -35,14 +37,15 @@ package quantum.states {
 		private var main:Main;
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
-		private var grpCnt:GroupsContainer;
 		private var hintsCnt:Sprite;
 
 		// Public modules
+		private var $grpCnt:GroupsContainer;
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
 		private var $notesMgr:NotesMgr;
+		private var $infoPanel:QnInfoPanel;
 
 		public function StQuantumManager():void {
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
@@ -77,7 +80,9 @@ package quantum.states {
 			// Exit
 			ui.btnExit.tabEnabled = false;
 			ui.btnExit.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+
 				main.exitApp();
+
 			});
 
 			// Addressy UI show
@@ -85,6 +90,14 @@ package quantum.states {
 			ui.btnShowAdrUI.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
 
 				main.stAdrUI.showWindow(true);
+
+			});
+
+			// Settings window show
+			ui.btnSettings.tabEnabled = false;
+			ui.btnSettings.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+
+				main.stSettings.showWindow(true);
 
 			});
 
@@ -124,7 +137,7 @@ package quantum.states {
 			notesMgr.init();
 
 			// Groups Container
-			grpCnt = new GroupsContainer(this);
+			$grpCnt = new GroupsContainer(this);
 			ui.addChildAt(grpCnt, 0);
 
 			// Table data composer
@@ -135,6 +148,10 @@ package quantum.states {
 			grpTitleTextInput = new BigTextInput();
 			grpTitleTextInput.tf = ui.tiGrpTitle;
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
+			
+			// Info panel
+			$infoPanel = new QnInfoPanel(this, ui);
+			$infoPanel.init();
 
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 
@@ -162,12 +179,24 @@ package quantum.states {
 			// F8
 			if (e.keyCode == Keyboard.F8) {
 
-				if (grpCnt.stage != null) {
-					ui.removeChild(grpCnt);
-				} else {
-					ui.addChild(grpCnt);
+				if (Capabilities.isDebugger)
+				{
+					infoPanel.showMessage("Проверка сообщения 1");
+					infoPanel.showMessage("Проверка сообщения 2");
+					infoPanel.showMessage("Проверка сообщения 3");
+					infoPanel.showMessage("Проверка сообщения 4");
+					infoPanel.showMessage("Проверка сообщения 5");
 				}
 
+			}
+			
+			else
+			
+			// F7
+			if (e.keyCode == Keyboard.F7) {
+				
+				
+				
 			}
 
 		}
@@ -178,7 +207,7 @@ package quantum.states {
 			win.title = "Quantum";
 
 			var winPosStr:String = main.settings.getKey(Settings.winPos);
-			var reResult:Array = winPosStr.match(/(\d+):(\d+)/);
+			var reResult:Array = winPosStr.match(/(-?\d+):(-?\d+)/);
 			win.x = Number(reResult[1]);
 			win.y = Number(reResult[2]);
 
@@ -293,6 +322,15 @@ package quantum.states {
 
 		public function set notesMgr(value:NotesMgr):void {
 			$notesMgr = value;
+		}
+
+		public function get grpCnt():GroupsContainer {
+			return $grpCnt;
+		}
+		
+		public function get infoPanel():QnInfoPanel 
+		{
+			return $infoPanel;
 		}
 
 	}

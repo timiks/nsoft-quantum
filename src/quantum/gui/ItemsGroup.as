@@ -15,10 +15,12 @@ package quantum.gui {
 	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.utils.Timer;
+	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.Main;
 	import quantum.SoundMgr;
 	import quantum.Warehouse;
+	import quantum.events.SettingEvent;
 
 	/**
 	 * ...
@@ -30,12 +32,7 @@ package quantum.gui {
 		private const ITEMS_SPACING:int = 6; // In pixels
 		private const ITEMS_PLACING_Y_OFFSET:int = 45;
 
-		private var totalItems:int;
-		private var totalColumns:int;
-		private var items:Vector.<SquareItem>;
-		private var nextPlace:Point;
-		private var imgFile:File;
-
+		// Fields of app properties
 		private var $displayObject:ItemsGroupMC;
 		private var $id:int;
 		private var $selected:Boolean;
@@ -44,11 +41,18 @@ package quantum.gui {
 		private var $brandNew:Boolean;
 		private var $empty:Boolean;
 
-		// Data fields
+		// Fields of data properties
 		private var $title:String;
 		private var $warehouseID:String;
 
 		private var main:Main;
+
+		private var totalItems:int;
+		private var totalColumns:int;
+		private var items:Vector.<SquareItem>;
+		private var nextPlace:Point;
+		private var imgFile:File;
+		private var multipleAddingMode:Boolean;
 
 		private var btnSelGrp:MovieClip;
 		private var btnNewItem:SimpleButton;
@@ -77,7 +81,6 @@ package quantum.gui {
 			nextPlace = new Point();
 			imgFile = new File();
 			constructGrid();
-			//startLoadingItemsImages(items);
 
 			/**
 			 * UI functionality
@@ -107,7 +110,13 @@ package quantum.gui {
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OVER, newItemBtnOver);
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OUT, newItemBtnOut);
 			imgFile.addEventListener(FileListEvent.SELECT_MULTIPLE, multipleFilesSelect);
-
+			grpCnt.events.addEventListener(GroupsContainer.EVENT_ITEMS_IMG_LOADING_COMPLETE, grpCntImgLoadingComplete);
+			
+			if (title == "")
+			{
+				checkTitleAndUpdateStyle();
+				main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+			}
 		}
 
 		private function getMenuItmWarehouseSwitchLabel():String {
@@ -115,13 +124,18 @@ package quantum.gui {
 		}
 
 		private function menuItmWarehouseSwitchClick(e:Event):void {
+
 			if (warehouseID == Warehouse.BEIJING) {
+
 				warehouseID = Warehouse.CANTON;
+
 			} else {
+
 				warehouseID = Warehouse.BEIJING;
+
 			}
+
 			menuItmWarehouseSwitch.label = getMenuItmWarehouseSwitchLabel();
-			main.dataMgr.dataHasBeenUpdated();
 		}
 
 		private function menuItmExportClick(e:Event):void {
@@ -153,86 +167,31 @@ package quantum.gui {
 			fst.open(exportFile, FileMode.WRITE);
 			fst.writeUTFBytes(fileStr);
 			fst.close();
-
-			// Sound
-			main.soundMgr.play(SoundMgr.sndPrcSuccess);
-
+			
 			trace("Group contents has been exported to file: " + exportFile.name);
-
-		}
-/*
-		private var imgLoadTimer:Timer;
-		private var loadIdx:int;
-		private var loadItems:Vector.<SquareItem>;
-		private function startLoadingItemsImages(items:Vector.<SquareItem>):void {
-			if (items.length == 0) return;
-			//imgLoadTimer = new Timer(10, items.length);
-			//imgLoadTimer.addEventListener(TimerEvent.TIMER, onTimer);
-			//imgLoadTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-			loadItems = items;
-			loadIdx = 0;
-			//imgLoadTimer.start();
-			onTimer(null);
+			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name);
+			
 		}
 
-		private function onTimer(e:TimerEvent):void {
-			if (loadIdx < loadItems.length) {
-				loadItems[loadIdx].startLoadingImage();
-				loadIdx++;
-			} else {
-				loadItems = null;
-			}
-		}
-
-		public function loadNext():void {
-			onTimer(null);
-		}
-
-		private function onTimerComplete(e:TimerEvent):void {
-			imgLoadTimer.removeEventListener(TimerEvent.TIMER, onTimer);
-			imgLoadTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-			imgLoadTimer = null;
-			loadItems = null;
-		}
-*/
 		private function multipleFilesSelect(e:FileListEvent):void {
 
+			multipleAddingMode = true;
+			
 			for each (var file:File in e.files) {
-				var newItem:SquareItem = addItem(file.nativePath); // "D:\\Картинки\\Всякое\\Panda.jpg"
-				newItem.parentItemsGroup = this;
-				displayObject.addChild(newItem);
-				newItem.init();
-				calculateNextPlace();
-				newItem.x = nextPlace.x;
-				newItem.y = nextPlace.y;
-				//grpCnt.compositionChanged();
-				main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
+				addItem(file.nativePath);
 			}
-
-			brandNew = false;
-			grpCnt.compositionChanged();
-
+			
+			grpCnt.startItemsImgLoadingTimer();
+			
 		}
-/*
-		private function onImgFileSelect(e:Event):void {
-
-			var file:File = e.target as File;
-			var newItem:SquareItem = addItem(file.nativePath); // "D:\\Картинки\\Всякое\\Panda.jpg"
-			newItem.parentItemsGroup = this;
-			displayObject.addChild(newItem);
-			newItem.init();
-			calculateNextPlace();
-			newItem.x = nextPlace.x;
-			newItem.y = nextPlace.y;
-			grpCnt.compositionChanged();
-			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
-			brandNew = false;
-
+		
+		private function grpCntImgLoadingComplete(e:Event):void 
+		{
+			if (multipleAddingMode) multipleAddingMode = false;
 		}
-*/
+
 		private function newItemBtnClick(e:MouseEvent):void {
 
-			//imgFile.browseForOpen("Выберите картинку для объекта", [new FileFilter("Изображение", "*.jpg;*.png;*.gif")]);
 			imgFile.browseForOpenMultiple(
 				"Выберите картинку (или несколько)",
 				[new FileFilter("Изображение", "*.jpg;*.png;*.gif;*.jpeg")]
@@ -241,11 +200,11 @@ package quantum.gui {
 		}
 
 		private function newItemBtnOver(e:MouseEvent):void {
-			grpCnt.selectGroup(this);
+			grpCnt.selectGroupWithTimer(this);
 		}
 
 		private function newItemBtnOut(e:MouseEvent):void {
-			grpCnt.selectedGrpButtonMouseOut();
+			//grpCnt.selectedGrpButtonMouseOut();
 		}
 
 		private function constructGrid():void {
@@ -357,8 +316,41 @@ package quantum.gui {
 			}
 
 		}
+		
+		private function checkTitleAndUpdateStyle():void 
+		{
+			if (displayObject == null) return;
+			
+			if (!main.settings.getKey(Settings.dimUntitledGroupButton) && btnNewItem.alpha != 1)
+			{
+				btnNewItem.alpha = 1;
+				return;
+			}
+			
+			if (!main.settings.getKey(Settings.dimUntitledGroupButton)) return;
+			
+			if (title == "") 
+			{
+				btnNewItem.alpha = 0.6;
+			}
+			
+			else {
+				btnNewItem.alpha = 1;
+			}
+		}
+		
+		private function onDimUntitledGroupSettingChange(e:SettingEvent):void 
+		{
+			if (e.settingName == Settings.dimUntitledGroupButton && title == "")
+				checkTitleAndUpdateStyle();
+		}
 
-		private function addItem(imgPath:String, countValue:int = 0):SquareItem {
+		/**
+		 * PUBLIC INTERFACE
+		 * ================================================================================
+		 */
+
+		public function addItem(imgPath:String, countValue:int = 0):SquareItem {
 
 			var newItem:SquareItem = new SquareItem(
 				imgPath,
@@ -366,15 +358,21 @@ package quantum.gui {
 			);
 
 			items.push(newItem);
+			newItem.parentItemsGroup = this;
+			displayObject.addChild(newItem);
+			newItem.init();
+			calculateNextPlace();
+			newItem.x = nextPlace.x;
+			newItem.y = nextPlace.y;
+			grpCnt.compositionChanged();
+			if (brandNew) brandNew = false;
+			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
+			
+			if (!multipleAddingMode) grpCnt.startItemsImgLoadingTimer();
 
 			return newItem;
 
 		}
-
-		/**
-		 * PUBLIC INTERFACE
-		 * ================================================================================
-		 */
 
 		public function removeItem(removingItem:SquareItem):void {
 
@@ -388,6 +386,11 @@ package quantum.gui {
 				grpCnt.removeGroup(this);
 			}
 
+			if (main.settings.getKey(Settings.moveDeletedItemsToUntitledGroup)) 
+			{
+				grpCnt.processDeletedItemAndMoveToUntitledGroup(removingItem);
+			}
+			
 		}
 
 		public function hintTextHandler():String {
@@ -396,8 +399,18 @@ package quantum.gui {
 				return null;
 			}
 
-			return (title == "" ? "[Без названия]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
+			return (title == "" ? "[Безымянная]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
 
+		}
+		
+		public function checkItemExistenceByImgPath(itemsImgPath:String):Boolean
+		{
+			for each (var i:SquareItem in items) 
+			{
+				if (i.imagePath == itemsImgPath) return true;
+			}
+			
+			return false;
 		}
 
 		/**
@@ -436,6 +449,21 @@ package quantum.gui {
 
 		public function set title(value:String):void {
 			$title = value;
+			
+			if (displayObject != null) 
+			{
+				if (title == "") 
+				{
+					main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+				}
+				
+				else {
+					main.settings.eventDsp.removeEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
+				}
+			}
+			
+			checkTitleAndUpdateStyle();
+			
 			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "title", value);
 		}
 

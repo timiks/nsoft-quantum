@@ -7,7 +7,7 @@
     <movie path="bin\Quantum.swf" />
     <movie fps="30" />
     <movie width="1060" />
-    <movie height="730" />
+    <movie height="770" />
     <movie version="3" />
     <movie minorVersion="7" />
     <movie platform="AIR" />
@@ -54,6 +54,7 @@
   <libraryPaths>
     <element path="lib\UI.swc" />
     <element path="..\..\..\Bin\Hub\AS3 Libs\Flash UI Components\Components.swc" />
+    <element path="D:\Bin\Hub\AS3 Libs\Async Image Encoders 1.0.4.swc" />
   </libraryPaths>
   <!-- External Libraries -->
   <externalLibraryPaths>

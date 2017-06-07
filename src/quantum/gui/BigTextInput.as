@@ -27,7 +27,7 @@ package quantum.gui {
 		private var $tf:TextField;
 		private var $focused:Boolean;
 
-		private const EMPTY_TITLE_PLACEHOLDER:String = "[Группа без названия]";
+		private const EMPTY_TITLE_PLACEHOLDER:String = "[Безымянная группа]";
 
 		public function BigTextInput():void {
 

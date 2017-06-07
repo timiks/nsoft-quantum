@@ -1,12 +1,16 @@
 package quantum.data {
 
+	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
 	import flash.net.FileReference;
+	import flash.system.Capabilities;
 	import flash.utils.Timer;
+	import quantum.dev.DevSettings;
+	import quantum.events.DataEvent;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.Main;
@@ -23,6 +27,8 @@ package quantum.data {
 		public static const OP_ADD:String = "add";
 		public static const OP_REMOVE:String = "rem";
 		public static const OP_UPDATE:String = "upd";
+		public static const OP_CHANGE_ORDER:String = "changeOrder";
+		public static const OP_SWAP_ELEMENTS:String = "swap";
 
 		private static const dataFileVersion:int = 2;
 
@@ -33,11 +39,9 @@ package quantum.data {
 		private var fstream:FileStream;
 
 		private var tmrSaveDelay:Timer;
-		private var backUpTimer:Timer;
 		private var loaded:Boolean = false;
-		private var backupOn:Boolean;
 
-		private var $backupDone:Boolean = false;
+		private var $events:EventDispatcher;
 
 		public function DataMgr():void {}
 
@@ -51,6 +55,7 @@ package quantum.data {
 
 			main = Main.ins;
 
+			$events = new EventDispatcher();
 			dataFile = File.applicationStorageDirectory.resolvePath("data.xml");
 			fstream = new FileStream();
 
@@ -115,9 +120,6 @@ package quantum.data {
 
 				// [To-Do Here ↓]: Errors check
 
-				// Check backup settings
-				backupOn = main.settings.getKey(Settings.backupData);
-
 				loaded = true;
 
 			}
@@ -150,8 +152,7 @@ package quantum.data {
 				tmrSaveDelay.start();
 			}
 
-			if (backupOn && backUpTimer == null)
-				startBackUpCountdown();
+			events.dispatchEvent(new DataEvent(DataEvent.DATA_UPDATE));
 
 		}
 
@@ -160,26 +161,50 @@ package quantum.data {
 			tmrSaveDelay.removeEventListener(TimerEvent.TIMER, saveOnTimer);
 			tmrSaveDelay = null;
 		}
+		
+		private function swapNodes(target:XML, indexa:int, indexb:int):void {
+			
+			// Sanity checks.
+			if (!target) return;
+			if (indexa < 0) return;
+			if (indexb < 0) return;
+			if (indexa == indexb) return;
 
-		private function startBackUpCountdown():void {
+			var anIndex:int;
 
-			if (backUpTimer == null) {
-				backUpTimer = new Timer(21600000, 1); // 6 hours after first data update
-				backUpTimer.addEventListener(TimerEvent.TIMER, timeToBackUp);
-				backUpTimer.start();
+			// Lets say indexa must be < indexb.
+			// Just for our own convenience.
+			if (indexb < indexa)
+			{
+				anIndex = indexa;
+				indexa = indexb;
+				indexb = anIndex;
 			}
 
-		}
+			var aList:XMLList = target.children();
 
-		private function timeToBackUp(e:TimerEvent):void {
+			// Last check.
+			if (indexb >= aList.length()) return;
 
-			backUpData();
-			backUpTimer.removeEventListener(TimerEvent.TIMER, timeToBackUp);
-			backUpTimer = null;
+			var aNode:XML = aList[indexa];
+			var bNode:XML = aList[indexb];
+			var abNode:XML = aList[indexb - 1];
 
+			delete aList[indexb];
+			target.insertChildBefore(aNode, bNode)
+
+			if (indexb - indexa > 1)
+			{
+				delete aList[indexa];
+				target.insertChildAfter(abNode, aNode);
+			}
+			
 		}
 
 		public function saveFile():void {
+
+			if (Capabilities.isDebugger && !DevSettings.dataSaveOn) return;
+
 			// XML output settings
 			XML.prettyPrinting = true;
 			XML.prettyIndent = 4;
@@ -189,29 +214,12 @@ package quantum.data {
 			fstream.close();
 
 			main.logRed("Data File Saved");
-		}
-
-		public function backUpData():void {
-
-			if (!backupOn) return;
-
-			// Back up data file
-			var date:Date = new Date();
-			var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
-			var dstr:String;
-			dtf.setDateTimePattern("dd.MM.yyyy-HH.mm.ss");
-			dstr = dtf.format(date);
-
-			var dataFileBackup:FileReference = File.applicationStorageDirectory.resolvePath("backup\\data-"+dstr+".bak");
-			dataFile.copyTo(dataFileBackup, true);
-
-			$backupDone = true;
-			main.logRed("Backup Done");
+			events.dispatchEvent(new DataEvent(DataEvent.DATA_SAVE));
 
 		}
 
-		public function dataHasBeenUpdated():void {
-			dataUpdate();
+		public function getDataFileRef():File {
+			return dataFile;
 		}
 
 		/**
@@ -304,10 +312,15 @@ package quantum.data {
 
 			dataUpdate(5500);
 
-
 		}
 
-		public function opGroup(grp:ItemsGroup, op:String, field:String = null, value:* = null):void {
+		public function opGroup(
+						grp:ItemsGroup,
+						op:String,
+						field:String = null,
+						value:* = null,
+						swapNodeA:XML = null,
+						swapNodeB:XML = null):void {
 
 			if (op == OP_UPDATE) {
 
@@ -333,6 +346,14 @@ package quantum.data {
 
 				delete dataXml.children()[grp.dataXml.childIndex()];
 
+			}
+			
+			else
+			
+			if (op == OP_SWAP_ELEMENTS) {
+				
+				swapNodes(dataXml, swapNodeA.childIndex(), swapNodeB.childIndex());
+				
 			}
 
 			dataUpdate();
@@ -377,8 +398,8 @@ package quantum.data {
 		 * ================================================================================
 		 */
 
-		public function get backupDone():Boolean {
-			return $backupDone;
+		public function get events():EventDispatcher {
+			return $events;
 		}
 
 	}

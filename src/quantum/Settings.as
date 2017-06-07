@@ -7,9 +7,11 @@ package quantum {
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.net.FileReference;
+	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	import quantum.adr.FormatMgr;
+	import quantum.dev.DevSettings;
 	import quantum.events.SettingEvent;
 
 	/**
@@ -30,6 +32,14 @@ package quantum {
 		public static const deleteEmptyGroupsOnStartup:String = "deleteEmptyGroupsOnStartup";
 		public static const backupData:String = "backupData";
 		public static const defaultWarehouse:String = "defaultWarehouse";
+		public static const lastBackupTime:String = "lastBackupTime";
+		public static const backupInterval:String = "backupInterval";
+		public static const backupCreateImage:String = "backupCreateImage";
+		public static const backupCleanup:String = "backupCleanup";
+		public static const moveDeletedItemsToUntitledGroup:String = "moveDeletedItemsToUntitledGroup";
+		public static const dimUntitledGroupButton:String = "dimUntitledGroupButton";
+		public static const composerAdrProcessingActive:String = "composerAdrProcessingActive";
+		public static const groupsViewScrollPosition:String = "groupsViewScrollPosition";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -53,17 +63,25 @@ package quantum {
 			main = Main.ins;
 			$eventDsp = new EventDispatcher();
 
-			allSets = {}; 							// Name / Data type / Default value / Version introduced in
-			allSets[outputFormat] 					= new Setting(outputFormat, String, FormatMgr.FRM_STR, "1.0");
-			allSets[clearSourceAreaOnSuccess] 		= new Setting(clearSourceAreaOnSuccess, Boolean, false, "1.0");
-			allSets[uiAutomaticCopy] 				= new Setting(uiAutomaticCopy, Boolean, true, "1.0");
-			allSets[startInTray] 					= new Setting(startInTray, Boolean, false, "1.0");
-			allSets[stayOnWindowClosing] 			= new Setting(stayOnWindowClosing, Boolean, true, "1.0");
-			allSets[winPos]							= new Setting(winPos, String, "374:163", "1.0");
-			allSets[bgClipboardProcessing]			= new Setting(bgClipboardProcessing, Boolean, false, "1.0");
-			allSets[deleteEmptyGroupsOnStartup]		= new Setting(deleteEmptyGroupsOnStartup, Boolean, true, "1.0");
-			allSets[backupData]						= new Setting(backupData, Boolean, true, "1.1");
-			allSets[defaultWarehouse]				= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
+			allSets = {}; 								// Name / Data type / Default value / Version introduced in
+	/*GUI*/	allSets[outputFormat] 						= new Setting(outputFormat, String, FormatMgr.FRM_STR, "1.0");
+	/*GUI*/	allSets[clearSourceAreaOnSuccess] 			= new Setting(clearSourceAreaOnSuccess, Boolean, false, "1.0");
+	/*GUI*/	allSets[uiAutomaticCopy] 					= new Setting(uiAutomaticCopy, Boolean, true, "1.0");
+	/*GUI*/	allSets[startInTray] 						= new Setting(startInTray, Boolean, false, "1.0");
+	/*GUI*/	allSets[stayOnWindowClosing] 				= new Setting(stayOnWindowClosing, Boolean, true, "1.0");
+			allSets[winPos]								= new Setting(winPos, String, "374:163", "1.0");
+	/*GUI*/	allSets[bgClipboardProcessing]				= new Setting(bgClipboardProcessing, Boolean, false, "1.0");
+	/*GUI*/	allSets[deleteEmptyGroupsOnStartup]			= new Setting(deleteEmptyGroupsOnStartup, Boolean, true, "1.0");
+	/*GUI*/	allSets[backupData]							= new Setting(backupData, Boolean, true, "1.1");
+	/*GUI*/	allSets[defaultWarehouse]					= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
+			allSets[lastBackupTime]						= new Setting(lastBackupTime, Number, 0, "4.0");
+	/*GUI*/	allSets[backupInterval]						= new Setting(backupInterval, int, 360, "4.0"); // In minutes
+	/*GUI*/	allSets[backupCreateImage]					= new Setting(backupCreateImage, Boolean, true, "4.0");
+	/*GUI*/	allSets[backupCleanup]						= new Setting(backupCleanup, Boolean, true, "4.0");
+	/*GUI*/	allSets[moveDeletedItemsToUntitledGroup]	= new Setting(moveDeletedItemsToUntitledGroup, Boolean, true, "4.0");
+	/*GUI*/	allSets[dimUntitledGroupButton]				= new Setting(dimUntitledGroupButton, Boolean, true, "4.0");
+	/*GUI*/	allSets[composerAdrProcessingActive]		= new Setting(composerAdrProcessingActive, Boolean, true, "4.0");
+			allSets[groupsViewScrollPosition]			= new Setting(groupsViewScrollPosition, Number, 0, "4.0");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
@@ -118,7 +136,7 @@ package quantum {
 
 			sets[key] = value;
 
-			if (key == bgClipboardProcessing)
+			if (key == bgClipboardProcessing || key == dimUntitledGroupButton)
 				$eventDsp.dispatchEvent(new SettingEvent(SettingEvent.VALUE_CHANGED, key, value));
 
 			if (tmrSaveDelay == null) {
@@ -152,10 +170,14 @@ package quantum {
 		}
 
 		public function saveFile():void {
+
+			if (Capabilities.isDebugger && !DevSettings.appSettingsSaveOn) return;
+
 			fstream.open(settingsFile, FileMode.WRITE);
 			fstream.writeUTFBytes(packJSON(sets));
 			fstream.close();
 			main.logRed("Settings File Saved");
+
 		}
 
 		private function packJSON(obj:Object):String {

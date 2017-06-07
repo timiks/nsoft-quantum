@@ -1,12 +1,14 @@
-package quantum.gui {
-
+package quantum.gui
+{
+	
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class Colors {
-
+	public class Colors
+	{
 		// Message Colors
+		public static const MESSAGE:String = "#0075BF";
 		public static const BAD:String = "#CC171C"; // Red
 		public static const SUCCESS:String = "#189510"; // Green
 		public static const WARN:String = "#CB5815"; // Orange
@@ -22,7 +24,5 @@ package quantum.gui {
 		public static const GREY:String = "#CB5815";
 
 		public function Colors():void {}
-
 	}
-
 }

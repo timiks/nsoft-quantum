@@ -11,8 +11,10 @@ package quantum {
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.system.Capabilities;
+	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.states.StSettings;
 
 	import quantum.adr.processing.ProcessingEngine;
 	import quantum.adr.BgProcessor;
@@ -29,8 +31,8 @@ package quantum {
 		private static var $ins:Main;
 
 		// App Version
-		private const $version:int 				= 3;
-		private const $versionService:int 		= 3;
+		private const $version:int 				= 4;
+		private const $versionService:int 		= 0;
 		private const $betaVersion:Boolean 		= false;
 		private const $nextRelease:Boolean 		= false;
 		private const bugs:Boolean 				= false;
@@ -42,6 +44,7 @@ package quantum {
 		private var $trayMgr:TrayMgr;
 		private var $uiCmpMgr:UIComponentsMgr;
 		private var $soundMgr:SoundMgr;
+		private var $backupMst:BackupMaster;
 
 		// Addressy
 		private var $prcEng:ProcessingEngine;
@@ -51,8 +54,10 @@ package quantum {
 		// States
 		private var $stQuantumMgr:StQuantumManager;
 		private var $stAddressyUI:StAddressyUI;
+		private var $stSettings:StSettings;
 
-		private var inited:Boolean;
+		private var $inited:Boolean;
+		private var $exiting:Boolean;
 		private var args:Array;
 
 		public function Main():void {
@@ -63,7 +68,7 @@ package quantum {
 		private function appInvoke(e:InvokeEvent):void {
 			args = e.arguments;
 
-			if (inited) {
+			if ($inited) {
 
 				if (args[0] == "/toggleBgPrc") {
 
@@ -107,6 +112,9 @@ package quantum {
 			$dataMgr = new DataMgr();
 			$dataMgr.load();
 
+			// Backup Master
+			$backupMst = new BackupMaster();
+
 			// Tray
 			$trayMgr = new TrayMgr();
 			$trayMgr.initTray();
@@ -130,13 +138,16 @@ package quantum {
 			// Addressy UI State [with Window]
 			$stAddressyUI = new StAddressyUI();
 
+			// Settings State [with Window]
+			$stSettings = new StSettings();
+
 			// Addressy's Background Processing Service
 			$bgProcessor = new BgProcessor();
 			if (settings.getKey(Settings.bgClipboardProcessing)) {
 				$bgProcessor.on();
 			}
 
-			inited = true;
+			$inited = true;
 		}
 
 		/**
@@ -150,11 +161,11 @@ package quantum {
 
 		public function exitApp():void {
 
+			$exiting = true;
 			trace(""); trace("App is terminating");
 			NativeApplication.nativeApplication.dispatchEvent(new Event(Event.EXITING));
 			settings.saveFile();
 			dataMgr.saveFile();
-			if (!dataMgr.backupDone) dataMgr.backUpData();
 			NativeApplication.nativeApplication.exit();
 
 		}
@@ -177,10 +188,10 @@ package quantum {
 		}
 
 		public function get version():String {
-			var vr:String = String($version);
-			if ($versionService > 0 || $version <= 3) vr += "." + String($versionService);
-			if (Capabilities.isDebugger && $nextRelease) vr += " NR";
-			if ($betaVersion) vr += " β";
+			var vr:String = String($version); // Major version
+			vr += "." + String($versionService); // Service version
+			if (Capabilities.isDebugger && $nextRelease) vr += " NR"; // Next Release tag
+			if ($betaVersion) vr += " β"; // Beta tag
 			return vr;
 		}
 
@@ -228,12 +239,29 @@ package quantum {
 			return $stQuantumMgr;
 		}
 
+		public function get stSettings():StSettings {
+			return $stSettings;
+		}
+
 		public function get uiCmpMgr():UIComponentsMgr {
 			return $uiCmpMgr;
 		}
 
 		public function get soundMgr():SoundMgr {
 			return $soundMgr;
+		}
+
+		public function get backupMst():BackupMaster {
+			return $backupMst;
+		}
+		
+		public function get inited():Boolean {
+			return $inited;
+		}
+		
+		public function get exiting():Boolean 
+		{
+			return $exiting;
 		}
 
 	}
