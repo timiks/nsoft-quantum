@@ -54,7 +54,6 @@ package quantum.gui
 		private var cntHitBox:Sprite;
 		private var selectRect:Shape;
 		private var selectTimer:Timer;
-		private var centeringOffsetRatio:int;
 		private var itemsImgLoadingQueue:Vector.<SquareItem>;
 		private var itemsImgLoadingTimer:Timer;
 		
@@ -289,15 +288,13 @@ package quantum.gui
 			
 			sizesSum -= GRP_SPACING;
 			
-			//if (selectedGroup != null && selectRect.visible) selectRect.x = selectedGroup.displayObject.x - GRP_SPACING / 2;
-			
 			var prevScrollPos:Number = scb.scrollPosition;
 			scb.maxScrollPosition = calculateMaxScrollPosition(sizesSum);
 			scb.update();
 			scb.scrollPosition = prevScrollPos;
 			
-			main.logRed("Max scroll position (rearrange): " + scb.maxScrollPosition);
-			main.logRed("Container width (rearrange): " + cnt.width);
+			trace("Max scroll position (rearrange): " + scb.maxScrollPosition);
+			trace("Container width (rearrange): " + cnt.width);
 		}
 		
 		private function onSelectTimer(e:TimerEvent):void

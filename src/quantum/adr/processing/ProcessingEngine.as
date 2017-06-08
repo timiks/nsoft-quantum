@@ -11,7 +11,7 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 23;
+		private const $version:int = 24;
 
 		// Data
 		private var usRegions:Vector.<Object>;
@@ -378,6 +378,19 @@ package quantum.adr.processing {
 				{
 					lines[lines.length-3] += ", " + theLineBeforeLast;
 					lines.splice(lines.length-2, 1);
+					lc = lines.length;
+				}
+			}
+			
+			// IRELAND. Converting to TPL#2 (with 'default' post code)
+			if (country == "Ireland") 
+			{
+				rePattern = /default/i;
+				reArr = theLineBeforeLast.match(rePattern);
+				
+				if (reArr == null) 
+				{
+					lines.splice(lines.length-1, 0, "default");
 					lc = lines.length;
 				}
 			}
