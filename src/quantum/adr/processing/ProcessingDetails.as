@@ -11,8 +11,9 @@ package quantum.adr.processing {
 
 		private var $message:String;
 		private var $templateType:int;
+		private var $mode:int;
 
-		public function ProcessingDetails(msg:String, templateType:int = 0):void {
+		public function ProcessingDetails(msg:String, templateType:int = 0, mode:int = 0):void {
 			this.message = msg;
 			this.templateType = templateType;
 		}
@@ -31,6 +32,16 @@ package quantum.adr.processing {
 
 		public function set templateType(value:int):void {
 			$templateType = value;
+		}
+		
+		public function get mode():int 
+		{
+			return $mode;
+		}
+		
+		public function set mode(value:int):void 
+		{
+			$mode = value;
 		}
 
 	}

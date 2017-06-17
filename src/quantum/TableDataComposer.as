@@ -14,6 +14,7 @@ package quantum {
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import quantum.adr.FormatMgr;
+	import quantum.adr.processing.ProcessingEngine;
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
@@ -114,9 +115,14 @@ package quantum {
 				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
 				return;
 			}
-
+			
 			// Process address
-			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
+			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
+			
+			var prcResult:ProcessingResult = 
+				groupWarehouse == Warehouse.CANTON && main.settings.getKey(Settings.adrPrcPassAdrsForCanton) ? 
+					main.prcEng.process(adrInputTextArea.text, ProcessingEngine.PrcSpecialMode1) : 
+					main.prcEng.process(adrInputTextArea.text);
 
 			/**
 			 * SUCCESS
@@ -124,7 +130,6 @@ package quantum {
 			 */
 			if (prcResult.status == ProcessingResult.STATUS_OK) {
 
-				var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
 				var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
 				var itemImgPath:String = grpCnt.selectedItem.imagePath;
 				var processedAddress:String;
@@ -231,7 +236,7 @@ package quantum {
 				// Message
 				main.stQuantumMgr.infoPanel.showMessage(
 					"Товар оформлен для " + prcResult.resultObj.name +
-					" в " + prcResult.resultObj.country + " из склада " +
+					" из склада " +
 					"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
 					Colors.SUCCESS
 				);

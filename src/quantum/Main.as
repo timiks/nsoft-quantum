@@ -32,7 +32,7 @@ package quantum {
 
 		// App Version
 		private const $version:int 				= 4;
-		private const $versionService:int 		= 2;
+		private const $versionService:int 		= 3;
 		private const $betaVersion:Boolean 		= false;
 		private const $nextRelease:Boolean 		= false;
 		private const bugs:Boolean 				= false;

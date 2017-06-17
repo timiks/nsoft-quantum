@@ -40,6 +40,7 @@ package quantum {
 		public static const dimUntitledGroupButton:String = "dimUntitledGroupButton";
 		public static const composerAdrProcessingActive:String = "composerAdrProcessingActive";
 		public static const groupsViewScrollPosition:String = "groupsViewScrollPosition";
+		public static const adrPrcPassAdrsForCanton:String = "adrPrcPassAdrsForCanton";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -82,6 +83,7 @@ package quantum {
 	/*GUI*/	allSets[dimUntitledGroupButton]				= new Setting(dimUntitledGroupButton, Boolean, true, "4.0");
 	/*GUI*/	allSets[composerAdrProcessingActive]		= new Setting(composerAdrProcessingActive, Boolean, true, "4.0");
 			allSets[groupsViewScrollPosition]			= new Setting(groupsViewScrollPosition, Number, 0, "4.0");
+	/*GUI*/	allSets[adrPrcPassAdrsForCanton]			= new Setting(adrPrcPassAdrsForCanton, Boolean, true, "4.3");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
