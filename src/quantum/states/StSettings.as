@@ -63,8 +63,7 @@ package quantum.states
 			win.stage.scaleMode = StageScaleMode.NO_SCALE;
 			win.stage.align = StageAlign.TOP_LEFT;
 			win.stage.stageWidth = 550;
-			win.stage.stageHeight = 480;
-			//win.visible = true;
+			win.stage.stageHeight = 500;
 			win.title = "Настройки Квантума";
 			
 			win.stage.addChild(this);
@@ -122,6 +121,7 @@ package quantum.states
 			uiCmpList.push(uiPlate.cbBackupCleanup);
 			uiCmpList.push(uiPlate.cbMoveDeletedItemsToUntitledGroup);
 			uiCmpList.push(uiPlate.cbDimUntitledGroupButton);
+			uiCmpList.push(uiPlate.cbAdrPrcPassAdrsForCanton);
 			uiCmpList.push(uiPlate.lblBuInt);
 			uiCmpList.push(uiPlate.selBackupInterval);
 			uiCmpList.push(uiPlate.selBackupInterval.textField);
@@ -193,6 +193,7 @@ package quantum.states
 			setupCheckbox(uiPlate.cbBackupCleanup, Settings.backupCleanup);
 			setupCheckbox(uiPlate.cbMoveDeletedItemsToUntitledGroup, Settings.moveDeletedItemsToUntitledGroup);
 			setupCheckbox(uiPlate.cbDimUntitledGroupButton, Settings.dimUntitledGroupButton);
+			setupCheckbox(uiPlate.cbAdrPrcPassAdrsForCanton, Settings.adrPrcPassAdrsForCanton);
 			
 			// Selects (ComboBoxes)
 			var selItems:Vector.<Object>;

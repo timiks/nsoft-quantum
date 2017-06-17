@@ -11,15 +11,20 @@ package quantum.adr.processing {
 	public class ProcessingEngine {
 
 		// Version
-		private const $version:int = 24;
-
+		private const $version:int = 25;
+		
+		// Special modes of processing
+		/* 1: Process just name and leave source lines as they are */
+		public static const PrcSpecialMode1:int = 1;
+		
+		private var main:Main;
+		
 		// Data
 		private var usRegions:Vector.<Object>;
 		private var caRegions:Vector.<Object>;
 		private var auRegions:Vector.<Object>;
 		private var ndRegions:Vector.<Object>;
 		
-		private var main:Main;
 		private var $resultObj:ResultObject;
 		private var addrExamples:Array;
 
@@ -161,7 +166,7 @@ package quantum.adr.processing {
 		 * @param inputText Входная строка
 		 * @return Информация о результате обработки
 		 */
-		public function process(inputText:String):ProcessingResult {
+		public function process(inputText:String, specialMode:int = 0):ProcessingResult {
 			var tx:String = inputText;
 			var ctrlCharPattern:RegExp = /(\r|\n|\r\n)/;
 
@@ -204,6 +209,26 @@ package quantum.adr.processing {
 			lines = linesTemp;
 			linesTemp = null;
 			$resultObj.sourceAdrLines = lines;
+			
+			/**
+			 * Special Modes
+			 * ================================================================================
+			 */
+			
+			if (specialMode != 0) 
+			{
+				if (specialMode == PrcSpecialMode1) 
+				{
+					name = processName(lines[0]);
+					$resultObj.name = name;
+					processingEnd(ProcessingResult.STATUS_OK);
+					return new ProcessingResult(
+						ProcessingResult.STATUS_OK,
+						new ProcessingDetails("Обработано в спец. режиме", tplType, PrcSpecialMode1),
+						$resultObj
+					);
+				}
+			}
 
 			/**
 			 * Pre-processing Step #2 — Addresses without Country on the last line
