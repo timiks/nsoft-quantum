@@ -15,7 +15,7 @@ package quantum.adr
 		
 		// Canton Warehouse
 		public static const FRM_CNT_STR1:String = "frmCntStr1";
-		public static const FRM_CNT_WH:String = "frmCntWh"; // Canton warehouse
+		public static const FRM_CNT_STR2:String = "frmCntStr2";
 		
 		private static const STRING_DELIM:String = "\t";
 		
@@ -50,6 +50,7 @@ package quantum.adr
 			
 			var format:String = formatType;
 			var output:String = "";
+			var jointString:String;
 			
 			switch (format)
 			{
@@ -78,7 +79,7 @@ package quantum.adr
 				
 				case FRM_BJN_STR:
 					
-					var jointString:String =
+					jointString =
 						"Airmail for small parcels" + STRING_DELIM +
 						name + STRING_DELIM +
 						addrs + STRING_DELIM +
@@ -117,6 +118,20 @@ package quantum.adr
 						output = "АШИПКА НАСТЁНА АХАХ. ИДИ ПИСАТЬ В ТЕЛЕГРАМ АХАХ";
 					}
 					
+					break;
+				
+				case FRM_CNT_STR2:
+					
+					jointString =
+						country + STRING_DELIM +
+						name + STRING_DELIM +
+						region + STRING_DELIM +
+						city + STRING_DELIM +
+						addrs + STRING_DELIM +
+						postCode + STRING_DELIM +
+						phone;
+							
+					output = jointString;
 					break;
 				
 				default: 

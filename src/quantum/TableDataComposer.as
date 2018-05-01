@@ -115,12 +115,7 @@ package quantum
 			}
 			
 			// Process address
-			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
-			
-			var prcResult:ProcessingResult = 
-				groupWarehouse == Warehouse.CANTON && main.settings.getKey(Settings.adrPrcPassAdrsForCanton) ? 
-					main.prcEng.process(adrInputTextArea.text, ProcessingEngine.PrcSpecialMode1) : 
-					main.prcEng.process(adrInputTextArea.text);
+			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
 			
 			/**
 			 * SUCCESS
@@ -128,118 +123,7 @@ package quantum
 			 */
 			if (prcResult.status == ProcessingResult.STATUS_OK)
 			{
-				var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
-				var itemImgPath:String = grpCnt.selectedItem.imagePath;
-				var processedAddress:String;
-				var composedLine:String;
-				
-				tableDataFile =
-					File.applicationStorageDirectory.resolvePath(
-						(groupWarehouse == Warehouse.CANTON ? "canton" : "beijing") + ".txt"
-					);
-				
-				processedAddress =
-					groupWarehouse == Warehouse.CANTON ?
-						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_CNT_STR1) :
-						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_BJN_STR);
-				
-				// Read file into memory (to tableDataFileLines)
-				readFile();
-				
-				// Check group existence
-				var groupExistInFile:Boolean;
-				var emptyFile:Boolean;
-				var l:int = tableDataFileLines.length;
-				
-				if (l == 0)
-				{
-					groupExistInFile = false;
-					emptyFile = true;
-				}
-				
-				else 
-				{
-					var line:String;
-					var searchResult:int;
-					var foundGroupIndex:int;
-					var i:int;
-					
-					var groupSearchPattern:RegExp = new RegExp
-					(
-						groupWarehouse == Warehouse.CANTON ?
-							groupTitle :
-							"^" + groupTitle
-					);
-					
-					for (i = 0; i < l; i++)
-					{
-						line = tableDataFileLines[i];
-						searchResult = line.search(groupSearchPattern);
-
-						if (searchResult != -1)
-						{
-							foundGroupIndex = i;
-							groupExistInFile = true;
-							break;
-						}
-					}
-				}
-				
-				// Date
-				var date:Date = new Date();
-				var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
-				var dstr:String;
-				dtf.setDateTimePattern("dd.MM.yyyy");
-				dstr = dtf.format(date);
-				
-				// Shipping column value
-				loadShippingFile();
-				var shippingValue:String = getCntShippingValue(prcResult.resultObj.country);
-				
-				// Compose line
-				composedLine = groupWarehouse == Warehouse.CANTON ?
-					
-					// Canton
-					(emptyFile ? dstr : "") + "\t" +
-					(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
-					(emptyFile ? "1" : "") + "\t" +
-					itemImgPath + "\t" + "1" + "\t" + processedAddress +
-					(shippingValue != null ? "\t" + shippingValue : "")
-					
-					// [Else (if not Canton) ↓]
-					:
-					
-					// Beijing
-					(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedAddress;
-				
-				// Add line to file lines
-				if (groupExistInFile)
-				{
-					tableDataFileLines.splice(foundGroupIndex+1, 0, composedLine); // Add after line with group title
-				}
-				
-				else 
-				{
-					tableDataFileLines.push(composedLine);
-				}
-				
-				// Write file back
-				saveFile();
-				
-				// Decrease items quantity
-				grpCnt.selectedItem.count--;
-				
-				// Sound
-				main.soundMgr.play(SoundMgr.sndPrcSuccess);
-				
-				// Message
-				main.stQuantumMgr.infoPanel.showMessage
-				(
-					"Товар оформлен для " + prcResult.resultObj.name +
-					" из склада " +
-					"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
-					Colors.SUCCESS
-				);
+				composeAndPack(prcResult);
 				
 				// Clear text area (success)
 				adrInputTextArea.text = "";
@@ -287,6 +171,205 @@ package quantum
 			
 			lastContent = adrInputTextArea.text;
 			lastResult = prcResult;
+		}
+		
+		private function composeAndPack(adrPrcResult:ProcessingResult):void 
+		{
+			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
+			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
+			var itemImgPath:String = grpCnt.selectedItem.imagePath;
+			var processedAddress:String;
+			var composedLine:String;
+			
+			// Setup variables that differ based on warehouse type
+			// WHT — Warehouse Type
+			var WHT_tableDataFileTitle:String;
+			var WHT_adrPrcFormat:String;
+			var WHT_groupSearchRegExPattern:String;
+			var WHT_composingLineTemplateExecutor:Function;
+			
+			switch (groupWarehouse) 
+			{
+				case Warehouse.CANTON:
+					WHT_tableDataFileTitle = "canton";
+					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
+					WHT_groupSearchRegExPattern = groupTitle;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2; // NEW
+					break;
+					
+				case Warehouse.BEIJING:
+					WHT_tableDataFileTitle = "beijing";
+					WHT_adrPrcFormat = FormatMgr.FRM_BJN_STR;
+					WHT_groupSearchRegExPattern = "^" + groupTitle;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_BeijingStr;
+					break;
+					
+				default:
+					throw new Error("Out of possible warehouse types");
+					break;
+			}
+			
+			// ================================================================================
+			
+			tableDataFile = File.applicationStorageDirectory.resolvePath(WHT_tableDataFileTitle + ".txt");
+			
+			processedAddress = main.formatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
+			
+			// Read file into memory (to tableDataFileLines)
+			readFile();
+			
+			// Check group existence
+			var groupExistInFile:Boolean;
+			var emptyFile:Boolean;
+			var l:int = tableDataFileLines.length;
+			
+			if (l == 0)
+			{
+				groupExistInFile = false;
+				emptyFile = true;
+			}
+			
+			else 
+			{
+				var line:String;
+				var searchResult:int;
+				var foundGroupIndex:int;
+				var i:int;
+				
+				var groupSearchPattern:RegExp = new RegExp(WHT_groupSearchRegExPattern);
+				
+				for (i = 0; i < l; i++)
+				{
+					line = tableDataFileLines[i];
+					searchResult = line.search(groupSearchPattern);
+
+					if (searchResult != -1)
+					{
+						foundGroupIndex = i;
+						groupExistInFile = true;
+						break;
+					}
+				}
+			}
+			
+			// Date
+			var date:Date = new Date();
+			var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
+			var dstr:String;
+			dtf.setDateTimePattern("dd.MM.yyyy");
+			dstr = dtf.format(date);
+			
+			// Shipping column value
+			loadShippingFile();
+			var shippingValue:String = getCntShippingValue(adrPrcResult.resultObj.country);
+			
+			// Compose line
+			composedLine = WHT_composingLineTemplateExecutor() as String;
+			
+			// Add line to file lines
+			if (groupExistInFile)
+			{
+				tableDataFileLines.splice(foundGroupIndex+1, 0, composedLine); // Add after line with group title
+			}
+			
+			else 
+			{
+				tableDataFileLines.push(composedLine);
+			}
+			
+			// Write file back
+			saveFile();
+			
+			// Decrease items quantity
+			grpCnt.selectedItem.count--;
+			
+			// Sound
+			main.soundMgr.play(SoundMgr.sndPrcSuccess);
+			
+			// Message
+			main.stQuantumMgr.infoPanel.showMessage
+			(
+				"Товар оформлен для " + adrPrcResult.resultObj.name +
+				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ")" : "") +
+				" из склада " +
+				"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
+				Colors.SUCCESS
+			);
+			
+			/**
+			 * Composing Line Template Executors
+			 * ================================================================================
+			 */
+			
+			function cmpLnTplExtr_Canton2():String
+			{
+				var outputLine:String;
+				
+				outputLine =
+				
+				// Col A: Date
+				(emptyFile ? dstr : "") + "\t" +
+				
+				// Col B: Shipping company (hard coded value: "ZTO")
+				// Col C: Parcel number
+				// Col D: Products
+				(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
+				
+				// Col E: Parcel NO. (hard coded value: "1")
+				(emptyFile ? "1" : "") + "\t" +
+				
+				// Col F: Quantity (hard coded value: "1")
+				// Col G: Picture
+				"1" + "\t" + itemImgPath + "\t" + 
+				
+				// Col H: Shipping
+				(shippingValue != null ? shippingValue + "\t" : "\t") +
+				
+				// Col I–O: {Address fields} (processed by Addressy)
+				processedAddress;
+				
+				return outputLine;
+			}
+			
+			function cmpLnTplExtr_Canton1():String
+			{
+				var outputLine:String;
+				
+				outputLine =
+				
+				// Col A: Date
+				(emptyFile ? dstr : "") + "\t" +
+				
+				// Col B: Shipping company (hard coded value: "ZTO")
+				// Col C: Parcel number
+				// Col D: Products
+				(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
+				
+				// Col E: Parcel NO. (hard coded value: "1")
+				(emptyFile ? "1" : "") + "\t" +
+				
+				// Col F: Picture
+				// Col G: Quantity (hard coded value: "1")
+				itemImgPath + "\t" + "1" + "\t" + 
+				
+				// Col H: Address (combined)
+				// Col I: Shipping
+				processedAddress + (shippingValue != null ? "\t" + shippingValue : "");
+				
+				return outputLine;
+			}
+			
+			function cmpLnTplExtr_BeijingStr():String
+			{
+				var outputLine:String;
+				
+				outputLine =
+				// Col A, B, C: Parcel number, Note (skip), Item
+				// Col D–K: Shipping method + {Address fields} (processed by Addressy)
+				(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedAddress;
+				
+				return outputLine;
+			}
 		}
 		
 		private function readFile():void
