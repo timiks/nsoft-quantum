@@ -143,10 +143,11 @@ package quantum.states {
 
 			// Select Format
 			ui.selFormat.tabEnabled = false;
-			ui.selFormat.addItem({label: "C именами полей", data: FormatMgr.FRM_NAMES});
-			ui.selFormat.addItem({label: "Для таблицы без имён полей", data: FormatMgr.FRM_TABLE});
-			ui.selFormat.addItem({label: "Cтрока с разделителем", data: FormatMgr.FRM_STR});
-			ui.selFormat.addItem({label: "Для склада в Кантоне", data: FormatMgr.FRM_CNT_WH});
+			ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
+			ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
+			ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
+			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
+			ui.selFormat.addItem({label: "Кантон: формат 2", data: FormatMgr.FRM_CNT_STR2});
 			ui.selFormat.addEventListener("change", onSelFormatChange);
 
 			var selItem:Object;
@@ -156,6 +157,14 @@ package quantum.states {
 				if (selItem.data == setsFormat) {
 					ui.selFormat.selectedIndex = i;
 					break;
+				}
+				
+				// If last iteration and format obtained from settings is unknown
+				if (i == ui.selFormat.length-1)
+				{
+					ui.selFormat.selectedIndex = ui.selFormat.length-1; // Set to Canton format 2
+					main.settings.setKey(Settings.outputFormat,
+						ui.selFormat.getItemAt(ui.selFormat.selectedIndex).data); // Incorporate the change in settings
 				}
 			}
 

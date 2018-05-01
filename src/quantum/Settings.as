@@ -65,7 +65,7 @@ package quantum {
 			$eventDsp = new EventDispatcher();
 
 			allSets = {}; 								// Name / Data type / Default value / Version introduced in
-	/*GUI*/	allSets[outputFormat] 						= new Setting(outputFormat, String, FormatMgr.FRM_STR, "1.0");
+	/*GUI*/	allSets[outputFormat] 						= new Setting(outputFormat, String, FormatMgr.FRM_CNT_STR2, "1.0");
 	/*GUI*/	allSets[clearSourceAreaOnSuccess] 			= new Setting(clearSourceAreaOnSuccess, Boolean, false, "1.0");
 	/*GUI*/	allSets[uiAutomaticCopy] 					= new Setting(uiAutomaticCopy, Boolean, true, "1.0");
 	/*GUI*/	allSets[startInTray] 						= new Setting(startInTray, Boolean, false, "1.0");

@@ -142,8 +142,8 @@ package quantum {
 
 				processedAddress =
 					groupWarehouse == Warehouse.CANTON ?
-						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_CNT_WH) :
-						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_STR);
+						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_CNT_STR1) :
+						main.formatMgr.format(prcResult.resultObj, FormatMgr.FRM_BJN_STR);
 
 				// Read file into memory (to tableDataFileLines)
 				readFile();
