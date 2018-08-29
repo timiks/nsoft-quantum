@@ -204,6 +204,20 @@ package quantum
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_BeijingStr;
 					break;
 					
+				case Warehouse.SHENZHEN_SEO_TMP: // [TEMP]
+					WHT_tableDataFileTitle = "shenzhen-seo-like-canton";
+					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
+					WHT_groupSearchRegExPattern = groupTitle;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
+					break;
+					
+				case Warehouse.SHENZHEN_CFF_TMP: // [TEMP]
+					WHT_tableDataFileTitle = "shenzhen-cff-like-canton";
+					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
+					WHT_groupSearchRegExPattern = groupTitle;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
+					break;
+					
 				default:
 					throw new Error("Out of possible warehouse types");
 					break;
@@ -292,7 +306,7 @@ package quantum
 				"Товар оформлен для " + adrPrcResult.resultObj.name +
 				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ")" : "") +
 				" из склада " +
-				"«" + Warehouse.getRussianTitle(groupWarehouse) + "»",
+				"«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
 				Colors.SUCCESS
 			);
 			

@@ -19,6 +19,7 @@ package quantum.states
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
+	import quantum.WarehouseEntity;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
@@ -200,9 +201,12 @@ package quantum.states
 			
 			// Default warehouse
 			selItems = new Vector.<Object>();
-			selItems.push({label: Warehouse.getRussianTitle(Warehouse.BEIJING), data: Warehouse.BEIJING});
-			selItems.push({label: Warehouse.getRussianTitle(Warehouse.CANTON), data: Warehouse.CANTON});
+			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList) 
+			{
+				selItems.push({label: whEnt.russianTitle, data: whEnt.ID});
+			}
 			setupSelect(uiPlate.selDefWarehouse, Settings.defaultWarehouse, selItems);
+			uiPlate.selDefWarehouse.width += 150;
 			
 			// Backup interval
 			selItems = new Vector.<Object>();
