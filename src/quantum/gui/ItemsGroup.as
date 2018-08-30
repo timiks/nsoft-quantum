@@ -16,6 +16,7 @@ package quantum.gui {
 	import flash.net.FileFilter;
 	import flash.utils.Timer;
 	import quantum.Settings;
+	import quantum.WarehouseEntity;
 	import quantum.data.DataMgr;
 	import quantum.Main;
 	import quantum.SoundMgr;
@@ -57,10 +58,11 @@ package quantum.gui {
 		private var btnSelGrp:MovieClip;
 		private var btnNewItem:SimpleButton;
 		private var ctxMenu:NativeMenu;
-
-		private var tmpImgs:Array;
+		
 		private var menuItmExport:NativeMenuItem;
-		private var menuItmWarehouseSwitch:NativeMenuItem;
+		private var menuItmWarehouseSwitchRef:NativeMenuItem;
+		
+		//private var currentDisabledWarehouseSwitchMenuItem:NativeMenuItem;
 
 		public function ItemsGroup(title:String = "", warehouseID:String = ""):void {
 
@@ -94,12 +96,27 @@ package quantum.gui {
 			menuItmExport = new NativeMenuItem("Экспорт содержимого группы в файл");
 			menuItmExport.addEventListener(Event.SELECT, menuItmExportClick);
 
-			menuItmWarehouseSwitch = new NativeMenuItem(getMenuItmWarehouseSwitchLabel());
-			menuItmWarehouseSwitch.addEventListener(Event.SELECT, menuItmWarehouseSwitchClick);
+			//menuItmWarehouseSwitch = new NativeMenuItem(getMenuItmWarehouseSwitchLabel());
+			//menuItmWarehouseSwitch.addEventListener(Event.SELECT, menuItmWarehouseSwitchClick);
 
 			ctxMenu = new NativeMenu();
 			ctxMenu.addItem(menuItmExport);
-			ctxMenu.addItem(menuItmWarehouseSwitch);
+			ctxMenu.addItem(new NativeMenuItem("[separator]", true));
+			
+			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList)
+			{
+				menuItmWarehouseSwitchRef = new NativeMenuItem("Переключить склад на «" + whEnt.russianTitle + "»");
+				menuItmWarehouseSwitchRef.data = whEnt.ID;
+				menuItmWarehouseSwitchRef.addEventListener(Event.SELECT, menuItmWarehouseSwitchClick);
+				
+				if (whEnt.ID == warehouseID)
+				{
+					menuItmWarehouseSwitchRef.enabled = false;
+				}
+				
+				ctxMenu.addItem(menuItmWarehouseSwitchRef);
+			}
+			
 			btnNewItem.contextMenu = ctxMenu;
 
 			// Hint
@@ -118,24 +135,19 @@ package quantum.gui {
 				main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
 			}
 		}
-
-		private function getMenuItmWarehouseSwitchLabel():String {
-			return "Переключить склад [Текущий: " + Warehouse.getRussianTitle(warehouseID) + "]";
-		}
-
+		
 		private function menuItmWarehouseSwitchClick(e:Event):void {
 
-			if (warehouseID == Warehouse.BEIJING) {
-
-				warehouseID = Warehouse.CANTON;
-
-			} else {
-
-				warehouseID = Warehouse.BEIJING;
-
-			}
-
-			menuItmWarehouseSwitch.label = getMenuItmWarehouseSwitchLabel();
+			ctxMenu.items.forEach(function(elm:NativeMenuItem, idx:int, arr:Array):void 
+			{
+				if (elm.data != (e.target as NativeMenuItem).data && !elm.enabled)
+					elm.enabled = true;
+				
+				if (elm.data == (e.target as NativeMenuItem).data)
+					elm.enabled = false;
+			});
+			
+			warehouseID = (e.target as NativeMenuItem).data as String;
 		}
 
 		private function menuItmExportClick(e:Event):void {
@@ -399,7 +411,8 @@ package quantum.gui {
 				return null;
 			}
 
-			return (title == "" ? "[Безымянная]" : title) + "\n" + "Склад: " + Warehouse.getRussianTitle(warehouseID);
+			return (title == "" ? "[Безымянная]" : title) +	
+				"\n" + "Склад: " + Warehouse.getByID(warehouseID).russianTitle;
 
 		}
 		
