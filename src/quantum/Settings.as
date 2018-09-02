@@ -13,6 +13,7 @@ package quantum {
 	import quantum.adr.FormatMgr;
 	import quantum.dev.DevSettings;
 	import quantum.events.SettingEvent;
+	import quantum.warehouse.Warehouse;
 
 	/**
 	 * ...

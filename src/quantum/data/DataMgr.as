@@ -15,7 +15,7 @@ package quantum.data {
 	import quantum.gui.SquareItem;
 	import quantum.Main;
 	import quantum.Settings;
-	import quantum.Warehouse;
+	import quantum.warehouse.Warehouse;
 
 	/**
 	 * ...

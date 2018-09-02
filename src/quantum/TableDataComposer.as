@@ -18,6 +18,7 @@ package quantum
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
+	import quantum.warehouse.Warehouse;
 	
 	/**
 	 * ...

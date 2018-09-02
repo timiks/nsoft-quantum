@@ -23,7 +23,7 @@ package quantum.gui
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.states.StQuantumManager;
-	import quantum.Warehouse;
+	import quantum.warehouse.Warehouse;
 	
 	/**
 	 * ...

@@ -16,11 +16,11 @@ package quantum.gui {
 	import flash.net.FileFilter;
 	import flash.utils.Timer;
 	import quantum.Settings;
-	import quantum.WarehouseEntity;
+	import quantum.warehouse.WarehouseEntity;
 	import quantum.data.DataMgr;
 	import quantum.Main;
 	import quantum.SoundMgr;
-	import quantum.Warehouse;
+	import quantum.warehouse.Warehouse;
 	import quantum.events.SettingEvent;
 
 	/**
