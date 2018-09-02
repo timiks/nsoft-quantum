@@ -20,6 +20,7 @@ package quantum.states {
 	import flash.ui.Mouse;
 	import quantum.data.NotesMgr;
 	import quantum.gui.BigTextInput;
+	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
 	import quantum.gui.HintMgr;
 	import quantum.gui.QnInfoPanel;
@@ -68,8 +69,8 @@ package quantum.states {
 			// Window and Tray functionality
 			initWindowAndTray();
 
-			// Version
-			ui.tfVer.text = main.version;
+			// App version label
+			ui.tfVer.htmlText = main.isFutureVersion ? "<font color=\"" + Colors.PURPLE + "\">" + main.version + "</font>" : main.version;
 
 			/**
 			 * UI functionality
