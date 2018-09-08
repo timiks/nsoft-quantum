@@ -9,12 +9,8 @@ package quantum
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
-	import flash.text.AntiAliasType;
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import quantum.adr.FormatMgr;
-	import quantum.adr.processing.ProcessingEngine;
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.gui.Colors;
 	import quantum.gui.GroupsContainer;
@@ -60,23 +56,14 @@ package quantum
 			
 			// Addressy mini logo on Text Area
 			var adrMiniLogo:Sprite = new Sprite();
-			var adrMiniLogoVerTF:TextField = new TextField();
 			var adrGreyIcon:Bitmap = new AdrIcon16Grey();
 			
-			adrMiniLogoVerTF.defaultTextFormat = new TextFormat("Tahoma", 12, 0xB7BABC);
-			adrMiniLogoVerTF.antiAliasType = AntiAliasType.ADVANCED;
-			adrMiniLogoVerTF.autoSize = TextFieldAutoSize.LEFT;
-			adrMiniLogoVerTF.selectable = false;
-			adrMiniLogoVerTF.text = main.prcEng.version;
-			
 			adrMiniLogo.addChild(adrGreyIcon);
-			adrMiniLogo.addChild(adrMiniLogoVerTF);
 			adrInputTextArea.addChild(adrMiniLogo);
 			
-			adrMiniLogoVerTF.x = adrGreyIcon.width;
-			adrMiniLogoVerTF.y -= 2;
-			adrMiniLogo.x = adrInputTextArea.width - adrMiniLogo.width - 2;
-			adrMiniLogo.y = adrInputTextArea.height - adrMiniLogo.height - 2;
+			adrMiniLogo.x = adrInputTextArea.width - adrMiniLogo.width - 6;
+			adrMiniLogo.y = adrInputTextArea.height - adrMiniLogo.height - 6;
+			main.stQuantumMgr.hintMgr.registerHint(adrMiniLogo, "Powered by Addressy™");
 			
 			var cb:CheckBox = new CheckBox();
 			cb.label = "";

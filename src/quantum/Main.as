@@ -1,31 +1,25 @@
 package quantum
 {
 	import flash.desktop.NativeApplication;
-	import flash.display.NativeWindow;
-	import flash.display.NativeWindowInitOptions;
-	import flash.display.NativeWindowSystemChrome;
-	import flash.display.NativeWindowType;
 	import flash.display.Sprite;
-	import flash.display.StageAlign;
-	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.system.Capabilities;
+	import quantum.adr.BgProcessor;
+	import quantum.adr.FormatMgr;
+	import quantum.adr.processing.ProcessingEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
-	import quantum.states.StSettings;
-	
-	import quantum.adr.processing.ProcessingEngine;
-	import quantum.adr.BgProcessor;
-	import quantum.adr.FormatMgr;
 	import quantum.states.StAddressyUI;
 	import quantum.states.StQuantumManager;
+	import quantum.states.StSettings;
+	
 	
 	/**
-	* Quantum Application Main Class
-	* @author Tim Yusupov
-	*/
+	 * Quantum Application Main Class
+	 * @author Tim Yusupov
+	 */
 	public class Main extends Sprite
 	{
 		private static var $ins:Main;
@@ -187,8 +181,8 @@ package quantum
 		 */
 		
 		/**
-		* @static
-		*/
+		 * @static
+		 */
 		public static function get ins():Main
 		{
 			if ($ins == null)
@@ -226,8 +220,8 @@ package quantum
 		}
 		
 		/**
-		* Движок обработки Addressy
-		*/
+		 * Движок обработки Addressy
+		 */
 		public function get prcEng():ProcessingEngine
 		{
 			if ($prcEng == null)

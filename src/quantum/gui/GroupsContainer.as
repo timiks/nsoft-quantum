@@ -4,9 +4,7 @@ package quantum.gui
 	import fl.events.ScrollEvent;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.DisplayObject;
 	import flash.display.InteractiveObject;
-	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -18,12 +16,11 @@ package quantum.gui
 	import flash.system.Capabilities;
 	import flash.ui.Keyboard;
 	import flash.utils.Timer;
-	import quantum.data.DataMgr;
-	import quantum.dev.DevSettings;
 	import quantum.Main;
 	import quantum.Settings;
+	import quantum.data.DataMgr;
+	import quantum.dev.DevSettings;
 	import quantum.states.StQuantumManager;
-	import quantum.warehouse.Warehouse;
 	
 	/**
 	 * ...
