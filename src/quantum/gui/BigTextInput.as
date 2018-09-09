@@ -11,7 +11,8 @@ package quantum.gui
 	import flash.text.TextFieldType;
 	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
-	import quantum.states.StQuantumManager;
+	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.modules.StQuantumManager;
 	
 	/**
 	 * ...

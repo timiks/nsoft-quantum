@@ -21,6 +21,7 @@ package quantum.gui
 	import flash.utils.ByteArray;
 	import quantum.Main;
 	import quantum.data.DataMgr;
+	import quantum.gui.modules.GroupsContainer;
 	import sk.yoz.image.ImageResizer;
 	import sk.yoz.math.ResizeMath;
 	

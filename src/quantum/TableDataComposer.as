@@ -13,7 +13,7 @@ package quantum
 	import quantum.adr.FormatMgr;
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.gui.Colors;
-	import quantum.gui.GroupsContainer;
+	import quantum.gui.modules.GroupsContainer;
 	import quantum.warehouse.Warehouse;
 	
 	/**

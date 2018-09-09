@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.modules
 {
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
@@ -20,7 +20,9 @@ package quantum.gui
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
-	import quantum.states.StQuantumManager;
+	import quantum.gui.ItemsGroup;
+	import quantum.gui.SquareItem;
+	import quantum.gui.modules.StQuantumManager;
 	
 	/**
 	 * ...

@@ -17,6 +17,7 @@ package quantum.gui
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.events.SettingEvent;
+	import quantum.gui.modules.GroupsContainer;
 	import quantum.warehouse.Warehouse;
 	import quantum.warehouse.WarehouseEntity;
 	

@@ -1,4 +1,4 @@
-package quantum.states
+package quantum.gui.modules
 {
 	import fl.controls.CheckBox;
 	import fl.controls.ComboBox;

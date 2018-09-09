@@ -1,4 +1,4 @@
-package quantum.states
+package quantum.gui.modules
 {
 	import flash.desktop.NativeApplication;
 	import flash.display.NativeWindow;
@@ -17,7 +17,7 @@ package quantum.states
 	import quantum.data.NotesMgr;
 	import quantum.gui.BigTextInput;
 	import quantum.gui.Colors;
-	import quantum.gui.GroupsContainer;
+	import quantum.gui.modules.GroupsContainer;
 	import quantum.gui.HintMgr;
 	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;

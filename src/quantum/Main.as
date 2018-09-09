@@ -11,9 +11,9 @@ package quantum
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
-	import quantum.states.StAddressyUI;
-	import quantum.states.StQuantumManager;
-	import quantum.states.StSettings;
+	import quantum.gui.modules.StAddressyUI;
+	import quantum.gui.modules.StQuantumManager;
+	import quantum.gui.modules.StSettings;
 	
 	
 	/**

@@ -7,7 +7,7 @@ package quantum.gui
 	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.SoundMgr;
-	import quantum.states.StQuantumManager;
+	import quantum.gui.modules.StQuantumManager;
 		
 	/**
 	 * ...
