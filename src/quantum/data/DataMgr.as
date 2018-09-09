@@ -12,6 +12,7 @@ package quantum.data
 	import quantum.events.DataEvent;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
+	import quantum.product.Product;
 	import quantum.warehouse.Warehouse;
 	
 	/**
@@ -20,14 +21,14 @@ package quantum.data
 	 */
 	public class DataMgr
 	{
-		public static const OP_READ:String = "read"; // Not in use
-		public static const OP_ADD:String = "add";
-		public static const OP_REMOVE:String = "rem";
-		public static const OP_UPDATE:String = "upd";
+		public static const OP_READ:String = "read"; // Read value of individual fields of a record
+		public static const OP_ADD:String = "add"; // Add new record to base
+		public static const OP_REMOVE:String = "rem"; // Remove record from base
+		public static const OP_UPDATE:String = "upd"; // Update value of individual fields of a record
 		public static const OP_CHANGE_ORDER:String = "changeOrder";
 		public static const OP_SWAP_ELEMENTS:String = "swap";
 		
-		private static const dataFileVersion:int = 2;
+		private static const dataFileVersion:int = 3;
 		
 		private var main:Main;
 		
@@ -90,6 +91,7 @@ package quantum.data
 					if (dataXml.@appVersion != main.version)
 						dataXml.@appVersion = main.version;
 					
+					// If data file version not found > add it
 					var dfv:String = dataXml.@dataFileVersion;
 					if (dfv == "" || dfv == null)
 						dataXml.@dataFileVersion = String(dataFileVersion);
@@ -99,13 +101,91 @@ package quantum.data
 					
 					// [!] Separate function or module needed
 					
-					// Data File v2
+					// Data File v1 → v2
 					if (int(dfv) < 2)
 					{
 						if (dataXml.notes == undefined)
 						{
 							dataXml.prependChild(<notes/>);
 						}
+					}
+					
+					// [!][~ #TEST THIS ~]
+					// Data File v2 → v3
+					if (int(dfv) < 3) 
+					{
+						var grp:XML;
+						var itm:XML;
+						var noteEntry:XML;
+						var xmlQuery:XMLList;
+						
+						// Stage 1
+						dataXml.prependChild(<groups/>);
+						for each (grp in dataXml.itemsGroup)
+						{
+							dataXml.groups.appendChild(grp);
+							delete dataXml.children()[grp.childIndex()];
+						}
+						
+						// Stage 2
+						var productsNode:XML = dataXml.prependChild(<products/>);
+						var singleProductNode:XML;
+						var productIdCounter:int = 1;
+						for each (grp in dataXml.groups.itemsGroup) 
+						{
+							for each (itm in grp.item) 
+							{
+								xmlQuery = productsNode.product.(@imgFile == itm.@imgPath)
+								
+								if (xmlQuery.length() == 0) 
+								{
+									singleProductNode = <product/>;
+									singleProductNode.@id = productIdCounter++;
+									singleProductNode.@title = "";
+									singleProductNode.@sku = "";
+									singleProductNode.@price = "0";
+									singleProductNode.@weight = "0";
+									singleProductNode.@imgFile = itm.@imgPath;
+									singleProductNode.@note = "";
+									productsNode.appendChild(singleProductNode);
+									
+									itm.@productID = singleProductNode.@id;
+									delete itm.@imgPath;
+								}
+								
+								else
+								{
+									if (xmlQuery.length() == 1)
+									{
+										singleProductNode = xmlQuery[0];
+										itm.@productID = singleProductNode.@id;
+										delete itm.@imgPath;
+									}
+									else
+									{
+										throw new Error("Product should be unique");
+									}
+								}
+							}
+						}
+						productsNode.@idCounter = productIdCounter;
+						
+						// Stage 3: Notes
+						for each (noteEntry in dataXml.notes.itemNote) 
+						{
+							xmlQuery = productsNode.product.(@imgFile == noteEntry.@img);
+							if (xmlQuery.length() == 1)
+							{
+								singleProductNode = xmlQuery[0];
+								singleProductNode.@note = noteEntry.@text;
+								delete dataXml.notes.children()[noteEntry.childIndex()];
+							}
+							else
+							{
+								throw new Error("Product should be unique");
+							}
+						}
+						delete dataXml.children()[dataXml.notes.childIndex()];
 					}
 					
 					// Updating data file version if differs
@@ -126,8 +206,13 @@ package quantum.data
 			dataXml.@appVersion = main.version;
 			dataXml.@dataFileVersion = String(dataFileVersion);
 			
-			// DF v2 feature
-			dataXml.appendChild(<notes/>);
+			// DF v2 feature (not actual in v3+)
+			/* dataXml.appendChild(<notes/>); */
+			
+			// [!][~ #TEST THIS ~]
+			// DF v3 features
+			dataXml.appendChild(<products/>);
+			dataXml.appendChild(<groups/>);
 			
 			if (!createFile) return;
 			
@@ -219,7 +304,19 @@ package quantum.data
 		 * DATA MANAGEMENT INTERFACE
 		 * ================================================================================
 		 */
-
+		
+		public function getAllProducts():Vector.<Product>
+		{
+			var productsList:Vector.<Product> = new Vector.<Product>();
+			
+			var p:Product;
+			
+			for each (var pXml:XML in dataXml.products.product) 
+			{
+				// [~ Coding task here #CDT ~]: Create entities and return
+			}
+		}
+		 
 		public function getAllGroups():Vector.<ItemsGroup>
 		{
 			var groups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
@@ -227,14 +324,8 @@ package quantum.data
 			var newGrp:ItemsGroup;
 			
 			// Fields
-			var warehouseID:String;
-			for each (var grp:XML in dataXml.itemsGroup)
+			for each (var grp:XML in dataXml.groups.itemsGroup)
 			{
-				warehouseID = grp.@warehouseID;
-				// При первом запуске версии с этим полем его не будет у существующих групп
-				// Проставить Пекин (Beijing) по умолчанию для тех групп, которые уже есть
-				grp.@warehouseID = warehouseID == "" ? Warehouse.BEIJING : warehouseID;
-				
 				newGrp = new ItemsGroup(
 					grp.@title,
 					grp.@warehouseID
@@ -254,7 +345,7 @@ package quantum.data
 			var newItem:SquareItem;
 			for each (var itm:XML in grp.item)
 			{
-				newItem = new SquareItem(itm.@imgPath, int(itm.@count));
+				newItem = new SquareItem(int(itm.@productID), int(itm.@count));
 				newItem.dataXml = itm;
 				items.push(newItem);
 			}
@@ -262,6 +353,7 @@ package quantum.data
 			return items;
 		}
 		
+		/*
 		public function getAllNotes():Vector.<Object>
 		{
 			var notes:Vector.<Object> = new Vector.<Object>();
@@ -300,6 +392,7 @@ package quantum.data
 			
 			dataUpdate(5500);
 		}
+		*/
 		
 		public function opGroup(
 						grp:ItemsGroup,
@@ -307,7 +400,7 @@ package quantum.data
 						field:String = null,
 						value:* = null,
 						swapNodeA:XML = null,
-						swapNodeB:XML = null):void
+						swapNodeB:XML = null):void // [!][~ #TEST THIS ~]
 		{
 			if (op == OP_UPDATE)
 			{
@@ -322,21 +415,21 @@ package quantum.data
 				newGroup.@title = grp.title;
 				newGroup.@warehouseID = grp.warehouseID;
 				grp.dataXml = newGroup;
-				dataXml.appendChild(newGroup);
+				dataXml.groups.appendChild(newGroup);
 			}
 			
 			else
 			
 			if (op == OP_REMOVE)
 			{
-				delete dataXml.children()[grp.dataXml.childIndex()];
+				delete dataXml.groups.children()[grp.dataXml.childIndex()];
 			}
 			
 			else
 			
 			if (op == OP_SWAP_ELEMENTS)
 			{
-				swapNodes(dataXml, swapNodeA.childIndex(), swapNodeB.childIndex());
+				swapNodes(dataXml.groups, swapNodeA.childIndex(), swapNodeB.childIndex());
 			}
 			
 			dataUpdate();
@@ -355,7 +448,7 @@ package quantum.data
 			{
 				var newItem:XML = <item/>;
 				newItem.@count = item.count;
-				newItem.@imgPath = item.imagePath;
+				newItem.@productID = item.productID;
 				
 				item.parentItemsGroup.dataXml.appendChild(newItem);
 				item.dataXml = newItem;
@@ -366,6 +459,59 @@ package quantum.data
 			if (op == OP_REMOVE)
 			{
 				delete item.parentItemsGroup.dataXml.item[item.dataXml.childIndex()];
+			}
+			
+			dataUpdate();
+		}
+		
+		// [!][~ #TEST THIS ~]
+		public function opProduct(id:int, op:String, field:String = null, value:* = null):* // [!] Should return field's value on OP_READ
+		{
+			function queryByID():XML
+			{
+				var xmlQueryList:XMLList = dataXml.products.product.(@id == id);
+				var len:int = xmlQueryList.length();
+				
+				if (len > 0) 
+				{
+					if (len > 1) throw new Error("Product should be unique");
+					return xmlQueryList[0];
+				}
+				else
+				{
+					return null;
+				}
+			}
+			
+			var productEntry:XML;
+			
+			if (op == OP_READ) 
+			{
+				productEntry = queryByID();
+				if (productEntry == null) return null;
+				return productEntry.@[field];
+			}
+			
+			else
+			
+			if (op == OP_UPDATE) 
+			{
+				productEntry = queryByID();
+				productEntry.@[field] = value;
+			}
+			
+			else
+			
+			if (op == OP_ADD) 
+			{
+				// return created entry
+			}
+			
+			else
+			
+			if (op = OP_REMOVE) 
+			{
+				
 			}
 			
 			dataUpdate();

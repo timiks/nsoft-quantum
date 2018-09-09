@@ -35,7 +35,6 @@ package quantum.gui
 		private const SQUARE_SIZE:int = 40; // Def: 68 58
 		
 		// Fields of app properties
-		private var $position:int;
 		private var $selected:Boolean;
 		private var $parentItemsGroup:ItemsGroup;
 		private var $dataXml:XML;
@@ -43,7 +42,8 @@ package quantum.gui
 		// Fields of data properties
 		private var $id:int;
 		private var $count:int;
-		private var $imagePath:String;
+		private var $productID:int;
+		private var $imagePath:String; // [!] 
 		
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
@@ -65,9 +65,9 @@ package quantum.gui
 		private var hintCorner:Shape;
 		private var selectFrameAnimation:MovieClip;
 		
-		public function SquareItem(imgPath:String, count:int):void
+		public function SquareItem(productID:int, count:int):void
 		{
-			this.imagePath = imgPath;
+			this.productID = productID;
 			this.count = count == 0 ? DEF_COUNT_VALUE : count;
 			
 			main = Main.ins;
@@ -398,21 +398,18 @@ package quantum.gui
 			$imagePath = value;
 		}
 		
+		public function get productID():int 
+		{
+			return $productID;
+		}
+		
+		public function set productID(value:int):void 
+		{
+			$productID = value;
+		}
+		
 		// ================================================================================
-		
-		/**
-		 * Порядковый номер в группе
-		 */
-		public function get position():int
-		{
-			return $position;
-		}
-		
-		public function set position(value:int):void
-		{
-			$position = value;
-		}
-		
+
 		/**
 		 * Выбран ли объект
 		 */

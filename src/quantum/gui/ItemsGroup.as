@@ -244,7 +244,6 @@ package quantum.gui
 					nextPlace = calculatePlace(i, j, item.frame.width, item.frame.height);
 					item.x = nextPlace.x;
 					item.y = nextPlace.y;
-					item.position = orderNum++;
 					
 					tmpTotalItems--;
 					
@@ -305,7 +304,6 @@ package quantum.gui
 					nextPlace = calculatePlace(i, j, item.frame.width, item.frame.height);
 					item.x = nextPlace.x;
 					item.y = nextPlace.y;
-					item.position = orderNum++;
 					tmpTotalItems--;
 					
 					if (tmpTotalItems == 0) break;

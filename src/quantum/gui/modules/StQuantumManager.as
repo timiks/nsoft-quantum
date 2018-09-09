@@ -107,6 +107,11 @@ package quantum.gui.modules
 			uicm.setStyle(ui.nsCount.textField);
 			uicm.setStyle(ui.taDetails);
 			
+			/**
+			 * Sub Modules (private & public)
+			 * ================================================================================
+			 */
+			
 			// Hints
 			hintsCnt = new Sprite;
 			addChildAt(hintsCnt, numChildren);

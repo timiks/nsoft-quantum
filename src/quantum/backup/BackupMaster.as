@@ -89,7 +89,7 @@ package quantum.backup
 			
 			// General checks
 			if (main.exiting) return;
-			if (main.stQuantumMgr.grpCnt.empty)
+			if (main.stQuantumMgr.grpCnt.empty) // [!] Remove this check or add products check
 			{
 				main.logRed("Groups view is empty. Backup cancelled")
 				return;
