@@ -143,7 +143,9 @@ package quantum.gui.modules
 			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
 			
 			// Info panel
-			$infoPanel = new QnInfoPanel(this, ui);
+			$infoPanel = new QnInfoPanel(ui.infopanel);
+			ui.infopanel.x = 20;
+			ui.infopanel.y = stage.stageHeight - ui.infopanel.height - 20;
 			$infoPanel.init();
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
@@ -172,10 +174,11 @@ package quantum.gui.modules
 				if (Capabilities.isDebugger)
 				{
 					infoPanel.showMessage("Проверка сообщения 1");
-					infoPanel.showMessage("Проверка сообщения 2");
-					infoPanel.showMessage("Проверка сообщения 3");
-					infoPanel.showMessage("Проверка сообщения 4");
-					infoPanel.showMessage("Проверка сообщения 5");
+					infoPanel.showMessage("Проверка сообщения 2. Длиннее");
+					infoPanel.showMessage("Проверка 3");
+					infoPanel.showMessage("Пацан к успеху пришёл", Colors.SUCCESS);
+					infoPanel.showMessage("Последнее китайское предупреждение", Colors.WARN);
+					infoPanel.showMessage("Ошибочка!", Colors.BAD);
 				}
 			}
 			
