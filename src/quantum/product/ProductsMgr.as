@@ -17,7 +17,12 @@ package quantum.product
 		{
 			main = Main.ins;
 			$events = new EventDispatcher();
+		}
+		
+		public function init():void 
+		{
 			productsList = main.dataMgr.getAllProducts();
+			
 		}
 		
 		public function get events():EventDispatcher 

@@ -1,5 +1,6 @@
 package quantum.gui.modules
 {
+	import adobe.utils.ProductManager;
 	import flash.desktop.NativeApplication;
 	import flash.display.NativeWindow;
 	import flash.display.Sprite;
@@ -21,6 +22,8 @@ package quantum.gui.modules
 	import quantum.gui.HintMgr;
 	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.product.ProductsMgr;
+	import quantum.product.ProductsMgr;
 	
 	/**
 	 * ...
@@ -40,6 +43,7 @@ package quantum.gui.modules
 		private var $hintMgr:HintMgr;
 		private var $notesMgr:NotesMgr;
 		private var $infoPanel:QnInfoPanel;
+		private var $productsMgr:ProductsMgr;
 		
 		public function StQuantumManager():void
 		{
@@ -130,22 +134,26 @@ package quantum.gui.modules
 			});
 			hintMgr.registerHint(ui.taDetails, "Заметка");
 			
+			// Products manager
+			$productsMgr = new ProductsMgr();
+			$productsMgr.init();
+			
 			// Notes
-			notesMgr = new NotesMgr();
-			notesMgr.init();
+			$notesMgr = new NotesMgr();
+			$notesMgr.init();
 			
 			// Groups Container
 			$grpCnt = new GroupsContainer(this);
 			ui.addChildAt(grpCnt, 0);
 			
 			// Table data composer
-			tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
-			tableDataComposer.init();
+			$tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
+			$tableDataComposer.init();
 			
 			// Group title text input
-			grpTitleTextInput = new BigTextInput();
-			grpTitleTextInput.tf = ui.tiGrpTitle;
-			grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
+			$grpTitleTextInput = new BigTextInput();
+			$grpTitleTextInput.tf = ui.tiGrpTitle;
+			$grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
 			
 			// Info panel
 			$infoPanel = new QnInfoPanel(ui.infopanel);
@@ -300,19 +308,9 @@ package quantum.gui.modules
 			return $grpTitleTextInput;
 		}
 		
-		public function set grpTitleTextInput(value:BigTextInput):void
-		{
-			$grpTitleTextInput = value;
-		}
-		
 		public function get tableDataComposer():TableDataComposer
 		{
 			return $tableDataComposer;
-		}
-		
-		public function set tableDataComposer(value:TableDataComposer):void
-		{
-			$tableDataComposer = value;
 		}
 		
 		public function get hintMgr():HintMgr
@@ -320,19 +318,9 @@ package quantum.gui.modules
 			return $hintMgr;
 		}
 		
-		public function set hintMgr(value:HintMgr):void
-		{
-			$hintMgr = value;
-		}
-		
 		public function get notesMgr():NotesMgr
 		{
 			return $notesMgr;
-		}
-		
-		public function set notesMgr(value:NotesMgr):void
-		{
-			$notesMgr = value;
 		}
 		
 		public function get grpCnt():GroupsContainer
@@ -343,6 +331,11 @@ package quantum.gui.modules
 		public function get infoPanel():QnInfoPanel
 		{
 			return $infoPanel;
+		}
+		
+		public function get productsMgr():ProductManager 
+		{
+			return $productsMgr;
 		}
 	}
 }

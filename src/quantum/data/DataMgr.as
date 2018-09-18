@@ -142,6 +142,7 @@ package quantum.data
 									singleProductNode = <product/>;
 									singleProductNode.@id = productIdCounter++;
 									singleProductNode.@title = "";
+									singleProductNode.@classID = "";
 									singleProductNode.@sku = "";
 									singleProductNode.@price = "0";
 									singleProductNode.@weight = "0";

@@ -55,7 +55,7 @@ package quantum.backup
 				
 			trace("Backup copies check");
 			
-			var dirContents:Array = backupDir.getDirectoryListing();
+			var dirContents:Array = backupDir.getDirectoryListing(); // [!] When dir isn't found: exception here. fix it
 			
 			if (dirContents.length == 0)
 				return;

@@ -1,5 +1,6 @@
 package quantum.product 
 {
+	import flash.display.BitmapData;
 		
 	/**
 	 * Data entity for Product
@@ -8,6 +9,7 @@ package quantum.product
 	 */
 	public class Product 
 	{
+		// Data properties
 		private var $id:int;
 		private var $title:String;
 		private var $sku:String;
@@ -15,6 +17,10 @@ package quantum.product
 		private var $weight:Number;
 		private var $imgFile:String;
 		private var $note:String;
+		private var $classID:int;
+		
+		// App properties
+		private var $image:BitmapData;
 		
 		public function Product():void 
 		{
@@ -89,6 +95,26 @@ package quantum.product
 		public function set note(value:String):void 
 		{
 			$note = value;
+		}
+		
+		public function get classID():int 
+		{
+			return $classID;
+		}
+		
+		public function set classID(value:int):void 
+		{
+			$classID = value;
+		}
+		
+		public function get image():BitmapData 
+		{
+			return $image;
+		}
+		
+		public function set image(value:BitmapData):void 
+		{
+			$image = value;
 		}
 	}
 }
