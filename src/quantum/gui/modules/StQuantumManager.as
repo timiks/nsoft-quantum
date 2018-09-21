@@ -1,6 +1,5 @@
 package quantum.gui.modules
 {
-	import adobe.utils.ProductManager;
 	import flash.desktop.NativeApplication;
 	import flash.display.NativeWindow;
 	import flash.display.Sprite;
@@ -15,13 +14,12 @@ package quantum.gui.modules
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.TableDataComposer;
-	import quantum.data.NotesMgr;
 	import quantum.gui.BigTextInput;
 	import quantum.gui.Colors;
-	import quantum.gui.modules.GroupsContainer;
 	import quantum.gui.HintMgr;
 	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.ProductsMgr;
 	
 	/**
@@ -40,7 +38,6 @@ package quantum.gui.modules
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
-		private var $notesMgr:NotesMgr;
 		private var $infoPanel:QnInfoPanel;
 		private var $productsMgr:ProductsMgr;
 		
@@ -136,10 +133,6 @@ package quantum.gui.modules
 			// Products manager
 			$productsMgr = new ProductsMgr();
 			$productsMgr.init();
-			
-			// Notes
-			$notesMgr = new NotesMgr();
-			$notesMgr.init();
 			
 			// Groups Container
 			$grpCnt = new GroupsContainer(this);
@@ -315,11 +308,6 @@ package quantum.gui.modules
 		public function get hintMgr():HintMgr
 		{
 			return $hintMgr;
-		}
-		
-		public function get notesMgr():NotesMgr
-		{
-			return $notesMgr;
 		}
 		
 		public function get grpCnt():GroupsContainer

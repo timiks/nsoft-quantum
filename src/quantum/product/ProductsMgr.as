@@ -14,6 +14,7 @@ package quantum.product
 	import flash.utils.ByteArray;
 	import quantum.Main;
 	import quantum.data.DataMgr;
+	import quantum.events.DataEvent;
 	import quantum.gui.SquareItem;
 	import sk.yoz.image.ImageResizer;
 	import sk.yoz.math.ResizeMath;
@@ -39,7 +40,6 @@ package quantum.product
 		private var imgFile:File;
 		private var ba:ByteArray;
 		private var imgLoadingQueue:Vector.<String>;
-		private var queIdx:int;
 		private var queActive:Boolean;
 		
 		public function ProductsMgr():void 
@@ -121,9 +121,6 @@ package quantum.product
 		private function imgLoading_s3_processImg(e:Event):void
 		{
 			var img:Bitmap = ldr.content as Bitmap;
-			//img.smoothing = true;
-			//ldr.cacheAsBitmap = true;
-			
 			var w:int, h:int;
 			var processedImgMatrix:BitmapData;
 			
@@ -179,23 +176,45 @@ package quantum.product
 			}
 			
 			/*
-			[~ Coding task here #CDT ~]
+			Алгоритм
 			> Set final bitmap data (processedImgMatrix) to product image property
-			> Dispatch event for items
+			> Dispatch event for items [x] — dispatching of 'update' events goes in opProduct method
 			> Check queue. If no more images to process > stop, queActive = false; else > shift queue element and call setup again
 			*/
-			var p:Product = getProductByID(checkProductByImgPath(imgLoadingQueue[0]));
-			p.image = processedImgMatrix;
+			
+			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, processedImgMatrix, true);
+			
+			// Check image loading queue
+			imgLoadingQueueOutControl();
 		}
 		
 		private function imgLoadingIoError(e:IOErrorEvent):void 
 		{
 			/*
-			[~ Coding task here #CDT ~]
+			Алгоритм
 			> Set cor. product image property with bad image sign
 			> Remove bad element from queue (shift)
 			*/
-			// var bd:BitmapData = new BitmapData(1, 1, true, 0);
+			var badBdataSign:BitmapData = new BitmapData(1, 1, true, 0);
+			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, badBdataSign, true);
+			imgLoadingQueueOutControl();
+		}
+		
+		private function imgLoadingQueueOutControl():void 
+		{
+			// If no more images to process > stop queue
+			if (imgLoadingQueue.length < 1) 
+			{
+				queActive = false; // Stop queue
+				trace("Products images loading complete");
+			}
+			
+			// Otherwise > remove current element from queue; go to 1st step (next element)
+			else 
+			{
+				imgLoadingQueue.shift();
+				imgLoading_s1_setup();
+			}
 		}
 		
 		// ================================================================================
@@ -217,11 +236,10 @@ package quantum.product
 			newProductEntry.imgFile = imgFilePath;
 			
 			productsList.push(newProductEntry);
-			/*
-			[~ Coding task here #CDT ~]
-			> Inform DataMgr
-			> Add image to loading queue
-			*/
+			
+			dm.opProduct(newProductEntry.id, DataMgr.OP_ADD, null, newProductEntry as Product);
+			addToImgLoadingQueue(imgFilePath);
+			
 			return newProductEntry;
 		}
 		
@@ -253,11 +271,40 @@ package quantum.product
 		
 		/**
 		 * Main interface method-function to query info about products, create, remove and update them
+		 * INCLUDED INTERNAL OPERATIONS 
 		 */
-		public function opProduct(id:int, op:String, field:String = null, value:* = null):* 
+		public function opProduct(id:int, op:String, field:String = null, value:* = null, appField:Boolean = false):* 
 		/* Only READ, UPDATE and REMOVE operations. Creation allowed only inside */
 		{
+			var p:Product = getProductByID(id);
 			
+			if (op == DataMgr.OP_READ) 
+			{
+				var retVal:*;
+				
+				retVal = p[field];
+				
+				/* Notes special */
+				retVal = (field == Product.prop_note && retVal == null) ? "" : retVal;
+				
+				return retVal;
+			}
+			
+			else
+			
+			if (op == DataMgr.OP_UPDATE)
+			{
+				p[field] = value;
+				events.dispatchEvent(new DataEvent(DataEvent.DATA_UPDATE, id, field));
+				if (!appField) dm.opProduct(id, DataMgr.OP_UPDATE, field, value);
+			}
+			
+			else
+			
+			if (op == DataMgr.OP_REMOVE) 
+			{
+				// No implementation for this operation in early versions
+			}
 		} 
 		
 		/**

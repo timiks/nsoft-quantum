@@ -12,17 +12,20 @@ package quantum.events
 		public static const DATA_UPDATE:String = "dataUpdate";
 		public static const DATA_SAVE:String = "dataSave";
 		
-		private var $dataFileRef:File;
+		private var $entityId:int;
+		private var $updatedFieldName:String;
 		
-		public function DataEvent(type:String, bubbles:Boolean = false, cancelable:Boolean = false, dataFileRef:File = null):void
+		public function DataEvent(type:String, entityId:int = null, updatedFieldName:String = null, 
+			bubbles:Boolean = false, cancelable:Boolean = false):void
 		{
 			super(type, bubbles, cancelable);
-			$dataFileRef = dataFileRef;
+			$entityId = entityId;
+			$updatedFieldName = updatedFieldName;
 		}
 		
 		public override function clone():Event
 		{
-			return new DataEvent(type, bubbles, cancelable, dataFileRef);
+			return new DataEvent(type, entityId, updatedFieldName, bubbles, cancelable);
 		}
 		
 		public override function toString():String
@@ -30,9 +33,14 @@ package quantum.events
 			return formatToString("DataEvent", "type", "bubbles", "cancelable", "eventPhase");
 		}
 		
-		public function get dataFileRef():File
+		public function get entityId():int 
 		{
-			return $dataFileRef;
+			return $entityId;
+		}
+		
+		public function get updatedFieldName():String 
+		{
+			return $updatedFieldName;
 		}
 	}
 }

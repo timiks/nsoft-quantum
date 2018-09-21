@@ -12,8 +12,11 @@ package quantum
 	import flash.text.TextFormat;
 	import quantum.adr.FormatMgr;
 	import quantum.adr.processing.ProcessingResult;
+	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
 	import quantum.gui.modules.GroupsContainer;
+	import quantum.product.Product;
+	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
 	
 	/**
@@ -38,6 +41,7 @@ package quantum
 		
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
+		private var pm:ProductsMgr;
 		
 		public function TableDataComposer(groupsContainer:GroupsContainer, inputTextArea:TextArea):void
 		{
@@ -45,6 +49,7 @@ package quantum
 			$adrInputTextArea = inputTextArea;
 			
 			main = Main.ins;
+			pm = main.stQuantumMgr.productsMgr;
 		}
 		
 		public function init():void

@@ -18,6 +18,8 @@ package quantum.gui
 	import quantum.data.DataMgr;
 	import quantum.events.SettingEvent;
 	import quantum.gui.modules.GroupsContainer;
+	import quantum.product.Product;
+	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
 	import quantum.warehouse.WarehouseEntity;
 	
@@ -45,14 +47,14 @@ package quantum.gui
 		private var $warehouseID:String;
 		
 		private var main:Main;
+		private var pm:ProductsMgr;
 		
 		private var totalItems:int;
 		private var totalColumns:int;
 		private var items:Vector.<SquareItem>;
 		private var nextPlace:Point;
 		private var imgFile:File;
-		private var multipleAddingMode:Boolean;
-		
+			
 		private var btnSelGrp:MovieClip;
 		private var btnNewItem:SimpleButton;
 		private var ctxMenu:NativeMenu;
@@ -66,6 +68,7 @@ package quantum.gui
 			this.warehouseID = warehouseID;
 			
 			main = Main.ins;
+			pm = main.stQuantumMgr.productsMgr;
 		}
 		
 		public function init():void
@@ -120,7 +123,6 @@ package quantum.gui
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OVER, newItemBtnOver);
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OUT, newItemBtnOut);
 			imgFile.addEventListener(FileListEvent.SELECT_MULTIPLE, multipleFilesSelect);
-			grpCnt.events.addEventListener(GroupsContainer.EVENT_ITEMS_IMG_LOADING_COMPLETE, grpCntImgLoadingComplete);
 			
 			if (title == "")
 			{
@@ -179,21 +181,12 @@ package quantum.gui
 		
 		private function multipleFilesSelect(e:FileListEvent):void
 		{
-			multipleAddingMode = true;
-			
 			var productIDforNewItem:int;
 			for each (var file:File in e.files)
 			{
 				productIDforNewItem = main.stQuantumMgr.productsMgr.checkProductByImgPath(file.nativePath);
 				addItem(productIDforNewItem);
 			}
-			
-			grpCnt.startItemsImgLoadingTimer();
-		}
-		
-		private function grpCntImgLoadingComplete(e:Event):void
-		{
-			if (multipleAddingMode) multipleAddingMode = false;
 		}
 		
 		private function newItemBtnClick(e:MouseEvent):void
@@ -364,8 +357,6 @@ package quantum.gui
 			grpCnt.compositionChanged();
 			if (brandNew) brandNew = false;
 			main.dataMgr.opItem(newItem, DataMgr.OP_ADD);
-			
-			if (!multipleAddingMode) grpCnt.startItemsImgLoadingTimer();
 			
 			return newItem;
 		}

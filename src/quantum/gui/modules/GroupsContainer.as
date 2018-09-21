@@ -23,6 +23,8 @@ package quantum.gui.modules
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.gui.modules.StQuantumManager;
+	import quantum.product.Product;
+	import quantum.product.ProductsMgr;
 	
 	/**
 	 * ...
@@ -30,8 +32,6 @@ package quantum.gui.modules
 	 */
 	public class GroupsContainer extends Sprite
 	{
-		public static const EVENT_ITEMS_IMG_LOADING_COMPLETE:String = "eventItemsImgLoadingComplete";
-		
 		private const SIDE_MARGIN:int = 14;
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
@@ -40,11 +40,11 @@ package quantum.gui.modules
 		private var $selectedItem:SquareItem;
 		private var $selectedGroup:ItemsGroup;
 		private var $events:EventDispatcher;
-		private var $loadingActive:Boolean;
 		private var $empty:Boolean;
 		
 		private var main:Main;
 		private var baseState:StQuantumManager;
+		private var pm:ProductsMgr;
 		
 		private var groups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
 		private var cnt:Sprite;
@@ -53,13 +53,12 @@ package quantum.gui.modules
 		private var cntHitBox:Sprite;
 		private var selectRect:Shape;
 		private var selectTimer:Timer;
-		private var itemsImgLoadingQueue:Vector.<SquareItem>;
-		private var itemsImgLoadingTimer:Timer;
 		
 		public function GroupsContainer(baseState:StQuantumManager):void
 		{
 			this.baseState = baseState;
 			main = Main.ins;
+			pm = baseState.productsMgr;
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 		
@@ -75,11 +74,6 @@ package quantum.gui.modules
 			
 			cnt.y = CNT_Y_OFFSET;
 			focusRect = false;
-			
-			// Init items images loading queue
-			itemsImgLoadingQueue = new Vector.<SquareItem>();
-			itemsImgLoadingTimer = new Timer(Capabilities.isDebugger ? 80 : 100, 0);
-			itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
 			
 			if (Capabilities.isDebugger && !DevSettings.loadData) return;
 			
@@ -108,9 +102,6 @@ package quantum.gui.modules
 				}
 				
 				sizesSum -= GRP_SPACING;
-				
-				// Start items images loading queue
-				startItemsImgLoadingTimer();
 			}
 			
 			// Scroll
@@ -302,29 +293,6 @@ package quantum.gui.modules
 			baseState.grpTitleTextInput.hide();
 		}
 		
-		private const simultaneousLoadingAmout:int = 4;
-		
-		private function onItemsImgLoadingTimer(e:TimerEvent):void 
-		{
-			if (itemsImgLoadingQueue.length == 0) {
-				itemsImgLoadingTimer.stop();
-				trace("Items images loading complete");
-				events.dispatchEvent(new Event(EVENT_ITEMS_IMG_LOADING_COMPLETE));
-				$loadingActive = false;
-				return;
-			}
-			
-			for (var i:int = 0; i < simultaneousLoadingAmout; i++) 
-			{	
-				if (itemsImgLoadingQueue.length == 0) break;
-				var l:int = itemsImgLoadingQueue.length;
-				var randomIdx:int = int(Math.random() * ((l-1) - 0 + 1)) + 0;
-				var firedItem:SquareItem = itemsImgLoadingQueue[randomIdx];
-				firedItem.startLoadingImage();
-				itemsImgLoadingQueue.splice(itemsImgLoadingQueue.indexOf(firedItem), 1);
-			}
-		}
-		
 		private function moveSelectedGroup(direction:String):void 
 		{
 			if (selectedGroup == null) return;
@@ -412,7 +380,9 @@ package quantum.gui.modules
 					break;
 				
 				case "selItemTypeNotes":
-					if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
+					//if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
+					// [!][~ #TEST THIS ~]
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, DataMgr.OP_UPDATE, Product.prop_note, String(val));
 					break;
 			}
 		}
@@ -520,17 +490,6 @@ package quantum.gui.modules
 			}
 		}
 		
-		public function registerItemForImgLoading(itm:SquareItem):void 
-		{
-			itemsImgLoadingQueue.push(itm);
-		}
-		
-		public function startItemsImgLoadingTimer():void 
-		{
-			itemsImgLoadingTimer.start();
-			$loadingActive = true;
-		}
-		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
@@ -546,7 +505,10 @@ package quantum.gui.modules
 			$selectedItem = value;
 			
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
-			baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
+			//baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
+			// [!][~ #TEST THIS ~]
+			baseState.updateUiElement("selItemTypeNotes", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_note) as String);
 			baseState.focusAdrTextArea(value == null ? false : true);
 		}
 		
@@ -604,11 +566,6 @@ package quantum.gui.modules
 		public function get events():EventDispatcher 
 		{
 			return $events;
-		}
-		
-		public function get loadingActive():Boolean 
-		{
-			return $loadingActive;
 		}
 		
 		public function get empty():Boolean 

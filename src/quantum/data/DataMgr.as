@@ -415,7 +415,7 @@ package quantum.data
 			
 			if (op == OP_ADD)
 			{
-				var newGroup:XML = <itemsGroup/>
+				var newGroup:XML = <itemsGroup/>;
 				newGroup.@title = grp.title;
 				newGroup.@warehouseID = grp.warehouseID;
 				grp.dataXml = newGroup;
@@ -469,7 +469,7 @@ package quantum.data
 		}
 		
 		// [!][~ #TEST THIS ~]
-		public function opProduct(id:int, op:String, field:String = null, value:* = null):* // [!] Should return field's value on OP_READ
+		public function opProduct(id:int, op:String, field:String = null, value:* = null):* // Should return field's value on OP_READ
 		{
 			function queryByID():XML
 			{
@@ -508,14 +508,21 @@ package quantum.data
 			
 			if (op == OP_ADD) 
 			{
-				// return created entry
+				var newProductAppEntry:Product = value as Product;
+				
+				var newProductXml:XML = <product/>;
+				// [~ Coding task here #CDT ~]: Set all properties here
+				newProductXml.@... = ...;
+				
+				newProductAppEntry.dataXml = newProductXml;
+				dataXml.products.appendChild(newProductXml);
 			}
 			
 			else
 			
 			if (op = OP_REMOVE) 
 			{
-				
+				// No implementation for this operation in early versions
 			}
 			
 			dataUpdate();

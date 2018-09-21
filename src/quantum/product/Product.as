@@ -12,17 +12,37 @@ package quantum.product
 	{
 		// Data properties
 		private var $id:int;
+		public static const prop_id:String = "id";
+		
 		private var $title:String;
+		public static const prop_title:String = "title";
+		
 		private var $sku:String;
+		public static const prop_sku:String = "sku";
+		
 		private var $englishName:String;
+		public static const prop_englishName:String = "englishName";
+		
 		private var $price:Number;
+		public static const prop_price:String = "price";
+		
 		private var $weight:Number;
+		public static const prop_weight:String = "weight";
+		
 		private var $imgFile:String;
+		public static const prop_imgFile:String = "imgFile";
+		
 		private var $note:String;
+		public static const prop_note:String = "note";
+		
 		private var $classID:int;
+		public static const prop_classID:String = "classID";
 		
 		// App properties
 		private var $image:BitmapData;
+		public static const prop_image:String = "image";
+		
+		private var $dataXml:XML; // associated XML-entry in data
 		
 		/**
 		 * Constructor for basic data entity. Used ONLY inside of ProductsMgr.
@@ -131,6 +151,16 @@ package quantum.product
 		public function set image(value:BitmapData):void 
 		{
 			$image = value;
+		}
+		
+		public function get dataXml():XML 
+		{
+			return $dataXml;
+		}
+		
+		public function set dataXml(value:XML):void 
+		{
+			$dataXml = value;
 		}
 	}
 }

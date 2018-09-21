@@ -2,28 +2,23 @@ package quantum.gui
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
 	import flash.events.MouseEvent;
-	import flash.filesystem.File;
-	import flash.filesystem.FileMode;
-	import flash.filesystem.FileStream;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
 	import flash.text.AntiAliasType;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
-	import flash.utils.ByteArray;
 	import quantum.Main;
 	import quantum.data.DataMgr;
+	import quantum.events.DataEvent;
 	import quantum.gui.modules.GroupsContainer;
-	import sk.yoz.image.ImageResizer;
-	import sk.yoz.math.ResizeMath;
+	import quantum.product.Product;
+	import quantum.product.ProductsMgr;
 	
 	/**
 	 * ...
@@ -35,28 +30,22 @@ package quantum.gui
 		
 		private const DEF_COUNT_VALUE:int = 1;
 		
-		// Fields of app properties
-		private var $selected:Boolean;
-		private var $parentItemsGroup:ItemsGroup;
-		private var $dataXml:XML;
-		
 		// Fields of data properties
-		private var $id:int;
 		private var $count:int;
 		private var $productID:int;
-		private var $imagePath:String; // [!] 
+		private var $imagePath:String; // Cached value of product's image file path 
+		
+		// Fields of app properties
+		private var $dataXml:XML;
+		private var $selected:Boolean;
+		private var $parentItemsGroup:ItemsGroup;
 		
 		private var main:Main;
 		private var grpCnt:GroupsContainer;
+		private var pm:ProductsMgr;
 		
-		private var ldr:Loader; // Internal Loader for image
-		private var ba:ByteArray;
-		
-		private var imgFile:File;
-		private var fst:FileStream;
-		
+		private var imageBitmap:Bitmap;
 		private var $frame:Shape; // Top frame of the square
-		private var imgMask:Shape;
 		private var overFrame:Shape;
 		private var selectedFrame:Sprite;
 		private var errorFrame:Shape;
@@ -77,12 +66,14 @@ package quantum.gui
 		public function init():void
 		{
 			grpCnt = parentItemsGroup.grpCnt;
+			pm = main.stQuantumMgr.productsMgr;
+			imagePath = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_imgFile) as String; // Cache image path
 			
 			var w:int;
 			var h:int;
 			w = h = SQUARE_SIZE;
 			
-			// Frame
+			// Main frame
 			$frame = new Shape();
 			$frame.graphics.lineStyle(1, 0xB7BABC);
 			$frame.graphics.drawRect(0, 0, w-1, h-1);
@@ -133,12 +124,6 @@ package quantum.gui
 			triang.y = (hitBox.height / 4 * 3) - (triang.height / 2);
 			triangles.addChild(triang);
 			
-			// Image mask
-			imgMask = new Shape();
-			imgMask.graphics.beginFill(0xCCCC3F, 1);
-			imgMask.graphics.drawRect(0, 0, w-1, h-1);
-			imgMask.graphics.endFill();
-			
 			// Count text field
 			countTextField = new TextField();
 			countTextField.defaultTextFormat = new TextFormat("Tahoma", 14, 0xFFFFFF, true); // Def size: 20 18 14
@@ -159,15 +144,13 @@ package quantum.gui
 			hintCorner.graphics.endFill();
 			hintCorner.filters = [new DropShadowFilter(1, 45, 0, 0.3, 1, 1, 1)];
 			
-			// Functional stuff
-			ldr = new Loader();
-			ba = new ByteArray();
-			fst = new FileStream();
-			imgFile = new File(imagePath);
+			// Image bitmap
+			imageBitmap = new Bitmap();
+			imageBitmap.smoothing = true;
+			imageBitmap.cacheAsBitmap = true;
 			
 			// Display order
-			addChild(ldr);
-			addChild(imgMask);
+			addChild(imageBitmap);
 			addChild(errorFrame);
 			addChild(selectedFrame);
 			addChild(overFrame);
@@ -181,18 +164,21 @@ package quantum.gui
 			overFrame.visible = false;
 			selectedFrame.visible = false;
 			errorFrame.visible = false;
-			imgMask.visible = false;
 			
-			if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
+			//if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
+			if (pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note) as String == "")
+			{
 				hintCorner.visible = false;
-			main.stQuantumMgr.notesMgr.events.addEventListener(Event.CHANGE, notesChange);
+			}
+			
+			//main.stQuantumMgr.notesMgr.events.addEventListener(Event.CHANGE, notesChange); 
+			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated); // [!][~ #TEST THIS ~]
 			
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
 			countTextField.mouseEnabled = false;
 			
 			// Listeners
-			fst.addEventListener(Event.COMPLETE, onImgLoad);
 			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
 			addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
 			addEventListener(MouseEvent.CLICK, onMouseClick);
@@ -208,16 +194,66 @@ package quantum.gui
 			// Hint
 			grpCnt.registerItemsHint(this, hintTextHandler);
 			
-			// Prepare for loading image (GroupsContainer will start it)
-			fst.addEventListener(Event.COMPLETE, onImgLoad);
-			fst.addEventListener(IOErrorEvent.IO_ERROR, ioError);
-			grpCnt.registerItemForImgLoading(this);
+			/*
+			Алгоритм
+			> Check image bitmapData of this item's product from ProductsMgr
+			> 	* if exist > take and add to bitmap
+			>	* if exist, but bad > show errorFrame
+			>	* if doesn't exist > do nothing — ProductsMgr will notify via event when bdata is available
+			> Subscribe to ProductsMgr 'image loading event' [v] — done above (now it's common handler)
+			*/
+			checkImage();
 		}
 		
+		/**
+		 * Common handler for associated product data updates
+		 */
+		private function associatedProductDataUpdated(e:DataEvent):void 
+		{
+			if (e.entityId != productID) return; // If not our product > dismiss
+			
+			if (e.updatedFieldName == Product.prop_note) 
+			{
+				var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note) as String;
+				note == "" ? hintCorner.visible = false : hintCorner.visible = true;
+			}
+			
+			else
+			
+			if (e.updatedFieldName == Product.prop_image) 
+			{
+				checkImage();
+			}
+		}
+		
+		private function checkImage():void 
+		{
+			var bmd:BitmapData = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_image) as BitmapData;
+			
+			if (bmd == null) 
+				return;
+			
+			// Bad sign check
+			if (bmd.width && bmd.height == 1) 
+			{
+				errorFrame.visible = true;
+				return;
+			}	
+			
+			// Okay
+			if (errorFrame.visible)
+				errorFrame.visible = false;
+				
+			if (imageBitmap.bitmapData != null) imageBitmap.bitmapData.dispose();
+			imageBitmap.bitmapData = bmd;
+		}
+		
+		/*
 		private function notesChange(e:Event):void
 		{
 			main.stQuantumMgr.notesMgr.getNote(imagePath) == "" ? hintCorner.visible = false : hintCorner.visible = true;
 		}
+		*/
 		
 		private function hitBoxClick(e:MouseEvent):void
 		{
@@ -278,35 +314,15 @@ package quantum.gui
 		
 		public function hintTextHandler():String
 		{
-			
-			var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
+			//var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
+			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note); // [!][~ #TEST THIS ~]
 			return note != "" ? note : null;
-		
-		}
-		
-		public function startLoadingImage():void
-		{
-			// Start loading image
-			fst.openAsync(imgFile, FileMode.READ);
 		}
 		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
 		 */
-		
-		/**
-		 * Идентификатор этого объекта
-		 */
-		public function get id():int
-		{
-			return $id;
-		}
-		
-		public function set id(value:int):void
-		{
-			$id = value;
-		}
 		
 		/**
 		 * Количество
@@ -334,7 +350,7 @@ package quantum.gui
 		}
 		
 		/**
-		 * Путь до оригинальной картинки в файловой системе
+		 * Путь до оригинальной картинки в файловой системе (кэшированное значение)
 		 */
 		public function get imagePath():String
 		{
@@ -346,6 +362,9 @@ package quantum.gui
 			$imagePath = value;
 		}
 		
+		/**
+		 * Идентификатор связанного товара
+		 */
 		public function get productID():int 
 		{
 			return $productID;
