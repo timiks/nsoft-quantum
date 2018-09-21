@@ -21,14 +21,17 @@ package quantum.data
 	 */
 	public class DataMgr
 	{
-		public static const OP_READ:String = "read"; // Read value of individual fields of a record
-		public static const OP_ADD:String = "add"; // Add new record to base
-		public static const OP_REMOVE:String = "rem"; // Remove record from base
-		public static const OP_UPDATE:String = "upd"; // Update value of individual fields of a record
+		// These data operation codes may be used by any program component operating with data (not only DataMgr)
+		public static const OP_READ:String = "read"; // Read value of individual field of a record
+		public static const OP_ADD:String = "add"; // Add new record to the base
+		public static const OP_REMOVE:String = "rem"; // Remove record from the base
+		public static const OP_UPDATE:String = "upd"; // Update value of individual field of a record
 		public static const OP_CHANGE_ORDER:String = "changeOrder";
 		public static const OP_SWAP_ELEMENTS:String = "swap";
 		
 		private static const dataFileVersion:int = 3;
+		
+		private var $events:EventDispatcher;
 		
 		private var main:Main;
 		
@@ -38,8 +41,6 @@ package quantum.data
 		
 		private var tmrSaveDelay:Timer;
 		private var loaded:Boolean = false;
-		
-		private var $events:EventDispatcher;
 		
 		public function DataMgr():void {}
 		
@@ -139,11 +140,13 @@ package quantum.data
 								
 								if (xmlQuery.length() == 0) 
 								{
+									// [~ Coding task here #CDT ~]: move this block to creation function (DRY)
 									singleProductNode = <product/>;
 									singleProductNode.@id = productIdCounter++;
 									singleProductNode.@title = "";
 									singleProductNode.@classID = "";
 									singleProductNode.@sku = "";
+									singleProductNode.@englishName = "";
 									singleProductNode.@price = "0";
 									singleProductNode.@weight = "0";
 									singleProductNode.@imgFile = itm.@imgPath;
@@ -516,6 +519,22 @@ package quantum.data
 			}
 			
 			dataUpdate();
+		}
+		
+		public function opProductsIdCounter(op:String, value:int = null):int 
+		{
+			if (op == OP_READ)
+			{
+				return int(dataXml.products[0].@idCounter); // [!][~ #TEST THIS ~]
+			}
+			
+			else
+			
+			if (op == OP_UPDATE)
+			{
+				dataXml.products[0].@idCounter = value.toString(); // [!][~ #TEST THIS ~]
+				dataUpdate();
+			}
 		}
 		
 		/**

@@ -23,7 +23,6 @@ package quantum.gui.modules
 	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.product.ProductsMgr;
-	import quantum.product.ProductsMgr;
 	
 	/**
 	 * ...
@@ -333,7 +332,7 @@ package quantum.gui.modules
 			return $infoPanel;
 		}
 		
-		public function get productsMgr():ProductManager 
+		public function get productsMgr():ProductsMgr 
 		{
 			return $productsMgr;
 		}

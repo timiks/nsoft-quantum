@@ -4,6 +4,7 @@ package quantum.product
 		
 	/**
 	 * Data entity for Product
+	 * Used as entry (record) in ProductsMgr
 	 * 09.09.18
 	 * @author Tim Yusupov
 	 */
@@ -13,6 +14,7 @@ package quantum.product
 		private var $id:int;
 		private var $title:String;
 		private var $sku:String;
+		private var $englishName:String;
 		private var $price:Number;
 		private var $weight:Number;
 		private var $imgFile:String;
@@ -22,9 +24,13 @@ package quantum.product
 		// App properties
 		private var $image:BitmapData;
 		
+		/**
+		 * Constructor for basic data entity. Used ONLY inside of ProductsMgr.
+		 */
 		public function Product():void 
 		{
-			
+			/* No properties initialization inside the constructor */
+			/* ProductsMgr directly sets properties for new product */
 		}
 		
 		public function get id():int 
@@ -55,6 +61,16 @@ package quantum.product
 		public function set sku(value:String):void 
 		{
 			$sku = value;
+		}
+		
+		public function get englishName():String 
+		{
+			return $englishName;
+		}
+		
+		public function set englishName(value:String):void 
+		{
+			$englishName = value;
 		}
 		
 		public function get price():Number 

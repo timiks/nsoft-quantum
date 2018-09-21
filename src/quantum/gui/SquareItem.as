@@ -31,8 +31,9 @@ package quantum.gui
 	 */
 	public class SquareItem extends Sprite
 	{
+		public static const SQUARE_SIZE:int = 40; // Def: 68 58
+		
 		private const DEF_COUNT_VALUE:int = 1;
-		private const SQUARE_SIZE:int = 40; // Def: 68 58
 		
 		// Fields of app properties
 		private var $selected:Boolean;
@@ -216,59 +217,6 @@ package quantum.gui
 		private function notesChange(e:Event):void
 		{
 			main.stQuantumMgr.notesMgr.getNote(imagePath) == "" ? hintCorner.visible = false : hintCorner.visible = true;
-		}
-		
-		private function ioError(e:IOErrorEvent):void
-		{
-			errorFrame.visible = true;
-			fst.removeEventListener(Event.COMPLETE, onImgLoad);
-			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
-		}
-		
-		private function onImgLoad(e:Event):void
-		{
-			fst.removeEventListener(Event.COMPLETE, onImgLoad);
-			fst.removeEventListener(IOErrorEvent.IO_ERROR, ioError);
-			
-			fst.readBytes(ba, 0, fst.bytesAvailable);
-			fst.close();
-			ldr.loadBytes(ba);
-			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
-			{
-				var img:Bitmap = ldr.content as Bitmap;
-				img.smoothing = true;
-				ldr.cacheAsBitmap = true;
-				
-				var w:int, h:int;
-				var resizedMatrix:BitmapData;
-				var minSide:Number = Math.min(ldr.width, ldr.height);
-				
-				// Calculate image size for box with preserved Aspect Ratio
-				if (ldr.width == minSide)
-				{
-					h = SQUARE_SIZE * ldr.height / ldr.width; // W * scrH / scrW
-					w = SQUARE_SIZE;
-				}
-				
-				else
-				{
-					w = ldr.width * SQUARE_SIZE / ldr.height; // srcW * H / srcH
-					h = SQUARE_SIZE;
-				}
-				
-				// Resize image using Bilinear Interpolation algorithm
-				resizedMatrix = ImageResizer.bilinearIterative(img.bitmapData, w, h, ResizeMath.METHOD_PAN_AND_SCAN);
-				img.bitmapData.dispose();
-				img.bitmapData = resizedMatrix;
-				
-				// Centering offset for horizontal image
-				if (h < w) ldr.x -= (ldr.width - frame.width) / 2;
-				
-				// Set mask
-				ldr.mask = imgMask;
-				imgMask.visible = true;
-			});
-		
 		}
 		
 		private function hitBoxClick(e:MouseEvent):void

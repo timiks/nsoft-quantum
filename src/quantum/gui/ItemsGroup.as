@@ -181,9 +181,11 @@ package quantum.gui
 		{
 			multipleAddingMode = true;
 			
+			var productIDforNewItem:int;
 			for each (var file:File in e.files)
 			{
-				addItem(file.nativePath);
+				productIDforNewItem = main.stQuantumMgr.productsMgr.checkProductByImgPath(file.nativePath);
+				addItem(productIDforNewItem);
 			}
 			
 			grpCnt.startItemsImgLoadingTimer();
@@ -197,7 +199,7 @@ package quantum.gui
 		private function newItemBtnClick(e:MouseEvent):void
 		{
 			imgFile.browseForOpenMultiple(
-				"Выберите картинку (или несколько)",
+				"Выберите добавляемые товары через их изображения",
 				[new FileFilter("Изображение", "*.jpg;*.png;*.gif;*.jpeg")]
 			);
 		}
@@ -345,10 +347,10 @@ package quantum.gui
 		 * ================================================================================
 		 */
 		
-		public function addItem(imgPath:String, countValue:int = 0):SquareItem
+		public function addItem(productID:int, countValue:int = 0):SquareItem
 		{
 			var newItem:SquareItem = new SquareItem(
-				imgPath,
+				productID,
 				countValue
 			);
 			
@@ -398,11 +400,11 @@ package quantum.gui
 				"\n" + "Склад: " + Warehouse.getByID(warehouseID).russianTitle;
 		}
 		
-		public function checkItemExistenceByImgPath(itemsImgPath:String):Boolean
+		public function checkItemExistenceByProductID(itemProductID:int):Boolean
 		{
 			for each (var i:SquareItem in items)
 			{
-				if (i.imagePath == itemsImgPath) return true;
+				if (i.productID == itemProductID) return true;
 			}
 			
 			return false;

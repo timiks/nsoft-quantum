@@ -483,7 +483,7 @@ package quantum.gui.modules
 			
 			for each (g in groups) 
 			{
-				if (g.checkItemExistenceByImgPath(deletedItem.imagePath)) {
+				if (g.checkItemExistenceByProductID(deletedItem.productID)) {
 					suchItemExists = true;
 					break;
 				}
@@ -509,13 +509,13 @@ package quantum.gui.modules
 			{
 				// Create new
 				var newUntitledGroup:ItemsGroup = addNewGroup();
-				newUntitledGroup.addItem(deletedItem.imagePath);
+				newUntitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в новую безымянную группу");
 			}
 			else
 			{
 				// Use found untitled group
-				untitledGroup.addItem(deletedItem.imagePath);
+				untitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
 			}
 		}
