@@ -15,7 +15,7 @@ package quantum.events
 		private var $entityId:int;
 		private var $updatedFieldName:String;
 		
-		public function DataEvent(type:String, entityId:int = null, updatedFieldName:String = null, 
+		public function DataEvent(type:String, entityId:int = -1, updatedFieldName:String = null, 
 			bubbles:Boolean = false, cancelable:Boolean = false):void
 		{
 			super(type, bubbles, cancelable);

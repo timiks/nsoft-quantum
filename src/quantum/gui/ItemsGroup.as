@@ -184,7 +184,7 @@ package quantum.gui
 			var productIDforNewItem:int;
 			for each (var file:File in e.files)
 			{
-				productIDforNewItem = main.stQuantumMgr.productsMgr.checkProductByImgPath(file.nativePath);
+				productIDforNewItem = pm.checkProductByImgPath(file.nativePath);
 				addItem(productIDforNewItem);
 			}
 		}

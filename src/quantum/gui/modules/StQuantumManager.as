@@ -115,8 +115,8 @@ package quantum.gui.modules
 			// Hints
 			hintsCnt = new Sprite;
 			addChildAt(hintsCnt, numChildren);
-			hintMgr = new HintMgr();
-			hintMgr.init(hintsCnt);
+			$hintMgr = new HintMgr();
+			$hintMgr.init(hintsCnt);
 			
 			ui.nsCount.addEventListener("change", function(e:Event):void
 			{

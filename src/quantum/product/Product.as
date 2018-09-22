@@ -17,11 +17,11 @@ package quantum.product
 		private var $title:String;
 		public static const prop_title:String = "title";
 		
+		private var $classID:int;
+		public static const prop_classID:String = "classID";
+		
 		private var $sku:String;
 		public static const prop_sku:String = "sku";
-		
-		private var $englishName:String;
-		public static const prop_englishName:String = "englishName";
 		
 		private var $price:Number;
 		public static const prop_price:String = "price";
@@ -35,9 +35,6 @@ package quantum.product
 		private var $note:String;
 		public static const prop_note:String = "note";
 		
-		private var $classID:int;
-		public static const prop_classID:String = "classID";
-		
 		// App properties
 		private var $image:BitmapData;
 		public static const prop_image:String = "image";
@@ -45,12 +42,15 @@ package quantum.product
 		private var $dataXml:XML; // associated XML-entry in data
 		
 		/**
-		 * Constructor for basic data entity. Used ONLY inside of ProductsMgr.
+		 * Constructor for basic data entity.
+		 * Used ONLY inside ProductsMgr (mostly) and DataMgr (to prepare loaded data entites for use in app)
 		 */
 		public function Product():void 
 		{
-			/* No properties initialization inside the constructor */
-			/* ProductsMgr directly sets properties for new product */
+			/* No properties initialization inside the constructor. */
+			/* ProductsMgr directly sets properties for new product. */
+			/* DataMgr is allowed to do it only when it's transforming XML-objects to  */
+			/* their corresponding app entities when loading occurs (as an exception). */
 		}
 		
 		public function get id():int 
@@ -73,6 +73,16 @@ package quantum.product
 			$title = value;
 		}
 		
+		public function get classID():int 
+		{
+			return $classID;
+		}
+		
+		public function set classID(value:int):void 
+		{
+			$classID = value;
+		}
+		
 		public function get sku():String 
 		{
 			return $sku;
@@ -81,16 +91,6 @@ package quantum.product
 		public function set sku(value:String):void 
 		{
 			$sku = value;
-		}
-		
-		public function get englishName():String 
-		{
-			return $englishName;
-		}
-		
-		public function set englishName(value:String):void 
-		{
-			$englishName = value;
 		}
 		
 		public function get price():Number 
@@ -131,16 +131,6 @@ package quantum.product
 		public function set note(value:String):void 
 		{
 			$note = value;
-		}
-		
-		public function get classID():int 
-		{
-			return $classID;
-		}
-		
-		public function set classID(value:int):void 
-		{
-			$classID = value;
 		}
 		
 		public function get image():BitmapData 

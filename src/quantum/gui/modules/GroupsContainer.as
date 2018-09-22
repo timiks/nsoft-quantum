@@ -380,8 +380,6 @@ package quantum.gui.modules
 					break;
 				
 				case "selItemTypeNotes":
-					//if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
-					// [!][~ #TEST THIS ~]
 					if (selectedItem != null) pm.opProduct(selectedItem.productID, DataMgr.OP_UPDATE, Product.prop_note, String(val));
 					break;
 			}
@@ -505,8 +503,6 @@ package quantum.gui.modules
 			$selectedItem = value;
 			
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
-			//baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
-			// [!][~ #TEST THIS ~]
 			baseState.updateUiElement("selItemTypeNotes", value == null ?
 				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_note) as String);
 			baseState.focusAdrTextArea(value == null ? false : true);

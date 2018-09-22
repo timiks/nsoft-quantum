@@ -54,6 +54,8 @@ package quantum.product
 			productsList = dm.getAllProducts();
 			idCounter = dm.opProductsIdCounter(DataMgr.OP_READ);
 			
+			if (idCounter == 0) idCounter = 1;
+			
 			// Setup stuff for product images processing
 			fst = new FileStream();
 			ldr = new Loader();
@@ -79,7 +81,11 @@ package quantum.product
 			fst.removeEventListener(IOErrorEvent.IO_ERROR, imgLoadingIoError);
 			ldr.contentLoaderInfo.removeEventListener(Event.COMPLETE, imgLoading_s3_processImg);
 			
-			fst = ldr = imgFile = ba = imgLoadingQueue = null;
+			fst = null;
+			ldr = null;
+			imgFile = null;
+			ba = null;
+			imgLoadingQueue = null;
 		}
 		
 		/**
@@ -143,7 +149,7 @@ package quantum.product
 			
 			else
 			{
-				w = h = img.width;
+				w = h = IMG_SQUARE_SIZE;
 			}
 			
 			// Resize image using Bilinear Interpolation algorithm
@@ -169,7 +175,7 @@ package quantum.product
 					cropRect.width = cropRect.height = IMG_SQUARE_SIZE;
 				}
 				
-				var croppedMatrix:BitmapData = new BitmapData();
+				var croppedMatrix:BitmapData = new BitmapData(cropRect.width, cropRect.height);
 				croppedMatrix.copyPixels(processedImgMatrix, cropRect, new Point(0, 0));
 				processedImgMatrix.dispose();
 				processedImgMatrix = croppedMatrix;
@@ -202,17 +208,19 @@ package quantum.product
 		
 		private function imgLoadingQueueOutControl():void 
 		{
+			// Remove finished element from queue
+			imgLoadingQueue.shift();
+			
 			// If no more images to process > stop queue
 			if (imgLoadingQueue.length < 1) 
 			{
-				queActive = false; // Stop queue
+				queActive = false; // Stop queue (do nothing)
 				trace("Products images loading complete");
 			}
 			
-			// Otherwise > remove current element from queue; go to 1st step (next element)
+			// Otherwise > go to 1st step (next element)
 			else 
 			{
-				imgLoadingQueue.shift();
 				imgLoading_s1_setup();
 			}
 		}
@@ -228,12 +236,17 @@ package quantum.product
 		 */
 		private function addNewProduct(imgFilePath:String = null):Product 
 		{
-			// {here could be checks}
-			
 			var newProductEntry:Product = new Product();
 			
-			newProductEntry.id = incrementProductsIdCounter(); // New product's ID always set here
+			// Set product's properties to initial values
+			newProductEntry.id = getNewUniqueID(); // New product's ID always set here
+			newProductEntry.title = "";
+			newProductEntry.classID = 0;
+			newProductEntry.sku = "";
+			newProductEntry.price = 0;
+			newProductEntry.weight = 0;
 			newProductEntry.imgFile = imgFilePath;
+			newProductEntry.note = "";
 			
 			productsList.push(newProductEntry);
 			
@@ -257,11 +270,14 @@ package quantum.product
 			return null;
 		}
 		
-		private function incrementProductsIdCounter():int
+		private function getNewUniqueID():int
 		{
-			var newIdCounter:int = idCounter++;
-			dm.opProductsIdCounter(DataMgr.OP_UPDATE, newIdCounter);
-			return newIdCounter;
+			/* Current value of the counter is set as ID to new product */
+			var setId:int = idCounter; 
+			/* Then counter increment occurs and new value updated in the database (in one step) */
+			dm.opProductsIdCounter(DataMgr.OP_UPDATE, ++idCounter);
+			/* Returned value is the value BEFORE increment */
+			return setId;
 		}
 		
 		/**
@@ -335,6 +351,11 @@ package quantum.product
 		public function get events():EventDispatcher 
 		{
 			return $events;
+		}
+		
+		public function get imagesLoadingActive():Boolean
+		{
+			return queActive;
 		}
 	}
 }

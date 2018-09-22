@@ -135,7 +135,7 @@ package quantum.backup
 				
 				function checkImageSave(e:TimerEvent):void 
 				{
-					if (main.stQuantumMgr.grpCnt.loadingActive)
+					if (main.stQuantumMgr.productsMgr.imagesLoadingActive)
 					{
 						return;
 					}

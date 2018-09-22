@@ -171,8 +171,7 @@ package quantum.gui
 				hintCorner.visible = false;
 			}
 			
-			//main.stQuantumMgr.notesMgr.events.addEventListener(Event.CHANGE, notesChange); 
-			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated); // [!][~ #TEST THIS ~]
+			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
 			
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
@@ -314,8 +313,7 @@ package quantum.gui
 		
 		public function hintTextHandler():String
 		{
-			//var note:String = main.stQuantumMgr.notesMgr.getNote(imagePath);
-			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note); // [!][~ #TEST THIS ~]
+			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note);
 			return note != "" ? note : null;
 		}
 		

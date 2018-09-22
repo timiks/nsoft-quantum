@@ -111,7 +111,6 @@ package quantum.data
 						}
 					}
 					
-					// [!][~ #TEST THIS ~]
 					// Data File v2 → v3
 					if (int(dfv) < 3) 
 					{
@@ -124,14 +123,17 @@ package quantum.data
 						dataXml.prependChild(<groups/>);
 						for each (grp in dataXml.itemsGroup)
 						{
-							dataXml.groups.appendChild(grp);
 							delete dataXml.children()[grp.childIndex()];
+							dataXml.groups.appendChild(grp);
 						}
 						
 						// Stage 2
-						var productsNode:XML = dataXml.prependChild(<products/>);
+						var productsNode:XML = <products/>;
 						var singleProductNode:XML;
 						var productIdCounter:int = 1;
+						
+						dataXml.prependChild(productsNode);
+						
 						for each (grp in dataXml.groups.itemsGroup) 
 						{
 							for each (itm in grp.item) 
@@ -140,13 +142,12 @@ package quantum.data
 								
 								if (xmlQuery.length() == 0) 
 								{
-									// [~ Coding task here #CDT ~]: move this block to creation function (DRY)
+									// ...
 									singleProductNode = <product/>;
 									singleProductNode.@id = productIdCounter++;
 									singleProductNode.@title = "";
 									singleProductNode.@classID = "";
 									singleProductNode.@sku = "";
-									singleProductNode.@englishName = "";
 									singleProductNode.@price = "0";
 									singleProductNode.@weight = "0";
 									singleProductNode.@imgFile = itm.@imgPath;
@@ -195,6 +196,8 @@ package quantum.data
 					// Updating data file version if differs
 					if (dataXml.@dataFileVersion != dataFileVersion)
 						dataXml.@dataFileVersion = dataFileVersion
+						
+					dataUpdate(2000);
 				}
 				
 				// [To-Do Here ↓]: Errors check
@@ -213,9 +216,8 @@ package quantum.data
 			// DF v2 feature (not actual in v3+)
 			/* dataXml.appendChild(<notes/>); */
 			
-			// [!][~ #TEST THIS ~]
 			// DF v3 features
-			dataXml.appendChild(<products/>);
+			dataXml.appendChild(<products idCounter="1"/>);
 			dataXml.appendChild(<groups/>);
 			
 			if (!createFile) return;
@@ -317,8 +319,21 @@ package quantum.data
 			
 			for each (var pXml:XML in dataXml.products.product) 
 			{
-				// [~ Coding task here #CDT ~]: Create entities and return
+				p = new Product();
+				p.id = int(pXml.@id);
+				p.title = String(pXml.@title);
+				p.classID = (String(pXml.@classID) == "") ? 0 : int(pXml.@classID);
+				p.sku = String(pXml.@sku);
+				p.price = Number(pXml.@price);
+				p.weight = Number(pXml.@weight);
+				p.imgFile = String(pXml.@imgFile);
+				p.note = String(pXml.@note);
+				
+				p.dataXml = pXml;
+				productsList.push(p);
 			}
+			
+			return productsList;
 		}
 		 
 		public function getAllGroups():Vector.<ItemsGroup>
@@ -357,54 +372,13 @@ package quantum.data
 			return items;
 		}
 		
-		/*
-		public function getAllNotes():Vector.<Object>
-		{
-			var notes:Vector.<Object> = new Vector.<Object>();
-			
-			for each (var noteRecord:XML in dataXml.notes.itemNote)
-			{
-				notes.push({imgPath: noteRecord.@img, noteText: noteRecord.@text});
-			}
-			
-			return notes;
-		}
-		
-		public function opNote(op:String, imgPath:String, noteText:String = null):void
-		{
-			if (op == OP_UPDATE)
-			{
-				dataXml.notes.itemNote.(@img == imgPath)[0].@text = noteText;
-			}
-			
-			else
-			
-			if (op == OP_ADD)
-			{
-				var newNote:XML = <itemNote/>
-				newNote.@img = imgPath;
-				newNote.@text = noteText;
-				dataXml.notes.appendChild(newNote);
-			}
-			
-			else
-			
-			if (op == OP_REMOVE)
-			{
-				delete dataXml.notes.itemNote.(@img == imgPath)[0];
-			}
-			
-			dataUpdate(5500);
-		}
-		*/
-		
 		public function opGroup(
 						grp:ItemsGroup,
 						op:String,
 						field:String = null,
 						value:* = null,
 						swapNodeA:XML = null,
-						swapNodeB:XML = null):void // [!][~ #TEST THIS ~]
+						swapNodeB:XML = null):void
 		{
 			if (op == OP_UPDATE)
 			{
@@ -433,7 +407,7 @@ package quantum.data
 			
 			if (op == OP_SWAP_ELEMENTS)
 			{
-				swapNodes(dataXml.groups, swapNodeA.childIndex(), swapNodeB.childIndex());
+				swapNodes(dataXml.groups[0], swapNodeA.childIndex(), swapNodeB.childIndex());
 			}
 			
 			dataUpdate();
@@ -511,8 +485,14 @@ package quantum.data
 				var newProductAppEntry:Product = value as Product;
 				
 				var newProductXml:XML = <product/>;
-				// [~ Coding task here #CDT ~]: Set all properties here
-				newProductXml.@... = ...;
+				newProductXml.@id = newProductAppEntry.id;
+				newProductXml.@title = newProductAppEntry.title == null ? "" : newProductAppEntry.title;
+				newProductXml.@classID = newProductAppEntry.classID == 0 ? "" : newProductAppEntry.classID;
+				newProductXml.@sku = newProductAppEntry.sku == null ? "" : newProductAppEntry.sku;
+				newProductXml.@price = newProductAppEntry.price == 0 ? 0 : newProductAppEntry.price;
+				newProductXml.@weight = newProductAppEntry.weight == 0 ? 0 : newProductAppEntry.weight;
+				newProductXml.@imgFile = newProductAppEntry.imgFile == null ? "" : newProductAppEntry.imgFile;
+				newProductXml.@note = newProductAppEntry.note == null ? "" : newProductAppEntry.note;
 				
 				newProductAppEntry.dataXml = newProductXml;
 				dataXml.products.appendChild(newProductXml);
@@ -520,28 +500,30 @@ package quantum.data
 			
 			else
 			
-			if (op = OP_REMOVE) 
+			if (op == OP_REMOVE) 
 			{
 				// No implementation for this operation in early versions
 			}
 			
-			dataUpdate();
+			op != OP_READ && dataUpdate();
 		}
 		
-		public function opProductsIdCounter(op:String, value:int = null):int 
+		public function opProductsIdCounter(op:String, value:int = 0):int 
 		{
 			if (op == OP_READ)
 			{
-				return int(dataXml.products[0].@idCounter); // [!][~ #TEST THIS ~]
+				return int(dataXml.products[0].@idCounter);
 			}
 			
 			else
 			
 			if (op == OP_UPDATE)
 			{
-				dataXml.products[0].@idCounter = value.toString(); // [!][~ #TEST THIS ~]
+				dataXml.products[0].@idCounter = value.toString();
 				dataUpdate();
 			}
+			
+			return -1;
 		}
 		
 		/**
