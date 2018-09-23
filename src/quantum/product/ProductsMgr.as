@@ -11,9 +11,11 @@ package quantum.product
 	import flash.filesystem.FileStream;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
 	import quantum.Main;
 	import quantum.data.DataMgr;
+	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
 	import quantum.gui.SquareItem;
 	import sk.yoz.image.ImageResizer;
@@ -25,6 +27,9 @@ package quantum.product
 	 */
 	public class ProductsMgr 
 	{
+		[Embed(source = "/../lib/graphics/missing-file-red-icon.png")]
+		private var MissingFilePic:Class; // 200 x 200
+		
 		private const IMG_SQUARE_SIZE:int = SquareItem.SQUARE_SIZE;
 		
 		private var $events:EventDispatcher;
@@ -67,6 +72,8 @@ package quantum.product
 			fst.addEventListener(Event.COMPLETE, imgLoading_s2_readFile);
 			fst.addEventListener(IOErrorEvent.IO_ERROR, imgLoadingIoError);
 			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, imgLoading_s3_processImg);
+			
+			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
 			// Initial load and process of all product images
 			for each (var p:Product in productsList) 
@@ -201,8 +208,12 @@ package quantum.product
 			> Set cor. product image property with bad image sign
 			> Remove bad element from queue (shift)
 			*/
-			var badBdataSign:BitmapData = new BitmapData(1, 1, true, 0);
-			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, badBdataSign, true);
+			var missingFilePic:Bitmap = new MissingFilePic();
+			var resizedPixels:BitmapData =
+				ImageResizer.bilinearIterative(missingFilePic.bitmapData,
+				IMG_SQUARE_SIZE, IMG_SQUARE_SIZE, ResizeMath.METHOD_PAN_AND_SCAN);
+			
+			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, resizedPixels, true);
 			imgLoadingQueueOutControl();
 		}
 		

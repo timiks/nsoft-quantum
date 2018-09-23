@@ -48,7 +48,6 @@ package quantum.gui
 		private var $frame:Shape; // Top frame of the square
 		private var overFrame:Shape;
 		private var selectedFrame:Sprite;
-		private var errorFrame:Shape;
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
 		private var countTextField:TextField;
@@ -94,12 +93,6 @@ package quantum.gui
 			selectFrameAnimation = new SelectFrameAnimation();
 			selectFrameAnimation.width = SQUARE_SIZE;
 			selectFrameAnimation.height = SQUARE_SIZE;
-			
-			// Error frame
-			errorFrame = new Shape();
-			errorFrame.graphics.beginFill(0xE10044, 0.7);
-			errorFrame.graphics.drawRect(0, 0, w-1, h-1);
-			errorFrame.graphics.endFill();
 			
 			// Hit box
 			hitBox = new Sprite();
@@ -151,7 +144,6 @@ package quantum.gui
 			
 			// Display order
 			addChild(imageBitmap);
-			addChild(errorFrame);
 			addChild(selectedFrame);
 			addChild(overFrame);
 			addChild(hintCorner);
@@ -163,7 +155,6 @@ package quantum.gui
 			// Elements settings
 			overFrame.visible = false;
 			selectedFrame.visible = false;
-			errorFrame.visible = false;
 			
 			//if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
 			if (pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note) as String == "")
@@ -232,17 +223,6 @@ package quantum.gui
 			if (bmd == null) 
 				return;
 			
-			// Bad sign check
-			if (bmd.width && bmd.height == 1) 
-			{
-				errorFrame.visible = true;
-				return;
-			}	
-			
-			// Okay
-			if (errorFrame.visible)
-				errorFrame.visible = false;
-				
 			if (imageBitmap.bitmapData != null) imageBitmap.bitmapData.dispose();
 			imageBitmap.bitmapData = bmd;
 		}
