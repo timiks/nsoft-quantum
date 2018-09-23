@@ -52,10 +52,13 @@ package quantum.backup
 		{
 			if (!main.settings.getKey(Settings.backupData))
 				return;
+			
+			if (!backupDir.exists)
+				return;
 				
 			trace("Backup copies check");
 			
-			var dirContents:Array = backupDir.getDirectoryListing(); // [!] When dir isn't found: exception here. fix it
+			var dirContents:Array = backupDir.getDirectoryListing();
 			
 			if (dirContents.length == 0)
 				return;

@@ -19,7 +19,7 @@ package quantum.warehouse
 		{
 			if ($entities == null)
 			{
-				// [!] Must add WH entities here and app will be aware of them
+				// Add WH entities here and app will be aware of them
 				$entities = new Vector.<WarehouseEntity>();
 				$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
 				$entities.push(new WarehouseEntity(CANTON, "Кантон"));

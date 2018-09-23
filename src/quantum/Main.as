@@ -17,7 +17,7 @@ package quantum
 	
 	
 	/**
-	 * Quantum Application Main Class
+	 * Quantum Application Main Module (CEM — Chef Executive Module)
 	 * @author Tim Yusupov
 	 */
 	public class Main extends Sprite
@@ -31,21 +31,21 @@ package quantum
 		private const $futureVersion:Boolean 		= true;
 		private const bugs:Boolean 					= false;
 		
-		// Functional Members (Modules)
-		// Common
+		// Modules
+		// · Common
 		private var $settings:Settings;
 		private var $dataMgr:DataMgr;
 		private var $trayMgr:TrayMgr;
-		private var $uiCmpMgr:UIComponentsMgr;
 		private var $soundMgr:SoundMgr;
 		private var $backupMst:BackupMaster;
 		
-		// Addressy
+		// · Addressy
 		private var $prcEng:ProcessingEngine;
 		private var $bgProcessor:BgProcessor;
 		private var $formatMgr:FormatMgr;
 		
-		// States
+		// · UI
+		private var $uiCmpMgr:UIComponentsMgr;
 		private var $stQuantumMgr:StQuantumManager;
 		private var $stAddressyUI:StAddressyUI;
 		private var $stSettings:StSettings;
@@ -99,7 +99,7 @@ package quantum
 			$ins = this;
 			
 			/**
-			 * Initialization
+			 * General initialization
 			 * ================================================================================
 			 */
 			// Settings
@@ -129,14 +129,14 @@ package quantum
 			// UI Components Manager
 			$uiCmpMgr = new UIComponentsMgr();
 			
-			// Main State (Quantum Manager) [with Window — Initial Window]
+			// Main UI module (Quantum Manager) [with Window — Main Window]
 			$stQuantumMgr = new StQuantumManager();
 			addChild($stQuantumMgr);
 			
-			// Addressy UI State [with Window]
+			// Addressy UI (UI module) [with Window]
 			$stAddressyUI = new StAddressyUI();
 			
-			// Settings State [with Window]
+			// Settings State (UI module) [with Window]
 			$stSettings = new StSettings();
 			
 			// Addressy's Background Processing Service
