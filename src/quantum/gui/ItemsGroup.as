@@ -59,6 +59,7 @@ package quantum.gui
 		private var btnNewItem:SimpleButton;
 		private var ctxMenu:NativeMenu;
 		
+		private var menuItmDeleteThisGroup:NativeMenuItem;
 		private var menuItmExport:NativeMenuItem;
 		private var menuItmWarehouseSwitchRef:NativeMenuItem;
 		
@@ -91,10 +92,14 @@ package quantum.gui
 			btnNewItem = displayObject.getChildByName("btnNewItem") as SimpleButton;
 			
 			// Меню группы
+			menuItmDeleteThisGroup = new NativeMenuItem("Удалить группу");
+			menuItmDeleteThisGroup.addEventListener(Event.SELECT, menuItmDeleteThisGroupClick);
+			
 			menuItmExport = new NativeMenuItem("Экспорт содержимого группы в файл");
 			menuItmExport.addEventListener(Event.SELECT, menuItmExportClick);
 			
 			ctxMenu = new NativeMenu();
+			ctxMenu.addItem(menuItmDeleteThisGroup);
 			ctxMenu.addItem(menuItmExport);
 			ctxMenu.addItem(new NativeMenuItem("[separator]", true));
 			
@@ -129,6 +134,11 @@ package quantum.gui
 				checkTitleAndUpdateStyle();
 				main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
 			}
+		}
+		
+		private function menuItmDeleteThisGroupClick(e:Event):void 
+		{
+			grpCnt.removeGroup(this);
 		}
 		
 		private function menuItmWarehouseSwitchClick(e:Event):void

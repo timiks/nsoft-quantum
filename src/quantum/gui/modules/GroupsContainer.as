@@ -409,6 +409,7 @@ package quantum.gui.modules
 		public function removeGroup(removingGroup:ItemsGroup):void
 		{
 			trace("REMOVING GROUP");
+			if (selectedGroup == removingGroup) resetSelected();
 			main.dataMgr.opGroup(removingGroup, DataMgr.OP_REMOVE);
 			cnt.removeChild(removingGroup.displayObject);
 			groups.splice(groups.indexOf(removingGroup), 1);
