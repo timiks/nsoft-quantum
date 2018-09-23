@@ -15,6 +15,7 @@ package quantum
 		public static const sndPrcError:String = "sndPrcError";
 		public static const sndBgPrcToggle:String = "sndBgPrcToggle";
 		public static const sndMessage:String = "sndMessage";
+		public static const sndGlobalError:String = "sndGlobalError";
 		
 		// Assets
 		[Embed(source = "/../lib/sounds/snd-ok.mp3")]
@@ -28,6 +29,9 @@ package quantum
 		
 		[Embed(source = "/../lib/sounds/snd-message.mp3")]
 		private var MessageSound:Class;
+		
+		[Embed(source = "/../lib/sounds/snd-global-error.mp3")]
+		private var GlobalErrorSound:Class;
 		
 		private var snd:Sound;
 		private var playing:Boolean;
@@ -64,6 +68,10 @@ package quantum
 					snd.play();
 					break;
 				
+				case sndGlobalError:
+					snd = new GlobalErrorSound() as Sound;
+					snd.play();
+					
 				default: 
 					return;
 					break;

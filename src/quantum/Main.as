@@ -4,6 +4,7 @@ package quantum
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.system.Capabilities;
 	import quantum.adr.BgProcessor;
 	import quantum.adr.FormatMgr;
@@ -11,6 +12,7 @@ package quantum
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.gui.modules.GimGlobalError;
 	import quantum.gui.modules.StAddressyUI;
 	import quantum.gui.modules.StQuantumManager;
 	import quantum.gui.modules.StSettings;
@@ -49,6 +51,7 @@ package quantum
 		private var $stQuantumMgr:StQuantumManager;
 		private var $stAddressyUI:StAddressyUI;
 		private var $stSettings:StSettings;
+		private var $gimGlobalError:GimGlobalError;
 		
 		private var $inited:Boolean;
 		private var $exiting:Boolean;
@@ -97,6 +100,11 @@ package quantum
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			
 			$ins = this;
+			
+			// Initialization of global error (exceptions) registration
+			// It should be created very first
+			$gimGlobalError = new GimGlobalError();
+			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onSystemError);
 			
 			/**
 			 * General initialization
@@ -147,6 +155,17 @@ package quantum
 			}
 			
 			$inited = true;
+		}
+		
+		private function onSystemError(event:UncaughtErrorEvent):void 
+		{
+			logRed("SYSTEM ERROR");
+			
+			if (event.error is Error)
+			{
+				var e:Error = event.error as Error;
+				gimGlobalError.showError(e.message);
+			}
 		}
 		
 		/**
@@ -259,6 +278,11 @@ package quantum
 		public function get stSettings():StSettings
 		{
 			return $stSettings;
+		}
+		
+		public function get gimGlobalError():GimGlobalError 
+		{
+			return $gimGlobalError;
 		}
 		
 		public function get uiCmpMgr():UIComponentsMgr
