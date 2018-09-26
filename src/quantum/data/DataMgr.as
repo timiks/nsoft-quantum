@@ -322,10 +322,10 @@ package quantum.data
 				p = new Product();
 				p.id = int(pXml.@id);
 				p.title = String(pXml.@title);
-				p.classID = (String(pXml.@classID) == "") ? 0 : int(pXml.@classID);
+				p.classID = (String(pXml.@classID) == "") ? -1 : int(pXml.@classID);
 				p.sku = String(pXml.@sku);
-				p.price = Number(pXml.@price);
-				p.weight = Number(pXml.@weight);
+				p.price = parseFloat(String(pXml.@price).replace(",", ".")); // parseFloat always uses «.» decimal delimeter
+				p.weight = parseFloat(String(pXml.@weight).replace(",", "."));
 				p.imgFile = String(pXml.@imgFile);
 				p.note = String(pXml.@note);
 				
@@ -475,6 +475,7 @@ package quantum.data
 			if (op == OP_UPDATE) 
 			{
 				productEntry = queryByID();
+				if (value is Number) value = main.numFrm.formatNumber(value);
 				productEntry.@[field] = value;
 			}
 			

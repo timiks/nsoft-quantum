@@ -9,6 +9,7 @@ package quantum.gui.modules
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.events.TextEvent;
 	import flash.system.Capabilities;
 	import flash.ui.Keyboard;
 	import quantum.Main;
@@ -58,7 +59,7 @@ package quantum.gui.modules
 			
 			// State visual composition
 			ui = new QnManagerComposition();
-			addChild(ui);
+			//addChild(ui);
 			
 			// Window and Tray functionality
 			initWindowAndTray();
@@ -67,48 +68,95 @@ package quantum.gui.modules
 			ui.tfVer.htmlText = main.isFutureVersion ? "<font color=\"" + Colors.PURPLE + "\">" + main.version + "</font>" : main.version;
 			
 			/**
-			 * UI functionality
+			 * UI components
 			 * ================================================================================
 			 */
 			
-			// BUTTONS
-			// Exit
+			// Main buttons (top)
+			// · Exit
 			ui.btnExit.tabEnabled = false;
 			ui.btnExit.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				main.exitApp();
 			});
 			
-			// Addressy UI show
+			// · Addressy UI show
 			ui.btnShowAdrUI.tabEnabled = false;
 			ui.btnShowAdrUI.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				main.stAdrUI.showWindow(true);
 			});
 			
-			// Settings window show
+			// · Settings window show
 			ui.btnSettings.tabEnabled = false;
 			ui.btnSettings.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				main.stSettings.showWindow(true);
 			});
 			
-			// New group
+			// · New group
 			ui.btnNewGroup.tabEnabled = false;
 			ui.btnNewGroup.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				grpCnt.addNewGroup();
 			});
 			
+			// Selected item properties editors
+			// · Selected item's count (numeric stepper)
+			ui.nsCount.addEventListener("change", function(e:Event):void
+			{
+				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
+			});
+			
+			// · Note of product entry of selected item (text area)
+			ui.taDetails.addEventListener("change", function(e:Event):void
+			{
+				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
+			});
+						
+			var numLimitedCharsRe:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
+			
+			function limitChars(e:TextEvent):void 
+			{
+				if (e.text.search(numLimitedCharsRe) == -1)
+					e.preventDefault();
+			}
+			
+			// · Price of product entry of selected item (text input) 
+			ui.tiPrice.addEventListener("change", function(e:Event):void 
+			{
+				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text);
+			});
+			ui.tiPrice.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
+			
+			// · Weight of product entry of selected item (text input)
+			ui.tiWeight.addEventListener("change", function(e:Event):void 
+			{
+				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text);
+			});
+			ui.tiWeight.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
+			
+			// · SKU of product entry of selected item (text input)
+			ui.tiSku.addEventListener("change", function(e:Event):void 
+			{
+				grpCnt.updateUiElementData("selItemProductSKU", ui.tiSku.text);
+			});
+						
 			// Styles
 			var uicm:UIComponentsMgr = main.uiCmpMgr;
 			uicm.setStyle(ui.taAdr);
 			uicm.setStyle(ui.nsCount);
 			uicm.setStyle(ui.nsCount.textField);
 			uicm.setStyle(ui.taDetails);
+			uicm.setStyle(ui.tiSku);
+			uicm.setStyle(ui.tiPrice);
+			uicm.setStyle(ui.tiWeight);
+			
+			// Show whole composition after everything looks well
+			addChild(ui);
 			
 			/**
-			 * Sub Modules (private & public)
+			 * Sub modules (private & public)
 			 * ================================================================================
 			 */
 			
@@ -118,17 +166,11 @@ package quantum.gui.modules
 			$hintMgr = new HintMgr();
 			$hintMgr.init(hintsCnt);
 			
-			ui.nsCount.addEventListener("change", function(e:Event):void
-			{
-				grpCnt.updateUiElementData("selItemCount", ui.nsCount.value);
-			});
 			hintMgr.registerHint(ui.nsCount, "Количество товара");
-			
-			ui.taDetails.addEventListener("change", function(e:Event):void
-			{
-				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
-			});
 			hintMgr.registerHint(ui.taDetails, "Заметка");
+			hintMgr.registerHint(ui.tiPrice, "Цена товара (в USD)");
+			hintMgr.registerHint(ui.tiWeight, "Вес товара (в КГ)");
+			hintMgr.registerHint(ui.tiSku, "Значение SKU");
 			
 			// Products manager
 			$productsMgr = new ProductsMgr();
@@ -267,6 +309,18 @@ package quantum.gui.modules
 				
 				case "selItemTypeNotes": 
 					ui.taDetails.text = val;
+					break;
+					
+				case "selItemProductPrice":
+					ui.tiPrice.text = main.numFrm.formatNumber(val);
+					break;
+				
+				case "selItemProductWeight":
+					ui.tiWeight.text = main.numFrm.formatNumber(val);
+					break;	
+					
+				case "selItemProductSKU":
+					ui.tiSku.text = val;
 					break;
 			}
 		}

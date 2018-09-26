@@ -212,6 +212,7 @@ package quantum.product
 			var resizedPixels:BitmapData =
 				ImageResizer.bilinearIterative(missingFilePic.bitmapData,
 				IMG_SQUARE_SIZE, IMG_SQUARE_SIZE, ResizeMath.METHOD_PAN_AND_SCAN);
+			missingFilePic.bitmapData.dispose();
 			
 			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, resizedPixels, true);
 			imgLoadingQueueOutControl();

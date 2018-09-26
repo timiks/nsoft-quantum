@@ -5,6 +5,8 @@ package quantum
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.UncaughtErrorEvent;
+	import flash.globalization.LocaleID;
+	import flash.globalization.NumberFormatter;
 	import flash.system.Capabilities;
 	import quantum.adr.BgProcessor;
 	import quantum.adr.FormatMgr;
@@ -40,6 +42,7 @@ package quantum
 		private var $trayMgr:TrayMgr;
 		private var $soundMgr:SoundMgr;
 		private var $backupMst:BackupMaster;
+		private var $numFrm:NumberFormatter;
 		
 		// · Addressy
 		private var $prcEng:ProcessingEngine;
@@ -103,13 +106,24 @@ package quantum
 			
 			// Initialization of global error (exceptions) registration
 			// It should be created very first
-			$gimGlobalError = new GimGlobalError();
-			loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onSystemError);
+			if (!Capabilities.isDebugger) 
+			{
+				$gimGlobalError = new GimGlobalError();
+				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onSystemError);
+			}
 			
 			/**
 			 * General initialization
 			 * ================================================================================
 			 */
+			
+			// Number formatter
+			$numFrm = new NumberFormatter(LocaleID.DEFAULT);
+			$numFrm.fractionalDigits = 3;
+			$numFrm.leadingZero = true;
+			$numFrm.trailingZeros = false;
+			$numFrm.useGrouping = false;
+			 
 			// Settings
 			$settings = new Settings();
 			$settings.load();
@@ -223,6 +237,23 @@ package quantum
 			return "Quantum";
 		}
 		
+		public function get inited():Boolean
+		{
+			return $inited;
+		}
+		
+		public function get exiting():Boolean
+		{
+			return $exiting;
+		}
+		
+		public function get isFutureVersion():Boolean
+		{
+			return $futureVersion;
+		}
+		
+		// ================================================================================
+		
 		public function get settings():Settings
 		{
 			return $settings;
@@ -300,19 +331,9 @@ package quantum
 			return $backupMst;
 		}
 		
-		public function get inited():Boolean
+		public function get numFrm():NumberFormatter 
 		{
-			return $inited;
-		}
-		
-		public function get exiting():Boolean
-		{
-			return $exiting;
-		}
-		
-		public function get isFutureVersion():Boolean
-		{
-			return $futureVersion;
+			return $numFrm;
 		}
 	}
 }

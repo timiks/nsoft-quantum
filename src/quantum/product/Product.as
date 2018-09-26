@@ -20,19 +20,19 @@ package quantum.product
 		private var $classID:int;
 		public static const prop_classID:String = "classID";
 		
-		private var $sku:String;
+		private var $sku:String; /* GUI */
 		public static const prop_sku:String = "sku";
 		
-		private var $price:Number;
+		private var $price:Number; /* GUI */
 		public static const prop_price:String = "price";
 		
-		private var $weight:Number;
+		private var $weight:Number; /* GUI */
 		public static const prop_weight:String = "weight";
 		
 		private var $imgFile:String;
 		public static const prop_imgFile:String = "imgFile";
 		
-		private var $note:String;
+		private var $note:String; /* GUI */
 		public static const prop_note:String = "note";
 		
 		// App properties
@@ -100,6 +100,8 @@ package quantum.product
 		
 		public function set price(value:Number):void 
 		{
+			if (isNaN(value)) value = 0;
+			
 			$price = value;
 		}
 		
@@ -110,6 +112,8 @@ package quantum.product
 		
 		public function set weight(value:Number):void 
 		{
+			if (isNaN(value)) value = 0;
+			
 			$weight = value;
 		}
 		

@@ -380,7 +380,23 @@ package quantum.gui.modules
 					break;
 				
 				case "selItemTypeNotes":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					break;
+					
+				case "selItemProductPrice":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
+					break;
+					
+				case "selItemProductWeight":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
+					break;
+					
+				case "selItemProductSKU":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_sku, String(val));
 					break;
 			}
 		}
@@ -504,8 +520,19 @@ package quantum.gui.modules
 			$selectedItem = value;
 			
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
+			
 			baseState.updateUiElement("selItemTypeNotes", value == null ?
 				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_note) as String);
+				
+			baseState.updateUiElement("selItemProductPrice", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_price));
+				
+			baseState.updateUiElement("selItemProductWeight", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_weight));
+				
+			baseState.updateUiElement("selItemProductSKU", value == null ? 
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_sku));
+				
 			baseState.focusAdrTextArea(value == null ? false : true);
 		}
 		
