@@ -162,7 +162,6 @@ package quantum.gui.modules
 			
 			// Hints
 			hintsCnt = new Sprite;
-			addChildAt(hintsCnt, numChildren);
 			$hintMgr = new HintMgr();
 			$hintMgr.init(hintsCnt);
 			
@@ -178,7 +177,6 @@ package quantum.gui.modules
 			
 			// Groups Container
 			$grpCnt = new GroupsContainer(this);
-			ui.addChildAt(grpCnt, 0);
 			
 			// Table data composer
 			$tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -194,6 +192,10 @@ package quantum.gui.modules
 			ui.infopanel.x = 20;
 			ui.infopanel.y = stage.stageHeight - ui.infopanel.height - 20;
 			$infoPanel.init();
+			
+			// Layers display order
+			ui.addChildAt(grpCnt, 0);
+			addChildAt(hintsCnt, numChildren);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		}

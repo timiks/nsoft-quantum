@@ -126,7 +126,9 @@ package quantum.gui
 			
 			hintDisOb.x = e.target.x;
 			hintDisOb.y = e.target.y;
-			txt.text = hintText; // Assign text to hint
+			
+			// Assign text to hint (HTML formatting allowed)
+			txt.htmlText = hintText; 
 			
 			rect.width = txt.textWidth + 7;
 			rect.height = txt.textHeight + 4;

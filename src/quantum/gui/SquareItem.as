@@ -293,8 +293,38 @@ package quantum.gui
 		
 		public function hintTextHandler():String
 		{
+			var sku:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_sku);
+			var price:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price);
+			var weight:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight);
 			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note);
-			return note != "" ? note : null;
+			var hintOutput:String;
+			
+			if (sku == "" && price == 0 && weight == 0) 
+			{
+				hintOutput = note != "" ? note : null;
+			}
+			
+			else 
+			{
+				var useGramForWeight:Boolean = false;
+				if (Number(weight) < 1)
+				{
+					useGramForWeight = true;
+					weight *= 1000;
+				}
+				
+				sku = sku == "" ? "[SKU не указан]" : sku;
+				price = price == 0 ? "[Цена не указана]" : "<b>Цена:</b> $" + (main.numFrm.formatNumber(price) as String);
+				weight = weight == 0 ? "[Вес не указан]" : 
+					"<b>Вес:</b> " + (main.numFrm.formatNumber(weight) as String) + " " + (useGramForWeight ? "г" : "кг");
+				
+				hintOutput = sku + "\n" + 
+					String(price) + "\n" + 
+					String(weight) + 
+					(note != "" ? "\n" + note : "");
+			}
+			
+			return hintOutput;
 		}
 		
 		/**

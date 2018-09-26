@@ -398,7 +398,7 @@ package quantum.gui
 			}
 			
 			return (title == "" ? "[Безымянная]" : title) +	
-				"\n" + "Склад: " + Warehouse.getByID(warehouseID).russianTitle;
+				"\n" + "<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle;
 		}
 		
 		public function checkItemExistenceByProductID(itemProductID:int):Boolean
