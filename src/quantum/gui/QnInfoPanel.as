@@ -75,8 +75,6 @@ package quantum.gui
 				}
 			}
 			
-			//if (color == null) color = "#FFFFFF";
-			
 			var noSound:Boolean = false;
 			
 			if (disOb.isPlaying && $currentMessage == text) noSound = true;
@@ -101,8 +99,8 @@ package quantum.gui
 			
 			tf.htmlText = colorText("#FFFFFF", text);
 			
-			backRect.width = tf.textWidth + 50; // 7
-			backRect.height = tf.textHeight + 4; // 4
+			backRect.width = tf.textWidth + 50;
+			backRect.height = tf.textHeight + 4;
 			
 			tf.x = scaleFrame.x;
 			tf.y = scaleFrame.y;
@@ -112,11 +110,10 @@ package quantum.gui
 			scaleFrame.graphics.drawRect(0, 0, backRect.width, backRect.height);
 			scaleFrame.graphics.endFill();
 			
-			scaleFrame.graphics.lineStyle(1, 0xB7BABC);
-			scaleFrame.graphics.drawRect(0, 0, backRect.width, backRect.height);
-			
 			tf.width = scaleFrame.width;
 			tf.height = scaleFrame.height;
+			
+			disOb.x = disOb.stage.stageWidth / 2 - disOb.width / 2;
 			
 			$currentMessage = text;
 			trace("Message" + (queShow ? " (Queue)" : "") + " is being shown:", text);

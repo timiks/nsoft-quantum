@@ -190,7 +190,7 @@ package quantum.gui.modules
 			// Info panel
 			$infoPanel = new QnInfoPanel(ui.infopanel);
 			ui.infopanel.x = 20;
-			ui.infopanel.y = stage.stageHeight - ui.infopanel.height - 20;
+			ui.infopanel.y = 590 - 48; /*stage.stageHeight - ui.infopanel.height - 20*/
 			$infoPanel.init();
 			
 			// Layers display order
