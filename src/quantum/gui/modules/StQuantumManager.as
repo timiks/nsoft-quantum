@@ -11,6 +11,7 @@ package quantum.gui.modules
 	import flash.events.NativeWindowBoundsEvent;
 	import flash.events.TextEvent;
 	import flash.system.Capabilities;
+	import flash.text.TextField;
 	import flash.ui.Keyboard;
 	import quantum.Main;
 	import quantum.Settings;
@@ -114,25 +115,33 @@ package quantum.gui.modules
 				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
 			});
 						
-			var numLimitedCharsRe:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
+			var numAllowedChars:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
 			
 			function limitChars(e:TextEvent):void 
 			{
-				if (e.text.search(numLimitedCharsRe) == -1)
+				if (main.numFrm.decimalSeparator == "," && e.text == ".")
+				{
+					var tf:TextField = e.target as TextField;
+					tf.appendText(",");
+					tf.setSelection(tf.length, tf.length);
+					e.preventDefault();
+				}
+				
+				if (e.text.search(numAllowedChars) == -1)
 					e.preventDefault();
 			}
 			
 			// · Price of product entry of selected item (text input) 
 			ui.tiPrice.addEventListener("change", function(e:Event):void 
 			{
-				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text);
+				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text == "" ? 0 : ui.tiPrice.text);
 			});
 			ui.tiPrice.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
 			
 			// · Weight of product entry of selected item (text input)
 			ui.tiWeight.addEventListener("change", function(e:Event):void 
 			{
-				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text);
+				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text == "" ? 0 : ui.tiWeight.text);
 			});
 			ui.tiWeight.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
 			
@@ -314,11 +323,11 @@ package quantum.gui.modules
 					break;
 					
 				case "selItemProductPrice":
-					ui.tiPrice.text = main.numFrm.formatNumber(val);
+					ui.tiPrice.text = (val == 0 ? "" : main.numFrm.formatNumber(val));
 					break;
 				
 				case "selItemProductWeight":
-					ui.tiWeight.text = main.numFrm.formatNumber(val);
+					ui.tiWeight.text = (val == 0 ? "" : main.numFrm.formatNumber(val));
 					break;	
 					
 				case "selItemProductSKU":
