@@ -14,12 +14,6 @@ package quantum.product
 		private var $id:int;
 		public static const prop_id:String = "id";
 		
-		private var $title:String;
-		public static const prop_title:String = "title";
-		
-		private var $classID:int;
-		public static const prop_classID:String = "classID";
-		
 		private var $sku:String; /* GUI */
 		public static const prop_sku:String = "sku";
 		
@@ -61,26 +55,6 @@ package quantum.product
 		public function set id(value:int):void 
 		{
 			$id = value;
-		}
-		
-		public function get title():String 
-		{
-			return $title;
-		}
-		
-		public function set title(value:String):void 
-		{
-			$title = value;
-		}
-		
-		public function get classID():int 
-		{
-			return $classID;
-		}
-		
-		public function set classID(value:int):void 
-		{
-			$classID = value;
 		}
 		
 		public function get sku():String 

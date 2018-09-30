@@ -252,8 +252,6 @@ package quantum.product
 			
 			// Set product's properties to initial values
 			newProductEntry.id = getNewUniqueID(); // New product's ID always set here
-			newProductEntry.title = "";
-			newProductEntry.classID = 0;
 			newProductEntry.sku = "";
 			newProductEntry.price = 0;
 			newProductEntry.weight = 0;

@@ -145,8 +145,6 @@ package quantum.data
 									// ...
 									singleProductNode = <product/>;
 									singleProductNode.@id = productIdCounter++;
-									singleProductNode.@title = "";
-									singleProductNode.@classID = "";
 									singleProductNode.@sku = "";
 									singleProductNode.@price = "0";
 									singleProductNode.@weight = "0";
@@ -321,8 +319,6 @@ package quantum.data
 			{
 				p = new Product();
 				p.id = int(pXml.@id);
-				p.title = String(pXml.@title);
-				p.classID = (String(pXml.@classID) == "") ? -1 : int(pXml.@classID);
 				p.sku = String(pXml.@sku);
 				p.price = parseFloat(String(pXml.@price).replace(",", ".")); // parseFloat always uses «.» decimal delimeter
 				p.weight = parseFloat(String(pXml.@weight).replace(",", "."));
@@ -442,7 +438,6 @@ package quantum.data
 			dataUpdate();
 		}
 		
-		// [!][~ #TEST THIS ~]
 		public function opProduct(id:int, op:String, field:String = null, value:* = null):* // Should return field's value on OP_READ
 		{
 			function queryByID():XML
@@ -487,8 +482,6 @@ package quantum.data
 				
 				var newProductXml:XML = <product/>;
 				newProductXml.@id = newProductAppEntry.id;
-				newProductXml.@title = newProductAppEntry.title == null ? "" : newProductAppEntry.title;
-				newProductXml.@classID = newProductAppEntry.classID == 0 ? "" : newProductAppEntry.classID;
 				newProductXml.@sku = newProductAppEntry.sku == null ? "" : newProductAppEntry.sku;
 				newProductXml.@price = newProductAppEntry.price == 0 ? 0 : newProductAppEntry.price;
 				newProductXml.@weight = newProductAppEntry.weight == 0 ? 0 : newProductAppEntry.weight;
