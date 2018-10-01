@@ -66,7 +66,8 @@ package quantum.gui.modules
 			initWindowAndTray();
 			
 			// App version label
-			ui.tfVer.htmlText = main.isFutureVersion ? "<font color=\"" + Colors.PURPLE + "\">" + main.version + "</font>" : main.version;
+			ui.tfVer.htmlText = Capabilities.isDebugger && main.isFutureVersion ? 
+				"<font color=\"" + Colors.TXLB_PURPLE + "\">" + main.version + "</font>" : main.version;
 			
 			/**
 			 * UI components
@@ -174,7 +175,7 @@ package quantum.gui.modules
 			$hintMgr = new HintMgr();
 			$hintMgr.init(hintsCnt);
 			
-			hintMgr.registerHint(ui.nsCount, "Количество товара");
+			hintMgr.registerHint(ui.nsCount, "Количество товара в группе");
 			hintMgr.registerHint(ui.taDetails, "Заметка");
 			hintMgr.registerHint(ui.tiPrice, "Цена товара (в USD)");
 			hintMgr.registerHint(ui.tiWeight, "Вес товара (в КГ)");
@@ -198,8 +199,7 @@ package quantum.gui.modules
 			
 			// Info panel
 			$infoPanel = new QnInfoPanel(ui.infopanel);
-			ui.infopanel.x = 20;
-			ui.infopanel.y = 590 - 48; /*stage.stageHeight - ui.infopanel.height - 20*/
+			ui.infopanel.y = 590 - 48;
 			$infoPanel.init();
 			
 			// Layers display order
@@ -233,6 +233,7 @@ package quantum.gui.modules
 				{
 					infoPanel.showMessage("Проверка сообщения 1");
 					infoPanel.showMessage("Проверка сообщения 2. Длиннее");
+					infoPanel.showMessage("Проверка 3");
 					infoPanel.showMessage("Проверка 3");
 					infoPanel.showMessage("Пацан к успеху пришёл", Colors.SUCCESS);
 					infoPanel.showMessage("Последнее китайское предупреждение", Colors.WARN);
@@ -345,6 +346,17 @@ package quantum.gui.modules
 			}
 			
 			stage.focus = ui.taAdr;
+		}
+		
+		/**
+		 * Paints an HTML-text to hex-color (Format: #000000) and returns HTML-formatted string
+		 * @param color Hex-color of paint (Format: #000000)
+		 * @param tx Text to be painted
+		 * @return HTML-formatted string
+		 */
+		public function colorText(color:String, tx:String):String
+		{
+			return "<font color=\"" + color + "\">" + tx + "</font>";
 		}
 		
 		/**

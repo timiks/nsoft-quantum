@@ -81,10 +81,14 @@ package quantum.gui.modules
 			win.addEventListener(Event.CLOSING, function(e:Event):void
 			{
 				e.preventDefault();
+				main.exitApp();
+				
+				/*
 				win.visible = false;
 				
 				if (main.stQuantumMgr.stage.nativeWindow.visible)
 					main.stQuantumMgr.stage.nativeWindow.activate();
+				*/
 			});
 			
 			// ================================================================================

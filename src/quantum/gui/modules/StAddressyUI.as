@@ -621,7 +621,7 @@ package quantum.gui.modules {
 
 		public function showBgProcessingResult(resObj:ResultObject):void {
 			showResult(resObj);
-			showPanel("Обработано на фоне", Colors.PURPLE);
+			showPanel("Обработано на фоне", Colors.TXLB_PURPLE);
 		}
 
 		public function showWindow(act:Boolean):void {

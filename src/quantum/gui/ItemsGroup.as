@@ -1,5 +1,8 @@
 package quantum.gui
 {
+	import flash.desktop.NativeApplication;
+	import flash.desktop.NativeProcess;
+	import flash.desktop.NativeProcessStartupInfo;
 	import flash.display.MovieClip;
 	import flash.display.NativeMenu;
 	import flash.display.NativeMenuItem;
@@ -15,6 +18,7 @@ package quantum.gui
 	import flash.net.FileFilter;
 	import quantum.Main;
 	import quantum.Settings;
+	import quantum.SoundMgr;
 	import quantum.data.DataMgr;
 	import quantum.events.SettingEvent;
 	import quantum.gui.modules.GroupsContainer;
@@ -162,31 +166,96 @@ package quantum.gui
 		
 		private function exportGroup():void
 		{
-			var exportFile:File;
-			var fst:FileStream;
+			if (empty)
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Группа пустая", Colors.WARN);
+				return;
+			}
+			
+			var productsIdsList:Vector.<int> = getContainedProductsList();
+			var idBadge:String;
+			var idBadgeValue:String;
+			var PID:int;
+			
+			switch (warehouseID) 
+			{
+				case Warehouse.BEIJING:
+				case Warehouse.CANTON:
+					idBadge = Product.prop_imgFile;
+					break;
+					
+				default:
+				case Warehouse.SHENZHEN_SEO_TMP:
+				case Warehouse.SHENZHEN_CFF_TMP:
+					idBadge = Product.prop_sku;
+					
+					for each (PID in productsIdsList) 
+					{
+						if (pm.opProduct(PID, DataMgr.OP_READ, idBadge) == "")
+						{
+							main.stQuantumMgr.infoPanel.showMessage("Не у всех товаров в этой группе указан SKU", Colors.WARN);
+							return;
+						}
+					}
+					break;
+			}
+			
+			var i:int;
+			var len:int = productsIdsList.length;
+			var line:String;
 			var fileStr:String = "";
 			var lineEnding:String = "\r\n";
 			
-			exportFile = File.applicationStorageDirectory.resolvePath("quantity.txt");
-			fst = new FileStream();
-			
-			var i:int;
-			var len:int = items.length;
-			var line:String;
-			var itm:SquareItem;
 			for (i = 0; i < len; i++)
 			{
-				itm = items[i] as SquareItem;
-				line = itm.imagePath + "\t" + String(itm.count);
+				PID = productsIdsList[i] as int;
+				idBadgeValue = pm.opProduct(PID, DataMgr.OP_READ, idBadge) as String;
+				line = idBadgeValue + "\t" + String(getProductFullCount(PID)) + (idBadge == Product.prop_sku ? "\t" + "1" : "");
 				fileStr += (i < len-1) ? line + lineEnding : line;
 			}
+			
+			var exportFile:File = File.applicationStorageDirectory.resolvePath("quantity.txt");
+			var fst:FileStream = new FileStream();
 			
 			fst.open(exportFile, FileMode.WRITE);
 			fst.writeUTFBytes(fileStr);
 			fst.close();
 			
-			trace("Group contents has been exported to file: " + exportFile.name);
-			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name);
+			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name, Colors.SUCCESS);
+			main.soundMgr.play(SoundMgr.sndPrcSuccess);
+			
+			// Open file with exported content
+			/*
+			try 
+			{
+				var defaultTextAppInOS:File = new File(NativeApplication.nativeApplication.getDefaultApplication("txt"));
+			}
+			catch (err:Error)
+			{
+				return;
+			}
+			
+			if (defaultTextAppInOS.nativePath == "" || defaultTextAppInOS.nativePath == null)
+				return;
+
+			var args:Vector.<String> = new Vector.<String>();
+			args.push(exportFile.nativePath);
+
+			var psi:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+			psi.executable = defaultTextAppInOS;
+			psi.arguments = args;
+
+			var nativeProcess:NativeProcess = new NativeProcess();
+			
+			try 
+			{
+				nativeProcess.start(psi);
+			}
+			catch (err:Error)
+			{
+				// ...
+			}
+			*/
 		}
 		
 		private function multipleFilesSelect(e:FileListEvent):void
@@ -397,7 +466,7 @@ package quantum.gui
 				return null;
 			}
 			
-			return (title == "" ? "[Безымянная]" : title) +	
+			return (title == "" ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) +	
 				"\n" + "<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle;
 		}
 		
@@ -409,6 +478,41 @@ package quantum.gui
 			}
 			
 			return false;
+		}
+		
+		public function getProductFullCount(productID:int):int 
+		{
+			if (empty)
+				return 0;
+				
+			var fullCount:int = 0;
+			
+			for each (var i:SquareItem in items) 
+			{
+				if (i.productID == productID)
+					fullCount += i.count;
+			}
+			
+			return fullCount;
+		}
+		
+		public function getContainedProductsList():Vector.<int> 
+		{
+			if (empty)
+				return null;
+				
+			var tmp:Object = {};
+			var idList:Vector.<int> = new Vector.<int>();
+			
+			for each (var i:SquareItem in items) 
+			{
+				if (!tmp[i.productID])
+					idList.push(i.productID);
+				
+				tmp[i.productID] = true;
+			}
+			
+			return idList;
 		}
 		
 		/**

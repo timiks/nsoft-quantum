@@ -171,8 +171,7 @@ package quantum.data
 								}
 							}
 						}
-						productsNode.@idCounter = productIdCounter;
-						
+												
 						// Stage 3: Notes
 						for each (noteEntry in dataXml.notes.itemNote) 
 						{
@@ -185,17 +184,32 @@ package quantum.data
 							}
 							else
 							{
-								throw new Error("Product should be unique");
+								if (xmlQuery.length() > 1) throw new Error("Product should be unique");
+								
+								if (xmlQuery.length() == 0)
+								{
+									// ...
+									singleProductNode = <product/>;
+									singleProductNode.@id = productIdCounter++;
+									singleProductNode.@sku = "";
+									singleProductNode.@price = "0";
+									singleProductNode.@weight = "0";
+									singleProductNode.@imgFile = noteEntry.@img;
+									singleProductNode.@note = noteEntry.@text;
+									productsNode.appendChild(singleProductNode);
+								}
+								
 							}
 						}
+						
 						delete dataXml.children()[dataXml.notes.childIndex()];
+						productsNode.@idCounter = productIdCounter;
+						dataUpdate(2000);
 					}
 					
 					// Updating data file version if differs
 					if (dataXml.@dataFileVersion != dataFileVersion)
 						dataXml.@dataFileVersion = dataFileVersion
-						
-					dataUpdate(2000);
 				}
 				
 				// [To-Do Here ↓]: Errors check

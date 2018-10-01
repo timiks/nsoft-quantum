@@ -32,7 +32,7 @@ package quantum
 		private const $version:int 					= 5;
 		private const $versionService:int 			= 0;
 		private const $betaVersion:Boolean 			= false;
-		private const $futureVersion:Boolean 		= true;
+		private const $futureVersion:Boolean 		= false;
 		private const bugs:Boolean 					= false;
 		
 		// Modules

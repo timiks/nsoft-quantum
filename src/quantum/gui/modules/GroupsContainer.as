@@ -349,6 +349,7 @@ package quantum.gui.modules
 			
 			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
 			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
+			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
 		}
 		
 		/**
@@ -523,6 +524,18 @@ package quantum.gui.modules
 				untitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
 			}
+		}
+		
+		public function getProductFullCount(productID:int):int
+		{
+			var fullCount:int = 0;
+			
+			for each (var g:ItemsGroup in groups) 
+			{
+				fullCount += g.getProductFullCount(productID);
+			}
+			
+			return fullCount;
 		}
 		
 		/**

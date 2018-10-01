@@ -5,6 +5,7 @@ package quantum.gui
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
+	import flash.filters.DropShadowFilter;
 	import flash.geom.Rectangle;
 	import flash.text.AntiAliasType;
 	import flash.text.TextField;
@@ -23,6 +24,7 @@ package quantum.gui
 		
 		private var hintsContainer:Sprite;
 		private var hints:Dictionary;
+		
 		private var hintDisOb:Sprite;
 		private var txt:TextField;
 		private var scaleFrame:Shape;
@@ -42,6 +44,7 @@ package quantum.gui
 			// Hint text field
 			txt = new TextField();
 			txt.defaultTextFormat = new TextFormat("Tahoma", 15, 0x585F63);
+			txt.defaultTextFormat.kerning = true;
 			txt.embedFonts = false;
 			txt.autoSize = TextFieldAutoSize.LEFT;
 			txt.multiline = true;
@@ -49,6 +52,7 @@ package quantum.gui
 			
 			// Scale frame
 			scaleFrame = new Shape();
+			scaleFrame.filters = [new DropShadowFilter(1, 45, 0, 0.2, 4, 4, 1)]; // Лёгкая тенюшка
 			rect = new Rectangle();
 			
 			hintDisOb.addChild(scaleFrame);
@@ -124,24 +128,23 @@ package quantum.gui
 			
 			if (hintText == null) return;
 			
-			hintDisOb.x = e.target.x;
-			hintDisOb.y = e.target.y;
-			
 			// Assign text to hint (HTML formatting allowed)
 			txt.htmlText = hintText; 
 			
 			rect.width = txt.textWidth + 7;
 			rect.height = txt.textHeight + 4;
 			
+			// Scale frame → fill
 			scaleFrame.graphics.clear();
 			scaleFrame.graphics.beginFill(0xF9F9F9);
 			scaleFrame.graphics.drawRect(0, 0, rect.width, rect.height);
 			scaleFrame.graphics.endFill();
 			
+			// Scale frame → outline
 			scaleFrame.graphics.lineStyle(1, 0xB7BABC);
 			scaleFrame.graphics.drawRect(0, 0, rect.width, rect.height);
 			
-			alignHint(null);
+			alignHint(null); // Setting hint's X/Y there
 			hintsContainer.addChild(hintDisOb);
 			hintsContainer.stage.addEventListener(MouseEvent.MOUSE_MOVE, alignHint);
 		}
@@ -156,17 +159,34 @@ package quantum.gui
 		
 		private function alignHint(e:MouseEvent):void
 		{
-			if((hintsContainer.stage.mouseX + hintDisOb.width + 50) > hintsContainer.stage.stageWidth)
+			var x:int;
+			var y:int;
+			
+			// X axis
+			if(hintsContainer.stage.mouseX + hintDisOb.width + 20 > hintsContainer.stage.stageWidth)
 			{
-				hintDisOb.x = hintsContainer.stage.mouseX - 3 - hintDisOb.width;
-				hintDisOb.y = hintsContainer.stage.mouseY + 15;
+				x = hintsContainer.stage.mouseX - 3 - hintDisOb.width;
 			}
 			
 			else 
 			{
-				hintDisOb.x = hintsContainer.stage.mouseX + 15;
-				hintDisOb.y = hintsContainer.stage.mouseY + 15;
+				x = hintsContainer.stage.mouseX + 15;
 			}
+			
+			// Y axis
+			if (hintsContainer.stage.mouseY + hintDisOb.height + 20 > hintsContainer.stage.stageHeight) 
+			{
+				y = hintsContainer.stage.mouseY - 3 - hintDisOb.height;
+			}
+			
+			else 
+			{
+				y = hintsContainer.stage.mouseY + 15;
+			}
+			
+			// Final
+			hintDisOb.x = x;
+			hintDisOb.y = y;
 		}
 	}
 }

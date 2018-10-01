@@ -3,6 +3,7 @@ package quantum.gui
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.events.TimerEvent;
+	import flash.filters.DropShadowFilter;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
@@ -19,8 +20,8 @@ package quantum.gui
 		private var main:Main;
 		
 		private var $currentMessage:String;
-		
-		private var $lastQueMessage:String;
+		/* Last element in queue when queue is active, otherwise > empty */
+		private var lastQueMessage:String;
 		
 		private var disOb:QuantumInfoPanel;
 		private var tf:TextField;
@@ -29,6 +30,8 @@ package quantum.gui
 		
 		private var msgQueue:Vector.<Object>;
 		private var queTmr:Timer;
+		private var blinkTimer:Timer;
+		private var lastShowCallTime:Number;
 		
 		public function QnInfoPanel(disOb:QuantumInfoPanel):void 
 		{
@@ -44,60 +47,99 @@ package quantum.gui
 			disOb.mouseChildren = false;
 			
 			tf.autoSize = TextFieldAutoSize.CENTER;
+			tf.defaultTextFormat.kerning = true;
 			
 			backRect = new Rectangle();
 			scaleFrame = new Shape();
+			scaleFrame.filters = [new DropShadowFilter(1, 45, 0, 0.3, 4, 4, 1.5)];
 			
 			disOb.ipo.addChildAt(scaleFrame, 0);
 			
 			msgQueue = new Vector.<Object>();
-			queTmr = new Timer(3000);
+			queTmr = new Timer(2500);
+			
+			blinkTimer = new Timer(500, 4);
+			blinkTimer.addEventListener(TimerEvent.TIMER, blink);
+			blinkTimer.addEventListener(TimerEvent.TIMER_COMPLETE, blinkComplete);
+		}
+		
+		private function blink(e:TimerEvent):void 
+		{
+			disOb.visible = !disOb.visible;
+		}
+		
+		private function blinkComplete(e:TimerEvent):void 
+		{
+			if (!disOb.visible)
+				disOb.visible = true;
 		}
 		
 		public function showMessage(text:String, color:String = null, queShow:Boolean = false):void
 		{
-			if (disOb.isPlaying && disOb.currentFrame < disOb.totalFrames - 8 &&
-				$currentMessage != text && !queShow)
+			if (!queShow && (new Date().time - lastShowCallTime) < 1300 && disOb.isPlaying && $currentMessage != text)
 			{
-				if ($lastQueMessage != text) 
+				if (lastQueMessage != text) 
 				{
 					// Put message on queue
 					msgQueue.push({"text": text, "color": color});
-					queTmr.addEventListener(TimerEvent.TIMER, checkQueue);
-					queTmr.start();
+					
+					if (!queTmr.running)
+					{
+						queTmr.addEventListener(TimerEvent.TIMER, checkQueue);
+						queTmr.start();
+					}
+					
 					trace("Message is on queue:", text);
-					$lastQueMessage = text;
+					lastQueMessage = text;
 					return;
 				}
+				
 				else
 				{
 					return;
 				}
 			}
 			
+			lastShowCallTime = new Date().time;
 			var noSound:Boolean = false;
 			
-			if (disOb.isPlaying && $currentMessage == text) noSound = true;
+			if (disOb.isPlaying && $currentMessage == text)
+			{
+				noSound = true;
+				if (!blinkTimer.running)
+				{
+					blinkTimer.reset();
+					blinkTimer.start();
+				}
+			}	
+			
+			if (disOb.isPlaying && $currentMessage == text && !queShow)
+			{
+				disOb.gotoAndPlay(10);
+				return;
+			}
+			
+			// ================================================================================
 			
 			var backColor:uint;
 			switch (color) 
 			{
 				case Colors.BAD:
-					backColor = 0xA20006;
+					backColor = 0xA20006; // Red
 					break;
 				case Colors.WARN:
-					backColor = 0xA63B00;
+					backColor = 0xC04400; // Orange
 					break;
 				case Colors.SUCCESS:
-					backColor = 0x157F09;
+					backColor = 0x157F09; // Green
 					break;
 				case Colors.MESSAGE:
 				default:
-					backColor = 0x09457D; // Black
+					backColor = 0x09457D; // Dark blue
 					break;
 			}
 			
-			tf.htmlText = colorText("#FFFFFF", text);
+			tf.htmlText = main.stQuantumMgr.colorText("#FFFFFF", text);
 			
 			backRect.width = tf.textWidth + 50;
 			backRect.height = tf.textHeight + 4;
@@ -121,18 +163,11 @@ package quantum.gui
 			if (queShow) 
 			{
 				disOb.gotoAndPlay(2);
+				main.soundMgr.play(SoundMgr.sndMessage);
 				return;
 			}
 			
-			if ((disOb as MovieClip).isPlaying)
-			{
-				disOb.gotoAndPlay(10);
-			} 
-			
-			else
-			{
-				disOb.gotoAndPlay(1);
-			}
+			disOb.isPlaying ? disOb.gotoAndPlay(10) : disOb.gotoAndPlay(1);
 			
 			if (noSound) return;
 			
@@ -140,9 +175,11 @@ package quantum.gui
 			switch (color) 
 			{
 				case Colors.MESSAGE:
-				case Colors.WARN:
 				case null:
 					main.soundMgr.play(SoundMgr.sndMessage);
+					break;
+				case Colors.WARN:
+					main.soundMgr.play(SoundMgr.sndWarn);
 					break;
 				case Colors.BAD:
 					main.soundMgr.play(SoundMgr.sndPrcError);
@@ -157,23 +194,15 @@ package quantum.gui
 				var msgParams:Object = msgQueue.shift();
 				showMessage(msgParams.text, msgParams.color, true);
 			}
+			
 			else 
 			{
 				queTmr.stop();
+				queTmr.reset();
 				queTmr.removeEventListener(TimerEvent.TIMER, checkQueue);
+				lastQueMessage = "";
 				trace("Message queue has finished");
 			}
-		}
-		
-		/**
-		 * Paints an HTML-text to hex-color (Format: #000000) and returns HTML-formatted string
-		 * @param color Hex-color of paint (Format: #000000)
-		 * @param tx Text to be painted
-		 * @return
-		 */
-		private function colorText(color:String, tx:String):String
-		{
-			return "<font color=\"" + color + "\">" + tx + "</font>";
 		}
 		
 		/**
@@ -184,11 +213,6 @@ package quantum.gui
 		public function get currentMessage():String 
 		{
 			return $currentMessage;
-		}
-		
-		public function get lastQueMessage():String 
-		{
-			return $lastQueMessage;
 		}
 	}
 }

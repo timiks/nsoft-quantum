@@ -51,7 +51,8 @@ package quantum.gui
 		private var hitBox:Sprite;
 		private var triangles:Sprite;
 		private var countTextField:TextField;
-		private var hintCorner:Shape;
+		private var priceCorner:Shape;
+		private var weightCorner:Shape;
 		private var selectFrameAnimation:MovieClip;
 		
 		public function SquareItem(productID:int, count:int):void
@@ -85,9 +86,6 @@ package quantum.gui
 			
 			// Selected frame
 			selectedFrame = new Sprite();
-			//selectedFrame.graphics.beginFill(0x2D5DE0, 0.5);
-			//selectedFrame.graphics.drawRect(0, 0, w-1, h-1);
-			//selectedFrame.graphics.endFill();
 			
 			// Selection animation
 			selectFrameAnimation = new SelectFrameAnimation();
@@ -128,6 +126,7 @@ package quantum.gui
 			countTextField.cacheAsBitmap = true;
 			
 			// Hint corner
+			/*
 			hintCorner = new Shape();
 			hintCorner.graphics.beginFill(0xED1614);
 			hintCorner.graphics.moveTo(10, 0);
@@ -136,7 +135,30 @@ package quantum.gui
 			hintCorner.graphics.lineTo(10, 0);
 			hintCorner.graphics.endFill();
 			hintCorner.filters = [new DropShadowFilter(1, 45, 0, 0.3, 1, 1, 1)];
+			*/
 			
+			// Price corner
+			priceCorner = new Shape();
+			priceCorner.graphics.beginFill(0xED1614); // 0x0046FE — blue
+			priceCorner.graphics.moveTo(0, 0);
+			priceCorner.graphics.lineTo(10, 0);
+			priceCorner.graphics.lineTo(10, 10);
+			priceCorner.graphics.lineTo(0, 0);
+			priceCorner.graphics.endFill();
+			priceCorner.filters = [new DropShadowFilter(1, 135, 0, 0.3, 1, 1, 1)];
+			priceCorner.x = w - priceCorner.width;
+			
+			// Weight corner
+			weightCorner = new Shape();
+			weightCorner.graphics.beginFill(0xED1614);
+			weightCorner.graphics.moveTo(0, h);
+			weightCorner.graphics.lineTo(10, h);
+			weightCorner.graphics.lineTo(0, h-10);
+			weightCorner.graphics.lineTo(0, h);
+			weightCorner.graphics.endFill();
+			weightCorner.filters = [new DropShadowFilter(1, -45, 0, 0.3, 1, 1, 1)];
+			weightCorner.y = 0;
+						
 			// Image bitmap
 			imageBitmap = new Bitmap();
 			imageBitmap.smoothing = true;
@@ -146,7 +168,8 @@ package quantum.gui
 			addChild(imageBitmap);
 			addChild(selectedFrame);
 			addChild(overFrame);
-			addChild(hintCorner);
+			addChild(priceCorner);
+			addChild(weightCorner);
 			addChild(triangles);
 			addChild(countTextField);
 			addChild($frame);
@@ -156,10 +179,14 @@ package quantum.gui
 			overFrame.visible = false;
 			selectedFrame.visible = false;
 			
-			//if (main.stQuantumMgr.notesMgr.getNote(imagePath) == "")
-			if (pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note) as String == "")
+			if (pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price) == 0)
 			{
-				hintCorner.visible = false;
+				priceCorner.visible = false;
+			}
+			
+			if (pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight) == 0)
+			{
+				weightCorner.visible = false;
 			}
 			
 			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
@@ -184,14 +211,6 @@ package quantum.gui
 			// Hint
 			grpCnt.registerItemsHint(this, hintTextHandler);
 			
-			/*
-			Алгоритм
-			> Check image bitmapData of this item's product from ProductsMgr
-			> 	* if exist > take and add to bitmap
-			>	* if exist, but bad > show errorFrame
-			>	* if doesn't exist > do nothing — ProductsMgr will notify via event when bdata is available
-			> Subscribe to ProductsMgr 'image loading event' [v] — done above (now it's common handler)
-			*/
 			checkImage();
 		}
 		
@@ -202,10 +221,18 @@ package quantum.gui
 		{
 			if (e.entityId != productID) return; // If not our product > dismiss
 			
-			if (e.updatedFieldName == Product.prop_note) 
+			if (e.updatedFieldName == Product.prop_price) 
 			{
-				var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note) as String;
-				note == "" ? hintCorner.visible = false : hintCorner.visible = true;
+				pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price) == 0 ?
+					priceCorner.visible = false : priceCorner.visible = true;
+			}
+			
+			else
+			
+			if (e.updatedFieldName == Product.prop_weight) 
+			{
+				pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight) == 0 ?
+					weightCorner.visible = false : weightCorner.visible = true;
 			}
 			
 			else
@@ -226,13 +253,6 @@ package quantum.gui
 			if (imageBitmap.bitmapData != null) imageBitmap.bitmapData.dispose();
 			imageBitmap.bitmapData = bmd;
 		}
-		
-		/*
-		private function notesChange(e:Event):void
-		{
-			main.stQuantumMgr.notesMgr.getNote(imagePath) == "" ? hintCorner.visible = false : hintCorner.visible = true;
-		}
-		*/
 		
 		private function hitBoxClick(e:MouseEvent):void
 		{
@@ -299,9 +319,12 @@ package quantum.gui
 			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note);
 			var hintOutput:String;
 			
-			if (sku == "" && price == 0 && weight == 0) 
+			sku = sku == "" ? main.stQuantumMgr.colorText(Colors.WARN, "[SKU не указан]") : sku;
+			note = note != "" ? "\n" + "<b>Заметка</b>\n" + note : "";
+			
+			if (price == 0 && weight == 0) 
 			{
-				hintOutput = note != "" ? note : null;
+				hintOutput = sku + note;
 			}
 			
 			else 
@@ -312,16 +335,14 @@ package quantum.gui
 					useGramForWeight = true;
 					weight *= 1000;
 				}
-				
-				sku = sku == "" ? "[SKU не указан]" : sku;
-				price = price == 0 ? "[Цена не указана]" : "<b>Цена:</b> $" + (main.numFrm.formatNumber(price) as String);
-				weight = weight == 0 ? "[Вес не указан]" : 
+								
+				price = price == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Цена не указана]") : 
+					"<b>Цена:</b> $" + (main.numFrm.formatNumber(price) as String);
+					
+				weight = weight == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Вес не указан]") : 
 					"<b>Вес:</b> " + (main.numFrm.formatNumber(weight) as String) + " " + (useGramForWeight ? "г" : "кг");
 				
-				hintOutput = sku + "\n" + 
-					String(price) + "\n" + 
-					String(weight) + 
-					(note != "" ? "\n" + note : "");
+				hintOutput = sku + "\n" + price + "\n" + weight + note;
 			}
 			
 			return hintOutput;
@@ -395,12 +416,10 @@ package quantum.gui
 		
 		public function set selected(value:Boolean):void
 		{
-			
 			$selected = value;
 			
 			if (value == true)
 			{
-				
 				selectedFrame.visible = true;
 				
 				if (selectedFrame.numChildren == 0)
@@ -408,18 +427,15 @@ package quantum.gui
 				
 				overFrame.visible = false;
 				triangles.visible = true;
-				
 			}
+			
 			else
 			{
-				
 				selectedFrame.visible = false;
 				
 				if (selectedFrame.numChildren > 0)
 					selectedFrame.removeChildAt(0);
-				
 			}
-		
 		}
 		
 		public function get frame():Shape
