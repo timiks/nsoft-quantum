@@ -20,6 +20,7 @@ package quantum.product
 	import quantum.gui.SquareItem;
 	import sk.yoz.image.ImageResizer;
 	import sk.yoz.math.ResizeMath;
+	import tim.as3lib.TimUtils;
 		
 	/**
 	 * ...
@@ -75,11 +76,24 @@ package quantum.product
 			
 			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
-			// Initial load and process of all product images
+			// Shuffle images list (for loading in random order)
+			var imgList:Array = [];
 			for each (var p:Product in productsList) 
 			{
-				addToImgLoadingQueue(p.imgFile);
+				imgList.push(p.imgFile);
 			}
+			
+			TimUtils.shuffleArray(imgList);
+			
+			// Initial load and process of all product images
+			for each (var img:String in imgList) 
+			{
+				addToImgLoadingQueue(img);
+			}
+			
+			p = null;
+			img = null;
+			imgList = null;
 		}
 		
 		public function dismiss():void 
