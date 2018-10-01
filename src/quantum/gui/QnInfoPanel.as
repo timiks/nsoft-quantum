@@ -163,11 +163,10 @@ package quantum.gui
 			if (queShow) 
 			{
 				disOb.gotoAndPlay(2);
-				main.soundMgr.play(SoundMgr.sndMessage);
 				return;
 			}
 			
-			disOb.isPlaying ? disOb.gotoAndPlay(10) : disOb.gotoAndPlay(1);
+			disOb.isPlaying ? disOb.gotoAndPlay(2) : disOb.gotoAndPlay(1);
 			
 			if (noSound) return;
 			

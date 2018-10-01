@@ -317,14 +317,29 @@ package quantum.gui
 			var price:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price);
 			var weight:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight);
 			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note);
+			var inStockFullCount:int = grpCnt.getProductFullCount(productID);
+			var inStockFullCountStr:String;
 			var hintOutput:String;
 			
 			sku = sku == "" ? main.stQuantumMgr.colorText(Colors.WARN, "[SKU не указан]") : sku;
 			note = note != "" ? "\n" + "<b>Заметка</b>\n" + note : "";
+						
+			inStockFullCountStr = 
+				"<b>В наличии:</b> " + inStockFullCount.toString() + (inStockFullCount == 1 ? " (последняя)" : "");
 			
+			if (inStockFullCount == 1)
+			{
+				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.WARN, inStockFullCountStr);
+			}
+			else 
+			if (inStockFullCount == 0)
+			{
+				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "Нет в наличии");
+			}
+				
 			if (price == 0 && weight == 0) 
 			{
-				hintOutput = sku + note;
+				hintOutput = sku + "\n" + inStockFullCountStr + note;
 			}
 			
 			else 
@@ -341,8 +356,8 @@ package quantum.gui
 					
 				weight = weight == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Вес не указан]") : 
 					"<b>Вес:</b> " + (main.numFrm.formatNumber(weight) as String) + " " + (useGramForWeight ? "г" : "кг");
-				
-				hintOutput = sku + "\n" + price + "\n" + weight + note;
+					
+				hintOutput = sku + "\n" + price + "\n" + weight + "\n" + inStockFullCountStr + note;
 			}
 			
 			return hintOutput;
