@@ -14,6 +14,7 @@ package quantum
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
+	import quantum.gui.ItemsGroup;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
@@ -101,7 +102,7 @@ package quantum
 			
 			if (grpCnt.selectedItem == null) return;
 			
-			if (grpCnt.selectedItem.parentItemsGroup.title == "")
+			if (grpCnt.selectedItem.parentItemsGroup.title == ItemsGroup.UNTITLED_GROUP_SIGN)
 			{
 				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
 				return;

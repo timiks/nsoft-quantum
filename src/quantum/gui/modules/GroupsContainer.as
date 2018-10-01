@@ -188,10 +188,16 @@ package quantum.gui.modules
 			groupSelectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
 			
 			// Layers display order
+			/* 1. Groups container hit box */
 			addChild(cntHitBox);
+			/* 2. Groups container */
 			addChild(cnt);
+			/* 3. Container → groupsGroup selection rectangle */
 			cnt.addChildAt(groupSelectionRect, 0);
+			/* 4. Container → groups */
+			/* 5. Container → item selection sticker (dynamic) */
 			cnt.addChildAt(itemSelectionSticker, cnt.numChildren);
+			/* 6. Scroll bar */
 			addChild(scb);
 		}
 		
@@ -504,7 +510,7 @@ package quantum.gui.modules
 			for (i = groups.length-1; i >= 0; i--) 
 			{	
 				g = groups[i];
-				if (g.title == "")
+				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN)
 				{
 					untitledGroup = g;
 					break;
@@ -532,6 +538,7 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
+				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN) continue; // [!] Exclude untitled groups
 				fullCount += g.getProductFullCount(productID);
 			}
 			
@@ -566,7 +573,7 @@ package quantum.gui.modules
 			baseState.updateUiElement("selItemProductSKU", value == null ? 
 				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_sku));
 				
-			baseState.focusAdrTextArea(value == null ? false : true);
+			baseState.focusAdrTextArea(value == null || value.parentItemsGroup.isUntitled ? false : true);
 			
 			// Item selection animated sticker
 			if (value == null)

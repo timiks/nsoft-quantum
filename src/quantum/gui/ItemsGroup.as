@@ -28,12 +28,15 @@ package quantum.gui
 	import quantum.warehouse.WarehouseEntity;
 	
 	/**
-	 * ...
+	 * UI-element: Group with items
+	 * 2016.Q4
 	 * @author Tim Yusupov
 	 */
 	public class ItemsGroup extends Sprite
 	{
-		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10; // Ex: 6 7
+		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
+		
+		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10;
 		private const ITEMS_SPACING:int = 6; // In pixels
 		private const ITEMS_PLACING_Y_OFFSET:int = 45;
 		
@@ -45,6 +48,7 @@ package quantum.gui
 		private var $grpCnt:GroupsContainer;
 		private var $brandNew:Boolean;
 		private var $empty:Boolean;
+		private var $isUntitled:Boolean;
 		
 		// Fields of data properties
 		private var $title:String;
@@ -133,7 +137,7 @@ package quantum.gui
 			btnNewItem.addEventListener(MouseEvent.MOUSE_OUT, newItemBtnOut);
 			imgFile.addEventListener(FileListEvent.SELECT_MULTIPLE, multipleFilesSelect);
 			
-			if (title == "")
+			if (title == UNTITLED_GROUP_SIGN)
 			{
 				checkTitleAndUpdateStyle();
 				main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
@@ -169,6 +173,12 @@ package quantum.gui
 			if (empty)
 			{
 				main.stQuantumMgr.infoPanel.showMessage("Группа пустая", Colors.WARN);
+				return;
+			}
+			
+			if (isUntitled)
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Для безымянной группы данная функция не доступна", Colors.WARN);
 				return;
 			}
 			
@@ -397,7 +407,7 @@ package quantum.gui
 			
 			if (!main.settings.getKey(Settings.dimUntitledGroupButton)) return;
 			
-			if (title == "") 
+			if (title == UNTITLED_GROUP_SIGN) 
 			{
 				btnNewItem.alpha = 0.6;
 			}
@@ -410,7 +420,7 @@ package quantum.gui
 		
 		private function onDimUntitledGroupSettingChange(e:SettingEvent):void
 		{
-			if (e.settingName == Settings.dimUntitledGroupButton && title == "")
+			if (e.settingName == Settings.dimUntitledGroupButton && title == UNTITLED_GROUP_SIGN)
 				checkTitleAndUpdateStyle();
 		}
 		
@@ -466,7 +476,7 @@ package quantum.gui
 				return null;
 			}
 			
-			return (title == "" ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) +	
+			return (title == UNTITLED_GROUP_SIGN ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) +	
 				"\n" + "<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle;
 		}
 		
@@ -560,7 +570,7 @@ package quantum.gui
 			
 			if (displayObject != null)
 			{
-				if (title == "")
+				if (title == UNTITLED_GROUP_SIGN)
 				{
 					main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onDimUntitledGroupSettingChange);
 				}
@@ -649,6 +659,11 @@ package quantum.gui
 		public function get empty():Boolean
 		{
 			return items.length == 0 ? true : false;
+		}
+		
+		public function get isUntitled():Boolean 
+		{
+			return title == UNTITLED_GROUP_SIGN;
 		}
 	}
 }
