@@ -79,6 +79,9 @@
   <!-- Paths to exclude from the Project Explorer tree -->
   <hiddenPaths>
     <hidden path="obj" />
+    <hidden path="bundle" />
+    <hidden path="patches" />
+    <hidden path="releases" />
   </hiddenPaths>
   <!-- Executed before build -->
   <preBuildCommand />

@@ -1,4 +1,4 @@
-package quantum.states
+package quantum.gui.modules
 {
 	import fl.controls.CheckBox;
 	import fl.controls.ComboBox;
@@ -19,11 +19,11 @@ package quantum.states
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
-	import quantum.WarehouseEntity;
+	import quantum.warehouse.WarehouseEntity;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.Main;
 	import quantum.Settings;
-	import quantum.Warehouse;
+	import quantum.warehouse.Warehouse;
 	
 	/**
 	 * ...

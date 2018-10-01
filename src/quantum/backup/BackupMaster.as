@@ -52,6 +52,9 @@ package quantum.backup
 		{
 			if (!main.settings.getKey(Settings.backupData))
 				return;
+			
+			if (!backupDir.exists)
+				return;
 				
 			trace("Backup copies check");
 			
@@ -89,7 +92,7 @@ package quantum.backup
 			
 			// General checks
 			if (main.exiting) return;
-			if (main.stQuantumMgr.grpCnt.empty)
+			if (main.stQuantumMgr.grpCnt.empty) // [!] Remove this check or add products check
 			{
 				main.logRed("Groups view is empty. Backup cancelled")
 				return;
@@ -135,7 +138,7 @@ package quantum.backup
 				
 				function checkImageSave(e:TimerEvent):void 
 				{
-					if (main.stQuantumMgr.grpCnt.loadingActive)
+					if (main.stQuantumMgr.productsMgr.imagesLoadingActive)
 					{
 						return;
 					}

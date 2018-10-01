@@ -1,12 +1,10 @@
-package quantum.gui
+package quantum.gui.modules
 {
 	import fl.controls.UIScrollBar;
 	import fl.events.ScrollEvent;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.DisplayObject;
 	import flash.display.InteractiveObject;
-	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -18,12 +16,15 @@ package quantum.gui
 	import flash.system.Capabilities;
 	import flash.ui.Keyboard;
 	import flash.utils.Timer;
-	import quantum.data.DataMgr;
-	import quantum.dev.DevSettings;
 	import quantum.Main;
 	import quantum.Settings;
-	import quantum.states.StQuantumManager;
-	import quantum.Warehouse;
+	import quantum.data.DataMgr;
+	import quantum.dev.DevSettings;
+	import quantum.gui.ItemsGroup;
+	import quantum.gui.SquareItem;
+	import quantum.gui.modules.StQuantumManager;
+	import quantum.product.Product;
+	import quantum.product.ProductsMgr;
 	
 	/**
 	 * ...
@@ -31,8 +32,6 @@ package quantum.gui
 	 */
 	public class GroupsContainer extends Sprite
 	{
-		public static const EVENT_ITEMS_IMG_LOADING_COMPLETE:String = "eventItemsImgLoadingComplete";
-		
 		private const SIDE_MARGIN:int = 14;
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
@@ -41,26 +40,28 @@ package quantum.gui
 		private var $selectedItem:SquareItem;
 		private var $selectedGroup:ItemsGroup;
 		private var $events:EventDispatcher;
-		private var $loadingActive:Boolean;
 		private var $empty:Boolean;
 		
 		private var main:Main;
 		private var baseState:StQuantumManager;
+		private var pm:ProductsMgr;
 		
 		private var groups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
-		private var cnt:Sprite;
-		private var scb:UIScrollBar;
-		private var cropRect:Rectangle;
+		
+		private var cnt:Sprite; // Display container for groups
+		private var scb:UIScrollBar; // Scroll bar
+		private var cropRect:Rectangle; // Visible area
 		private var cntHitBox:Sprite;
-		private var selectRect:Shape;
-		private var selectTimer:Timer;
-		private var itemsImgLoadingQueue:Vector.<SquareItem>;
-		private var itemsImgLoadingTimer:Timer;
+		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
+		
+		private var groupSelectionRect:Shape;
+		private var groupSelectTimer:Timer;
 		
 		public function GroupsContainer(baseState:StQuantumManager):void
 		{
 			this.baseState = baseState;
 			main = Main.ins;
+			pm = baseState.productsMgr;
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 		
@@ -72,15 +73,9 @@ package quantum.gui
 			
 			groups = new Vector.<ItemsGroup>();
 			cnt = new Sprite();
-			addChild(cnt);
 			
 			cnt.y = CNT_Y_OFFSET;
 			focusRect = false;
-			
-			// Init items images loading queue
-			itemsImgLoadingQueue = new Vector.<SquareItem>();
-			itemsImgLoadingTimer = new Timer(Capabilities.isDebugger ? 80 : 100, 0);
-			itemsImgLoadingTimer.addEventListener(TimerEvent.TIMER, onItemsImgLoadingTimer);
 			
 			if (Capabilities.isDebugger && !DevSettings.loadData) return;
 			
@@ -109,9 +104,6 @@ package quantum.gui
 				}
 				
 				sizesSum -= GRP_SPACING;
-				
-				// Start items images loading queue
-				startItemsImgLoadingTimer();
 			}
 			
 			// Scroll
@@ -150,7 +142,6 @@ package quantum.gui
 			});
 			tmr.start();
 			
-			addChild(scb);
 			scb.update();
 			
 			// Hit box
@@ -159,7 +150,6 @@ package quantum.gui
 			cntHitBox.graphics.drawRect(0, 0, cropRect.width, cropRect.height);
 			cntHitBox.graphics.endFill();
 			cntHitBox.y = CNT_Y_OFFSET;
-			addChildAt(cntHitBox, 0);
 			cntHitBox.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
@@ -184,14 +174,25 @@ package quantum.gui
 				}
 			}
 			
-			// Select rect
-			selectRect = new Shape();
-			selectRect.visible = false;
-			cnt.addChildAt(selectRect, 0);
+			// Item selection sticker
+			itemSelectionSticker = new ItemSelectionOutlineAnimated();
+			itemSelectionSticker.visible = false;
+			itemSelectionSticker.mouseEnabled = false;
 			
-			// Select timer
-			selectTimer = new Timer(2000, 1);
-			selectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
+			// Group selection rect
+			groupSelectionRect = new Shape();
+			groupSelectionRect.visible = false;
+			
+			// Group select timer
+			groupSelectTimer = new Timer(2000, 1);
+			groupSelectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
+			
+			// Layers display order
+			addChild(cntHitBox);
+			addChild(cnt);
+			cnt.addChildAt(groupSelectionRect, 0);
+			cnt.addChildAt(itemSelectionSticker, cnt.numChildren);
+			addChild(scb);
 		}
 		
 		private function keyDown(e:KeyboardEvent):void
@@ -303,29 +304,6 @@ package quantum.gui
 			baseState.grpTitleTextInput.hide();
 		}
 		
-		private const simultaneousLoadingAmout:int = 4;
-		
-		private function onItemsImgLoadingTimer(e:TimerEvent):void 
-		{
-			if (itemsImgLoadingQueue.length == 0) {
-				itemsImgLoadingTimer.stop();
-				trace("Items images loading complete");
-				events.dispatchEvent(new Event(EVENT_ITEMS_IMG_LOADING_COMPLETE));
-				$loadingActive = false;
-				return;
-			}
-			
-			for (var i:int = 0; i < simultaneousLoadingAmout; i++) 
-			{	
-				if (itemsImgLoadingQueue.length == 0) break;
-				var l:int = itemsImgLoadingQueue.length;
-				var randomIdx:int = int(Math.random() * ((l-1) - 0 + 1)) + 0;
-				var firedItem:SquareItem = itemsImgLoadingQueue[randomIdx];
-				firedItem.startLoadingImage();
-				itemsImgLoadingQueue.splice(itemsImgLoadingQueue.indexOf(firedItem), 1);
-			}
-		}
-		
 		private function moveSelectedGroup(direction:String):void 
 		{
 			if (selectedGroup == null) return;
@@ -365,6 +343,15 @@ package quantum.gui
 			}
 		}
 		
+		private function recalculateItemSelectionStickerPosition():void 
+		{
+			if (selectedItem == null) return;
+			
+			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
+			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
+			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
+		}
+		
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
@@ -397,7 +384,7 @@ package quantum.gui
 			if (baseState.grpTitleTextInput.focused) return;
 			selectGroup(grp);
 			baseState.grpTitleTextInput.show(selectedGroup.title);
-			if (selectTimer.running) selectTimer.stop();
+			if (groupSelectTimer.running) groupSelectTimer.stop();
 		}
 		
 		public function updateUiElementData(elmDataID:String, val:*):void
@@ -413,7 +400,23 @@ package quantum.gui
 					break;
 				
 				case "selItemTypeNotes":
-					if (selectedItem != null) baseState.notesMgr.setNote(selectedItem.imagePath, String(val));
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					break;
+					
+				case "selItemProductPrice":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
+					break;
+					
+				case "selItemProductWeight":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
+					break;
+					
+				case "selItemProductSKU":
+					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
+						DataMgr.OP_UPDATE, Product.prop_sku, String(val));
 					break;
 			}
 		}
@@ -442,6 +445,7 @@ package quantum.gui
 		public function removeGroup(removingGroup:ItemsGroup):void
 		{
 			trace("REMOVING GROUP");
+			if (selectedGroup == removingGroup) resetSelected();
 			main.dataMgr.opGroup(removingGroup, DataMgr.OP_REMOVE);
 			cnt.removeChild(removingGroup.displayObject);
 			groups.splice(groups.indexOf(removingGroup), 1);
@@ -457,11 +461,12 @@ package quantum.gui
 		public function compositionChanged():void
 		{
 			rearrange();
+			recalculateItemSelectionStickerPosition();
 		}
 		
 		public function stopSelTimer():void
 		{
-			if (selectTimer.running) selectTimer.stop();
+			if (groupSelectTimer.running) groupSelectTimer.stop();
 		}
 		
 		public function grpTitleInputFocusOut():void
@@ -473,8 +478,8 @@ package quantum.gui
 		{
 			if (baseState.grpTitleTextInput.focused) return;
 			
-			selectTimer.reset();
-			selectTimer.start();
+			groupSelectTimer.reset();
+			groupSelectTimer.start();
 		}
 		
 		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:SquareItem):void 
@@ -484,7 +489,7 @@ package quantum.gui
 			
 			for each (g in groups) 
 			{
-				if (g.checkItemExistenceByImgPath(deletedItem.imagePath)) {
+				if (g.checkItemExistenceByProductID(deletedItem.productID)) {
 					suchItemExists = true;
 					break;
 				}
@@ -510,26 +515,27 @@ package quantum.gui
 			{
 				// Create new
 				var newUntitledGroup:ItemsGroup = addNewGroup();
-				newUntitledGroup.addItem(deletedItem.imagePath);
+				newUntitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в новую безымянную группу");
 			}
 			else
 			{
 				// Use found untitled group
-				untitledGroup.addItem(deletedItem.imagePath);
+				untitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
 			}
 		}
 		
-		public function registerItemForImgLoading(itm:SquareItem):void 
+		public function getProductFullCount(productID:int):int
 		{
-			itemsImgLoadingQueue.push(itm);
-		}
-		
-		public function startItemsImgLoadingTimer():void 
-		{
-			itemsImgLoadingTimer.start();
-			$loadingActive = true;
+			var fullCount:int = 0;
+			
+			for each (var g:ItemsGroup in groups) 
+			{
+				fullCount += g.getProductFullCount(productID);
+			}
+			
+			return fullCount;
 		}
 		
 		/**
@@ -547,8 +553,35 @@ package quantum.gui
 			$selectedItem = value;
 			
 			baseState.updateUiElement("selItemCount", value == null ? 0 : value.count);
-			baseState.updateUiElement("selItemTypeNotes", value == null ? "" : baseState.notesMgr.getNote(value.imagePath));
+			
+			baseState.updateUiElement("selItemTypeNotes", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_note) as String);
+				
+			baseState.updateUiElement("selItemProductPrice", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_price));
+				
+			baseState.updateUiElement("selItemProductWeight", value == null ?
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_weight));
+				
+			baseState.updateUiElement("selItemProductSKU", value == null ? 
+				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_sku));
+				
 			baseState.focusAdrTextArea(value == null ? false : true);
+			
+			// Item selection animated sticker
+			if (value == null)
+			{
+				itemSelectionSticker.visible = false;
+				itemSelectionSticker.gotoAndStop(1);
+			}
+			
+			else
+			{
+				/* Calculate coords */
+				recalculateItemSelectionStickerPosition();
+				itemSelectionSticker.gotoAndPlay(1);
+				itemSelectionSticker.visible = true;
+			}
 		}
 		
 		public function get selectedGroup():ItemsGroup
@@ -562,20 +595,20 @@ package quantum.gui
 			
 			if (value == null)
 			{
-				selectRect.graphics.clear();
-				selectRect.visible = false;
+				groupSelectionRect.graphics.clear();
+				groupSelectionRect.visible = false;
 				return;
 			}
 			
 			// Select rect
 			var g:ItemsGroup = value;
-			selectRect.graphics.clear();
-			selectRect.graphics.beginFill(0xFFDD00, 0.3);
-			selectRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cropRect.height);
-			selectRect.graphics.endFill();
-			selectRect.x = g.displayObject.x - GRP_SPACING / 2;
+			groupSelectionRect.graphics.clear();
+			groupSelectionRect.graphics.beginFill(0xFFDD00, 0.3);
+			groupSelectionRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cropRect.height);
+			groupSelectionRect.graphics.endFill();
+			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
 			//selectRect.y = cnt.y;
-			selectRect.visible = true;
+			groupSelectionRect.visible = true;
 		
 			//baseState.updateUiElement("selGrpTitle", value == null ? "" : value.title);
 		}
@@ -605,11 +638,6 @@ package quantum.gui
 		public function get events():EventDispatcher 
 		{
 			return $events;
-		}
-		
-		public function get loadingActive():Boolean 
-		{
-			return $loadingActive;
 		}
 		
 		public function get empty():Boolean 
