@@ -20,6 +20,7 @@ package quantum.gui.modules
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
+	import quantum.gui.Colors;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.gui.modules.StQuantumManager;
@@ -398,31 +399,48 @@ package quantum.gui.modules
 			switch (elmDataID)
 			{
 				case "selGrpTitle":
-					if (selectedGroup != null) selectedGroup.title = String(val);
+					if (selectedGroup != null)
+						selectedGroup.title = String(val);
 					break;
 				
 				case "selItemCount":
-					if (selectedItem != null) selectedItem.count = int(val);
+					if (selectedItem != null)
+						selectedItem.count = int(val);
 					break;
 				
 				case "selItemTypeNotes":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					if (selectedItem != null)
+						pm.opProduct(selectedItem.productID, 
+							DataMgr.OP_UPDATE, Product.prop_note, String(val));
 					break;
 					
 				case "selItemProductPrice":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
+					if (selectedItem != null)
+						pm.opProduct(selectedItem.productID, 
+							DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
 					break;
 					
 				case "selItemProductWeight":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
+					if (selectedItem != null)
+						pm.opProduct(selectedItem.productID, 
+							DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
 					break;
 					
 				case "selItemProductSKU":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_sku, String(val));
+					if (selectedItem != null)
+					{
+						if (pm.checkProductBySKU(String(val)) != -1) 
+						{
+							baseState.infoPanel.showMessage("Товар с таким SKU уже существует", Colors.WARN);
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_sku, ""); // Reset SKU
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_sku, String(val));
+						}
+					}
 					break;
 			}
 		}

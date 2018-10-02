@@ -134,7 +134,7 @@ package quantum.gui.modules
 			// · SKU of product entry of selected item (text input)
 			ui.tiSku.addEventListener("change", function(e:Event):void 
 			{
-				grpCnt.updateUiElementData("selItemProductSKU", ui.tiSku.text);
+				grpCnt.updateUiElementData("selItemProductSKU", TimUtils.trimSpaces(ui.tiSku.text));
 			});
 						
 			// Styles

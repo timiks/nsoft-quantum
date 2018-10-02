@@ -367,6 +367,23 @@ package quantum.product
 			return p.id;
 		}
 		
+		public function checkProductBySKU(skuValue:String):int
+		{
+			if (skuValue == "")
+				return -1;
+			
+			var p:Product;
+			for each (p in productsList) 
+			{
+				if (p.sku == skuValue) 
+				{
+					return p.id;
+				}
+			}
+			
+			return -1;
+		}
+		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
