@@ -26,6 +26,16 @@ package quantum.gui
 	 */
 	public class SquareItem extends Sprite
 	{
+		[Embed(source="/../lib/fonts/Montserrat-ExtraBold.ttf",
+				fontName = "Montserrat",
+				fontFamily = "Montserrat",
+				fontWeight = "bold", 
+				fontStyle = "normal", 
+				mimeType = "application/x-font",
+				advancedAntiAliasing = "true",
+				embedAsCFF = "false")]
+		private var FontMontserratBold:Class;
+		
 		public static const SQUARE_SIZE:int = 40; // Def: 68 58
 		
 		private const DEF_COUNT_VALUE:int = 1;
@@ -117,10 +127,11 @@ package quantum.gui
 			
 			// Count text field
 			countTextField = new TextField();
-			countTextField.defaultTextFormat = new TextFormat("Tahoma", 14, 0xFFFFFF, true); // Def size: 20 18 14
-			countTextField.filters = [new GlowFilter(0, 1, 2, 2, 2)];
+			countTextField.defaultTextFormat = new TextFormat("Montserrat", 14, 0xFFFFFF, true);
+			countTextField.embedFonts = true;
 			countTextField.antiAliasType = AntiAliasType.ADVANCED;
 			countTextField.autoSize = TextFieldAutoSize.RIGHT;
+			countTextField.filters = [new GlowFilter(0, 1, 2, 2, 2)];
 			countTextField.width = 20;
 			countTextField.text = String(count);
 			countTextField.cacheAsBitmap = true;
