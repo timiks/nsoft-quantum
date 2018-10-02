@@ -23,6 +23,7 @@ package quantum.gui.modules
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.ProductsMgr;
+	import tim.as3lib.TimUtils;
 	
 	/**
 	 * ...
@@ -115,36 +116,20 @@ package quantum.gui.modules
 			{
 				grpCnt.updateUiElementData("selItemTypeNotes", ui.taDetails.text);
 			});
-						
-			var numAllowedChars:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
-			
-			function limitChars(e:TextEvent):void 
-			{
-				if (main.numFrm.decimalSeparator == "," && e.text == ".")
-				{
-					var tf:TextField = e.target as TextField;
-					tf.appendText(",");
-					tf.setSelection(tf.length, tf.length);
-					e.preventDefault();
-				}
-				
-				if (e.text.search(numAllowedChars) == -1)
-					e.preventDefault();
-			}
 			
 			// · Price of product entry of selected item (text input) 
 			ui.tiPrice.addEventListener("change", function(e:Event):void 
 			{
 				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text == "" ? 0 : ui.tiPrice.text);
 			});
-			ui.tiPrice.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
+			ui.tiPrice.textField.addEventListener(TextEvent.TEXT_INPUT, validateDecimalInput);
 			
 			// · Weight of product entry of selected item (text input)
 			ui.tiWeight.addEventListener("change", function(e:Event):void 
 			{
 				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text == "" ? 0 : ui.tiWeight.text);
 			});
-			ui.tiWeight.textField.addEventListener(TextEvent.TEXT_INPUT, limitChars);
+			ui.tiWeight.textField.addEventListener(TextEvent.TEXT_INPUT, validateDecimalInput);
 			
 			// · SKU of product entry of selected item (text input)
 			ui.tiSku.addEventListener("change", function(e:Event):void 
@@ -207,6 +192,28 @@ package quantum.gui.modules
 			addChildAt(hintsCnt, numChildren);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+		}
+		
+		private function validateDecimalInput(e:TextEvent):void 
+		{
+			var numAllowedChars:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
+			
+			if ((main.numFrm.decimalSeparator == "," && (e.text as String).indexOf(".") != -1) ||
+				(main.numFrm.decimalSeparator == "." && (e.text as String).indexOf(",") != -1))
+			{
+				var tf:TextField = e.target as TextField;
+				e.text = (e.text as String).replace(/\.|,/, main.numFrm.decimalSeparator);
+				
+				if (tf.selectionBeginIndex == 0 && tf.selectionEndIndex == tf.text.length)
+					tf.text = "";
+				
+				tf.appendText(e.text);
+				tf.setSelection(tf.length, tf.length);
+				e.preventDefault();
+			}
+			
+			if (e.text.search(numAllowedChars) == -1)
+				e.preventDefault();
 		}
 		
 		private function keyDown(e:KeyboardEvent):void
