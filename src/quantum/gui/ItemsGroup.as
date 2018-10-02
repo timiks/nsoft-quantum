@@ -232,7 +232,7 @@ package quantum.gui
 			fst.close();
 			
 			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name, Colors.SUCCESS);
-			main.soundMgr.play(SoundMgr.sndPrcSuccess);
+			main.soundMgr.play(SoundMgr.sndSuccess);
 			
 			// Open file with exported content
 			/*

@@ -396,37 +396,75 @@ package quantum.gui.modules
 		
 		public function updateUiElementData(elmDataID:String, val:*):void
 		{
+			const nonsenseMessage:String = "Вы втираете мне какую-то дичь";
+			var n:Number;
+			
 			switch (elmDataID)
 			{
 				case "selGrpTitle":
+				{
 					if (selectedGroup != null)
 						selectedGroup.title = String(val);
 					break;
+				}
 				
 				case "selItemCount":
+				{
 					if (selectedItem != null)
 						selectedItem.count = int(val);
 					break;
+				}
 				
 				case "selItemTypeNotes":
+				{
 					if (selectedItem != null)
 						pm.opProduct(selectedItem.productID, 
 							DataMgr.OP_UPDATE, Product.prop_note, String(val));
 					break;
-					
+				}
+				
 				case "selItemProductPrice":
+				{
 					if (selectedItem != null)
-						pm.opProduct(selectedItem.productID, 
-							DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
+					{
+						n = main.numFrm.parseNumber(val);
+						
+						if (isNaN(n))
+						{
+							baseState.infoPanel.showMessage(nonsenseMessage, Colors.WARN);
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_price, n);
+						}
+					}
+					
 					break;
+				}
 					
 				case "selItemProductWeight":
+				{
 					if (selectedItem != null)
-						pm.opProduct(selectedItem.productID, 
-							DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
-					break;
+					{
+						n = main.numFrm.parseNumber(val);
+						
+						if (isNaN(n))
+						{
+							baseState.infoPanel.showMessage(nonsenseMessage, Colors.WARN);
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_weight, n);
+						}
+					}
 					
+					break;
+				}
+				
 				case "selItemProductSKU":
+				{
 					if (selectedItem != null)
 					{
 						if (pm.checkProductBySKU(String(val)) != -1) 
@@ -441,7 +479,9 @@ package quantum.gui.modules
 								DataMgr.OP_UPDATE, Product.prop_sku, String(val));
 						}
 					}
+					
 					break;
+				}
 			}
 		}
 		

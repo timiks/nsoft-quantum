@@ -174,14 +174,12 @@ package quantum.gui
 			switch (color) 
 			{
 				case Colors.MESSAGE:
+				case Colors.WARN:
 				case null:
 					main.soundMgr.play(SoundMgr.sndMessage);
 					break;
-				case Colors.WARN:
-					main.soundMgr.play(SoundMgr.sndWarn);
-					break;
 				case Colors.BAD:
-					main.soundMgr.play(SoundMgr.sndPrcError);
+					main.soundMgr.play(SoundMgr.sndError);
 					break;
 			}
 		}

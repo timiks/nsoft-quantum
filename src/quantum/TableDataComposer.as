@@ -135,7 +135,7 @@ package quantum
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0xCC171C));
 				
 				// Sound
-				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndPrcError);
+				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndError);
 			}
 			
 			else
@@ -149,7 +149,7 @@ package quantum
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x7D7D7D));
 				
 				// Sound
-				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndPrcError);
+				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndError);
 			}
 			
 			else
@@ -288,11 +288,8 @@ package quantum
 			// Write file back
 			saveFile();
 			
-			// Decrease items quantity
-			grpCnt.selectedItem.count--;
-			
 			// Sound
-			main.soundMgr.play(SoundMgr.sndPrcSuccess);
+			main.soundMgr.play(SoundMgr.sndSuccess);
 			
 			// Message
 			main.stQuantumMgr.infoPanel.showMessage
@@ -303,6 +300,9 @@ package quantum
 				"«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
 				Colors.SUCCESS
 			);
+			
+			// Decrease items quantity
+			grpCnt.selectedItem.count--;
 			
 			/**
 			 * Composing Line Template Executors

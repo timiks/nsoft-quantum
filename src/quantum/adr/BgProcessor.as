@@ -190,7 +190,7 @@ package quantum.adr {
 				tmrDelay.start();
 
 				// Sound
-				main.soundMgr.play(SoundMgr.sndPrcSuccess);
+				main.soundMgr.play(SoundMgr.sndSuccess);
 
 				// Show result in Main Window if it's visible
 				if (main.stAdrUI.isVisible)
@@ -204,7 +204,7 @@ package quantum.adr {
 			 */
 			if (prcResult.status == ProcessingResult.STATUS_ERROR) {
 
-				main.soundMgr.play(SoundMgr.sndPrcError);
+				main.soundMgr.play(SoundMgr.sndError);
 
 			}
 

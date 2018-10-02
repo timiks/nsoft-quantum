@@ -120,14 +120,14 @@ package quantum.gui.modules
 			// · Price of product entry of selected item (text input) 
 			ui.tiPrice.addEventListener("change", function(e:Event):void 
 			{
-				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text == "" ? 0 : ui.tiPrice.text);
+				grpCnt.updateUiElementData("selItemProductPrice", ui.tiPrice.text == "" ? 0 : checkDecimalInputFormat(ui.tiPrice.text));
 			});
 			ui.tiPrice.textField.addEventListener(TextEvent.TEXT_INPUT, validateDecimalInput);
 			
 			// · Weight of product entry of selected item (text input)
 			ui.tiWeight.addEventListener("change", function(e:Event):void 
 			{
-				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text == "" ? 0 : ui.tiWeight.text);
+				grpCnt.updateUiElementData("selItemProductWeight", ui.tiWeight.text == "" ? 0 : checkDecimalInputFormat(ui.tiWeight.text));
 			});
 			ui.tiWeight.textField.addEventListener(TextEvent.TEXT_INPUT, validateDecimalInput);
 			
@@ -196,24 +196,24 @@ package quantum.gui.modules
 		
 		private function validateDecimalInput(e:TextEvent):void 
 		{
-			var numAllowedChars:RegExp = new RegExp("\\d|" + "\\" + main.numFrm.decimalSeparator);
+			var numAllowedChars:RegExp = /[^\d\.,]/;
 			
-			if ((main.numFrm.decimalSeparator == "," && (e.text as String).indexOf(".") != -1) ||
-				(main.numFrm.decimalSeparator == "." && (e.text as String).indexOf(",") != -1))
-			{
-				var tf:TextField = e.target as TextField;
-				e.text = (e.text as String).replace(/\.|,/, main.numFrm.decimalSeparator);
-				
-				if (tf.selectionBeginIndex == 0 && tf.selectionEndIndex == tf.text.length)
-					tf.text = "";
-				
-				tf.appendText(e.text);
-				tf.setSelection(tf.length, tf.length);
+			if (e.text.search(numAllowedChars) != -1)
 				e.preventDefault();
+		}
+		
+		private function checkDecimalInputFormat(decimalNumberString:String):String 
+		{
+			var inputText:String = decimalNumberString;
+			
+			if ((main.numFrm.decimalSeparator == "," && inputText.indexOf(".") != -1) ||
+				(main.numFrm.decimalSeparator == "." && inputText.indexOf(",") != -1))
+			{
+				inputText = inputText.replace(/\.|,/, main.numFrm.decimalSeparator);
+				return inputText;
 			}
 			
-			if (e.text.search(numAllowedChars) == -1)
-				e.preventDefault();
+			return inputText;
 		}
 		
 		private function keyDown(e:KeyboardEvent):void
