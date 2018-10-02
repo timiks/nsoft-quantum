@@ -2,6 +2,8 @@ package quantum.gui
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.CapsStyle;
+	import flash.display.JointStyle;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -85,7 +87,7 @@ package quantum.gui
 			
 			// Main frame
 			$frame = new Shape();
-			$frame.graphics.lineStyle(1, 0xB7BABC);
+			$frame.graphics.lineStyle(1, 0xB7BABC, 1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
 			$frame.graphics.drawRect(0, 0, w-1, h-1);
 			
 			// Over frame
