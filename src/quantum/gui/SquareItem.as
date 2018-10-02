@@ -2,6 +2,8 @@ package quantum.gui
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.CapsStyle;
+	import flash.display.JointStyle;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -26,6 +28,16 @@ package quantum.gui
 	 */
 	public class SquareItem extends Sprite
 	{
+		[Embed(source="/../lib/fonts/Montserrat-ExtraBold.ttf",
+				fontName = "Montserrat",
+				fontFamily = "Montserrat",
+				fontWeight = "bold", 
+				fontStyle = "normal", 
+				mimeType = "application/x-font",
+				advancedAntiAliasing = "true",
+				embedAsCFF = "false")]
+		private var FontMontserratBold:Class;
+		
 		public static const SQUARE_SIZE:int = 40; // Def: 68 58
 		
 		private const DEF_COUNT_VALUE:int = 1;
@@ -75,7 +87,7 @@ package quantum.gui
 			
 			// Main frame
 			$frame = new Shape();
-			$frame.graphics.lineStyle(1, 0xB7BABC);
+			$frame.graphics.lineStyle(1, 0xB7BABC, 1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
 			$frame.graphics.drawRect(0, 0, w-1, h-1);
 			
 			// Over frame
@@ -117,10 +129,11 @@ package quantum.gui
 			
 			// Count text field
 			countTextField = new TextField();
-			countTextField.defaultTextFormat = new TextFormat("Tahoma", 14, 0xFFFFFF, true); // Def size: 20 18 14
-			countTextField.filters = [new GlowFilter(0, 1, 2, 2, 2)];
+			countTextField.defaultTextFormat = new TextFormat("Montserrat", 14, 0xFFFFFF, true);
+			countTextField.embedFonts = true;
 			countTextField.antiAliasType = AntiAliasType.ADVANCED;
 			countTextField.autoSize = TextFieldAutoSize.RIGHT;
+			countTextField.filters = [new GlowFilter(0, 1, 2, 2, 2)];
 			countTextField.width = 20;
 			countTextField.text = String(count);
 			countTextField.cacheAsBitmap = true;
@@ -317,14 +330,29 @@ package quantum.gui
 			var price:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price);
 			var weight:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight);
 			var note:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_note);
+			var inStockFullCount:int = grpCnt.getProductFullCount(productID);
+			var inStockFullCountStr:String;
 			var hintOutput:String;
 			
 			sku = sku == "" ? main.stQuantumMgr.colorText(Colors.WARN, "[SKU не указан]") : sku;
 			note = note != "" ? "\n" + "<b>Заметка</b>\n" + note : "";
+						
+			inStockFullCountStr = 
+				"<b>В наличии:</b> " + inStockFullCount.toString() + (inStockFullCount == 1 ? " (последняя)" : "");
 			
+			if (inStockFullCount == 1)
+			{
+				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.WARN, inStockFullCountStr);
+			}
+			else 
+			if (inStockFullCount == 0)
+			{
+				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "Нет в наличии");
+			}
+				
 			if (price == 0 && weight == 0) 
 			{
-				hintOutput = sku + note;
+				hintOutput = sku + "\n" + inStockFullCountStr + note;
 			}
 			
 			else 
@@ -341,8 +369,8 @@ package quantum.gui
 					
 				weight = weight == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Вес не указан]") : 
 					"<b>Вес:</b> " + (main.numFrm.formatNumber(weight) as String) + " " + (useGramForWeight ? "г" : "кг");
-				
-				hintOutput = sku + "\n" + price + "\n" + weight + note;
+					
+				hintOutput = sku + "\n" + price + "\n" + weight + "\n" + inStockFullCountStr + note;
 			}
 			
 			return hintOutput;

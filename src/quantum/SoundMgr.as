@@ -11,11 +11,10 @@ package quantum
 	 */
 	public class SoundMgr
 	{
-		public static const sndPrcSuccess:String = "sndPrcSuccess";
-		public static const sndPrcError:String = "sndPrcError";
-		public static const sndBgPrcToggle:String = "sndBgPrcToggle";
+		public static const sndSuccess:String = "sndSuccess";
+		public static const sndError:String = "sndError";
 		public static const sndMessage:String = "sndMessage";
-		public static const sndWarn:String = "sndWarn";
+		public static const sndBgPrcToggle:String = "sndBgPrcToggle";
 		public static const sndGlobalError:String = "sndGlobalError";
 		
 		// Assets
@@ -25,14 +24,11 @@ package quantum
 		[Embed(source = "/../lib/sounds/snd-error.mp3")]
 		private var ErrorSound:Class;
 		
-		[Embed(source = "/../lib/sounds/snd-toggle-bg-prc.mp3")]
-		private var ToggleBgPrcSound:Class;
-		
 		[Embed(source = "/../lib/sounds/snd-message.mp3")]
 		private var MessageSound:Class;
 		
-		[Embed(source = "/../lib/sounds/snd-warn.mp3")]
-		private var WarnSound:Class;
+		[Embed(source = "/../lib/sounds/snd-toggle-bg-prc.mp3")]
+		private var ToggleBgPrcSound:Class;
 		
 		[Embed(source = "/../lib/sounds/snd-global-error.mp3")]
 		private var GlobalErrorSound:Class;
@@ -52,18 +48,13 @@ package quantum
 			
 			switch (soundID)
 			{
-				case sndPrcSuccess: 
+				case sndSuccess: 
 					snd = new SuccessSound() as Sound;
 					snd.play();
 					break;
 				
-				case sndPrcError: 
+				case sndError: 
 					snd = new ErrorSound() as Sound;
-					snd.play();
-					break;
-				
-				case sndBgPrcToggle: 
-					snd = new ToggleBgPrcSound() as Sound;
 					snd.play();
 					break;
 				
@@ -72,11 +63,11 @@ package quantum
 					snd.play();
 					break;
 				
-				case sndWarn:
-					snd = new WarnSound as Sound;
+				case sndBgPrcToggle: 
+					snd = new ToggleBgPrcSound() as Sound;
 					snd.play();
 					break;
-					
+				
 				case sndGlobalError:
 					snd = new GlobalErrorSound() as Sound;
 					snd.play();

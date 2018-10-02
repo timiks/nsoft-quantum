@@ -20,6 +20,7 @@ package quantum.gui.modules
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
+	import quantum.gui.Colors;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.gui.modules.StQuantumManager;
@@ -188,10 +189,16 @@ package quantum.gui.modules
 			groupSelectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
 			
 			// Layers display order
+			/* 1. Groups container hit box */
 			addChild(cntHitBox);
+			/* 2. Groups container */
 			addChild(cnt);
+			/* 3. Container → groupsGroup selection rectangle */
 			cnt.addChildAt(groupSelectionRect, 0);
+			/* 4. Container → groups */
+			/* 5. Container → item selection sticker (dynamic) */
 			cnt.addChildAt(itemSelectionSticker, cnt.numChildren);
+			/* 6. Scroll bar */
 			addChild(scb);
 		}
 		
@@ -389,35 +396,92 @@ package quantum.gui.modules
 		
 		public function updateUiElementData(elmDataID:String, val:*):void
 		{
+			const nonsenseMessage:String = "Вы втираете мне какую-то дичь";
+			var n:Number;
+			
 			switch (elmDataID)
 			{
 				case "selGrpTitle":
-					if (selectedGroup != null) selectedGroup.title = String(val);
+				{
+					if (selectedGroup != null)
+						selectedGroup.title = String(val);
 					break;
+				}
 				
 				case "selItemCount":
-					if (selectedItem != null) selectedItem.count = int(val);
+				{
+					if (selectedItem != null)
+						selectedItem.count = int(val);
 					break;
+				}
 				
 				case "selItemTypeNotes":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_note, String(val));
+				{
+					if (selectedItem != null)
+						pm.opProduct(selectedItem.productID, 
+							DataMgr.OP_UPDATE, Product.prop_note, String(val));
 					break;
-					
+				}
+				
 				case "selItemProductPrice":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_price, main.numFrm.parseNumber(val));
+				{
+					if (selectedItem != null)
+					{
+						n = main.numFrm.parseNumber(val);
+						
+						if (isNaN(n))
+						{
+							baseState.infoPanel.showMessage(nonsenseMessage, Colors.WARN);
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_price, n);
+						}
+					}
+					
 					break;
+				}
 					
 				case "selItemProductWeight":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_weight, main.numFrm.parseNumber(val));
-					break;
+				{
+					if (selectedItem != null)
+					{
+						n = main.numFrm.parseNumber(val);
+						
+						if (isNaN(n))
+						{
+							baseState.infoPanel.showMessage(nonsenseMessage, Colors.WARN);
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_weight, n);
+						}
+					}
 					
-				case "selItemProductSKU":
-					if (selectedItem != null) pm.opProduct(selectedItem.productID, 
-						DataMgr.OP_UPDATE, Product.prop_sku, String(val));
 					break;
+				}
+				
+				case "selItemProductSKU":
+				{
+					if (selectedItem != null)
+					{
+						if (pm.checkProductBySKU(String(val)) != -1) 
+						{
+							baseState.infoPanel.showMessage("Товар с таким SKU уже существует", Colors.WARN);
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_sku, ""); // Reset SKU
+						}
+						else
+						{
+							pm.opProduct(selectedItem.productID, 
+								DataMgr.OP_UPDATE, Product.prop_sku, String(val));
+						}
+					}
+					
+					break;
+				}
 			}
 		}
 		
@@ -504,7 +568,7 @@ package quantum.gui.modules
 			for (i = groups.length-1; i >= 0; i--) 
 			{	
 				g = groups[i];
-				if (g.title == "")
+				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN)
 				{
 					untitledGroup = g;
 					break;
@@ -532,6 +596,7 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
+				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN) continue; // [!] Exclude untitled groups
 				fullCount += g.getProductFullCount(productID);
 			}
 			
@@ -566,7 +631,7 @@ package quantum.gui.modules
 			baseState.updateUiElement("selItemProductSKU", value == null ? 
 				"" : pm.opProduct(value.productID, DataMgr.OP_READ, Product.prop_sku));
 				
-			baseState.focusAdrTextArea(value == null ? false : true);
+			baseState.focusAdrTextArea(value == null || value.parentItemsGroup.isUntitled ? false : true);
 			
 			// Item selection animated sticker
 			if (value == null)

@@ -14,6 +14,7 @@ package quantum
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
+	import quantum.gui.ItemsGroup;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
@@ -101,7 +102,7 @@ package quantum
 			
 			if (grpCnt.selectedItem == null) return;
 			
-			if (grpCnt.selectedItem.parentItemsGroup.title == "")
+			if (grpCnt.selectedItem.parentItemsGroup.title == ItemsGroup.UNTITLED_GROUP_SIGN)
 			{
 				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
 				return;
@@ -134,7 +135,7 @@ package quantum
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0xCC171C));
 				
 				// Sound
-				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndPrcError);
+				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndError);
 			}
 			
 			else
@@ -148,7 +149,7 @@ package quantum
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x7D7D7D));
 				
 				// Sound
-				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndPrcError);
+				if (lastResult.status != prcResult.status) main.soundMgr.play(SoundMgr.sndError);
 			}
 			
 			else
@@ -287,11 +288,8 @@ package quantum
 			// Write file back
 			saveFile();
 			
-			// Decrease items quantity
-			grpCnt.selectedItem.count--;
-			
 			// Sound
-			main.soundMgr.play(SoundMgr.sndPrcSuccess);
+			main.soundMgr.play(SoundMgr.sndSuccess);
 			
 			// Message
 			main.stQuantumMgr.infoPanel.showMessage
@@ -302,6 +300,9 @@ package quantum
 				"«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
 				Colors.SUCCESS
 			);
+			
+			// Decrease items quantity
+			grpCnt.selectedItem.count--;
 			
 			/**
 			 * Composing Line Template Executors

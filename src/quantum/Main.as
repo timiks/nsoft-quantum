@@ -19,7 +19,6 @@ package quantum
 	import quantum.gui.modules.StQuantumManager;
 	import quantum.gui.modules.StSettings;
 	
-	
 	/**
 	 * Quantum Application Main Module (CEM — Chef Executive Module)
 	 * @author Tim Yusupov
@@ -30,7 +29,7 @@ package quantum
 		
 		// App Version
 		private const $version:int 					= 5;
-		private const $versionService:int 			= 0;
+		private const $versionService:int 			= 1;
 		private const $betaVersion:Boolean 			= false;
 		private const $futureVersion:Boolean 		= false;
 		private const bugs:Boolean 					= false;

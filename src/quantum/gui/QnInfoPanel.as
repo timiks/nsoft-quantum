@@ -163,11 +163,10 @@ package quantum.gui
 			if (queShow) 
 			{
 				disOb.gotoAndPlay(2);
-				main.soundMgr.play(SoundMgr.sndMessage);
 				return;
 			}
 			
-			disOb.isPlaying ? disOb.gotoAndPlay(10) : disOb.gotoAndPlay(1);
+			disOb.isPlaying ? disOb.gotoAndPlay(2) : disOb.gotoAndPlay(1);
 			
 			if (noSound) return;
 			
@@ -175,14 +174,12 @@ package quantum.gui
 			switch (color) 
 			{
 				case Colors.MESSAGE:
+				case Colors.WARN:
 				case null:
 					main.soundMgr.play(SoundMgr.sndMessage);
 					break;
-				case Colors.WARN:
-					main.soundMgr.play(SoundMgr.sndWarn);
-					break;
 				case Colors.BAD:
-					main.soundMgr.play(SoundMgr.sndPrcError);
+					main.soundMgr.play(SoundMgr.sndError);
 					break;
 			}
 		}
