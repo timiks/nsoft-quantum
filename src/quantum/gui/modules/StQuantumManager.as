@@ -170,6 +170,11 @@ package quantum.gui.modules
 			if (main.isBetaActive)
 				hintMgr.registerHint(ui.tfVer, "Бета-версия\n" + colorText(Colors.TXLB_LIGHT_GREY, "В процессе тестирования"));
 			
+			// Info panel
+			$infoPanel = new QnInfoPanel(ui.infopanel);
+			ui.infopanel.y = 590 - 48;
+			$infoPanel.init();
+			
 			// Products manager
 			$productsMgr = new ProductsMgr();
 			$productsMgr.init();
@@ -185,11 +190,6 @@ package quantum.gui.modules
 			$grpTitleTextInput = new BigTextInput();
 			$grpTitleTextInput.tf = ui.tiGrpTitle;
 			$grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
-			
-			// Info panel
-			$infoPanel = new QnInfoPanel(ui.infopanel);
-			ui.infopanel.y = 590 - 48;
-			$infoPanel.init();
 			
 			// Layers display order
 			ui.addChildAt(grpCnt, 0);

@@ -31,7 +31,7 @@ package quantum.gui
 		private var msgQueue:Vector.<Object>;
 		private var queTmr:Timer;
 		private var blinkTimer:Timer;
-		private var lastShowCallTime:Number;
+		private var lastShowCallTime:Number = 0;
 		
 		public function QnInfoPanel(disOb:QuantumInfoPanel):void 
 		{
