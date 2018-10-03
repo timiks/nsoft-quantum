@@ -472,7 +472,8 @@ package quantum.gui.modules
 				{
 					if (selectedItem != null)
 					{
-						if (pm.checkProductBySKU(String(val)) != -1) 
+						var checkSkuID:int = pm.checkProductBySKU(String(val));
+						if (checkSkuID != -1 && checkSkuID != selectedItem.productID) 
 						{
 							baseState.infoPanel.showMessage("Товар с таким SKU уже существует", Colors.WARN);
 							pm.opProduct(selectedItem.productID, 
