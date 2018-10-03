@@ -418,8 +418,13 @@ package quantum.gui.modules
 				case "selItemTypeNotes":
 				{
 					if (selectedItem != null)
+					{
+						if ((val as String).search(/^\s+$/) != -1)
+							val = "";
+						
 						pm.opProduct(selectedItem.productID, 
 							DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					}
 					break;
 				}
 				
