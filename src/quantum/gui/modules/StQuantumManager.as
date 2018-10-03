@@ -68,7 +68,8 @@ package quantum.gui.modules
 			
 			// App version label
 			ui.tfVer.htmlText = Capabilities.isDebugger && main.isFutureVersion ? 
-				"<font color=\"" + Colors.TXLB_PURPLE + "\">" + main.version + "</font>" : main.version;
+				colorText(Colors.TXLB_PURPLE, main.version) : 
+				(main.isBetaActive ? colorText(Colors.TXLB_TURQUOISE, main.version) : main.version);
 			
 			/**
 			 * UI components
@@ -165,6 +166,9 @@ package quantum.gui.modules
 			hintMgr.registerHint(ui.tiPrice, "Цена товара (в USD)");
 			hintMgr.registerHint(ui.tiWeight, "Вес товара (в КГ)");
 			hintMgr.registerHint(ui.tiSku, "Значение SKU");
+			
+			if (main.isBetaActive)
+				hintMgr.registerHint(ui.tfVer, "Бета-версия\n" + colorText(Colors.TXLB_LIGHT_GREY, "В процессе тестирования"));
 			
 			// Products manager
 			$productsMgr = new ProductsMgr();

@@ -29,8 +29,8 @@ package quantum
 		
 		// App Version
 		private const $version:int 					= 5;
-		private const $versionService:int 			= 1;
-		private const $betaVersion:Boolean 			= false;
+		private const $versionService:int 			= 2;
+		private const $betaVersion:Boolean 			= true;
 		private const $futureVersion:Boolean 		= false;
 		private const bugs:Boolean 					= false;
 		
@@ -249,6 +249,11 @@ package quantum
 		public function get isFutureVersion():Boolean
 		{
 			return $futureVersion;
+		}
+		
+		public function get isBetaActive():Boolean
+		{
+			return $betaVersion;
 		}
 		
 		// ================================================================================
