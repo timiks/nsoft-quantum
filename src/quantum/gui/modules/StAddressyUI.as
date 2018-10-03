@@ -143,11 +143,12 @@ package quantum.gui.modules {
 
 			// Select Format
 			ui.selFormat.tabEnabled = false;
-			ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
-			ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
-			ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
-			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
+			ui.selFormat.addItem({label: "Шэньчжень (SEO и CFF)", data: FormatMgr.FRM_SHZ1});
 			ui.selFormat.addItem({label: "Кантон: формат 2", data: FormatMgr.FRM_CNT_STR2});
+			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
+			ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
+			ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
+			ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
 			ui.selFormat.addEventListener("change", onSelFormatChange);
 
 			var selItem:Object;

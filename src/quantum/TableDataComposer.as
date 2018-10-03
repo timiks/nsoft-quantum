@@ -169,47 +169,57 @@ package quantum
 		
 		private function composeAndPack(adrPrcResult:ProcessingResult):void 
 		{
-			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
 			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
-			var itemImgPath:String = grpCnt.selectedItem.imagePath;
-			var processedAddress:String;
-			var composedLine:String;
+			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
 			
-			// Setup variables that differ based on warehouse type
+			// Special pre-checks
+			if (groupWarehouse == Warehouse.SHENZHEN_SEO || groupWarehouse == Warehouse.SHENZHEN_CFF) 
+			{
+				var itemProductSKU:String = pm.opProduct(grpCnt.selectedItem.productID, DataMgr.OP_READ, Product.prop_sku);
+				
+				if (itemProductSKU == "")
+				{
+					main.stQuantumMgr.infoPanel.showMessage("У товара не указан SKU. Оформление отменено", Colors.BAD);
+					return;
+				}
+			}
+			
+			// Set up variables that differ based on specific warehouse
 			// WHT — Warehouse Type
+			// · Common
 			var WHT_tableDataFileTitle:String;
 			var WHT_adrPrcFormat:String;
-			var WHT_groupSearchRegExPattern:String;
 			var WHT_composingLineTemplateExecutor:Function;
+			var WHT_linesGroupSearchPattern:String;
 			
 			switch (groupWarehouse) 
 			{
 				case Warehouse.CANTON:
 					WHT_tableDataFileTitle = "canton";
 					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
-					WHT_groupSearchRegExPattern = groupTitle;
-					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2; // NEW
+					WHT_linesGroupSearchPattern = groupTitle;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
 					break;
 					
 				case Warehouse.BEIJING:
 					WHT_tableDataFileTitle = "beijing";
 					WHT_adrPrcFormat = FormatMgr.FRM_BJN_STR;
-					WHT_groupSearchRegExPattern = "^" + groupTitle;
+					WHT_linesGroupSearchPattern = "^" + groupTitle;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_BeijingStr;
 					break;
 					
-				case Warehouse.SHENZHEN_SEO_TMP: // [TEMP]
-					WHT_tableDataFileTitle = "shenzhen-seo-like-canton";
-					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
-					WHT_groupSearchRegExPattern = groupTitle;
-					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
+				case Warehouse.SHENZHEN_SEO:
+					WHT_tableDataFileTitle = "shenzhen-seo";
+					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;
 					
-				case Warehouse.SHENZHEN_CFF_TMP: // [TEMP]
-					WHT_tableDataFileTitle = "shenzhen-cff-like-canton";
-					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
-					WHT_groupSearchRegExPattern = groupTitle;
-					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
+				case Warehouse.SHENZHEN_CFF:
+					WHT_tableDataFileTitle = "shenzhen-cff";
+					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
+					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;
 					
 				default:
@@ -219,21 +229,26 @@ package quantum
 			
 			// ================================================================================
 			
+			var processedAddress:String;
+			var composedLine:String;
+			
+			// Prepare concrete file (based on specific warehouse)
 			tableDataFile = File.applicationStorageDirectory.resolvePath(WHT_tableDataFileTitle + ".txt");
 			
+			// Format address
 			processedAddress = main.formatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
 			
 			// Read file into memory (to tableDataFileLines)
 			readFile();
 			
-			// Check group existence
-			var groupExistInFile:Boolean;
+			// Check lines group existence
+			var linesGroupExistInFile:Boolean = false;
 			var emptyFile:Boolean;
 			var l:int = tableDataFileLines.length;
 			
 			if (l == 0)
 			{
-				groupExistInFile = false;
+				linesGroupExistInFile = false;
 				emptyFile = true;
 			}
 			
@@ -241,10 +256,10 @@ package quantum
 			{
 				var line:String;
 				var searchResult:int;
-				var foundGroupIndex:int;
+				var foundLinesGroupIndex:int;
 				var i:int;
 				
-				var groupSearchPattern:RegExp = new RegExp(WHT_groupSearchRegExPattern);
+				var groupSearchPattern:RegExp = new RegExp(WHT_linesGroupSearchPattern);
 				
 				for (i = 0; i < l; i++)
 				{
@@ -253,19 +268,30 @@ package quantum
 
 					if (searchResult != -1)
 					{
-						foundGroupIndex = i;
-						groupExistInFile = true;
+						foundLinesGroupIndex = i;
+						linesGroupExistInFile = true;
 						break;
 					}
 				}
 			}
 			
-			// Date
-			var date:Date = new Date();
-			var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
-			var dstr:String;
-			dtf.setDateTimePattern("dd.MM.yyyy");
-			dstr = dtf.format(date);
+			// Canton specific — date
+			if (groupWarehouse == Warehouse.CANTON) 
+			{
+				// Date
+				var date:Date = new Date();
+				var dtf:DateTimeFormatter = new DateTimeFormatter("ru-RU");
+				var dstr:String;
+				dtf.setDateTimePattern("dd.MM.yyyy");
+				dstr = dtf.format(date);
+			}
+			
+			// Canton / Beijing specific — image file path
+			if (groupWarehouse == Warehouse.BEIJING || groupWarehouse == Warehouse.CANTON) 
+			{
+				// Item's image path
+				var itemImgPath:String = grpCnt.selectedItem.imagePath;
+			}
 			
 			// Shipping column value
 			loadShippingFile();
@@ -275,11 +301,11 @@ package quantum
 			composedLine = WHT_composingLineTemplateExecutor() as String;
 			
 			// Add line to file lines
-			if (groupExistInFile)
+			if (linesGroupExistInFile)
 			{
-				tableDataFileLines.splice(foundGroupIndex+1, 0, composedLine); // Add after line with group title
+				/* Add new line after line with lines group header */
+				tableDataFileLines.splice(foundLinesGroupIndex+1, 0, composedLine);
 			}
-			
 			else 
 			{
 				tableDataFileLines.push(composedLine);
@@ -288,16 +314,29 @@ package quantum
 			// Write file back
 			saveFile();
 			
-			// Sound
+			// Success sound
 			main.soundMgr.play(SoundMgr.sndSuccess);
 			
-			// Message
+			// Item title to show in message
+			var itemTitle:String = null;
+			if (groupWarehouse == Warehouse.SHENZHEN_SEO || groupWarehouse == Warehouse.SHENZHEN_CFF) 
+			{
+				itemTitle = itemProductSKU;
+			}
+			
+			// Success message
 			main.stQuantumMgr.infoPanel.showMessage
 			(
-				"Товар оформлен для " + adrPrcResult.resultObj.name +
+				/*
+				"Товар " + (itemTitle != null ? "«" + itemTitle + "» " : "") + "оформлен для " + 
+				adrPrcResult.resultObj.name +
 				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ")" : "") +
-				" из склада " +
-				"«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
+				" из склада " + "«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
+				Colors.SUCCESS
+				*/
+				(itemTitle != null ? itemTitle + " • " : "") + adrPrcResult.resultObj.name +
+				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ") • " : " • ") +
+				"Склад: «" + Warehouse.getByID(groupWarehouse).russianTitle + "»" + " • <b>Оформлено</b>",
 				Colors.SUCCESS
 			);
 			
@@ -309,6 +348,39 @@ package quantum
 			 * ================================================================================
 			 */
 			
+			function cmpLnTplExtr_Shenzhen():String 
+			{
+				var outputLine:String;
+				
+				outputLine = 
+				
+				// Col A, B: {skip}
+				"\t\t" +
+				// Col C: Shipping
+				(linesGroupExistInFile ? "\t" : (shippingValue != null ? shippingValue + "\t" : "\t")) +
+				// Col D: {skip}
+				"\t" +
+				// Col E-L: {Address fields} (processed by Addressy)
+				(linesGroupExistInFile ? "\t\t\t\t\t\t\t\t" : processedAddress + "\t") +
+				// Col M, N, O: {skip}
+				"\t\t\t" +
+				// Col P: Product's SKU
+				itemProductSKU + "\t" +
+				// Col Q-T: ...
+				"toy" + "\t" + "玩具" + "\t" +
+				"1\t1" + "\t" +
+				// Col U: {skip}
+				"\t" +
+				// Col V: ...
+				"0.1" + "\t" +
+				// Col W, X: {skip}
+				"\t\t" +
+				// Col Y: ...
+				"0";
+				
+				return outputLine;
+			} 
+			 
 			function cmpLnTplExtr_Canton2():String
 			{
 				var outputLine:String;
@@ -321,7 +393,7 @@ package quantum
 				// Col B: Shipping company (hard coded value: "ZTO")
 				// Col C: Parcel number
 				// Col D: Products
-				(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
+				(linesGroupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
 				
 				// Col E: Parcel NO. (hard coded value: "1")
 				(emptyFile ? "1" : "") + "\t" +
@@ -351,7 +423,7 @@ package quantum
 				// Col B: Shipping company (hard coded value: "ZTO")
 				// Col C: Parcel number
 				// Col D: Products
-				(groupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
+				(linesGroupExistInFile ? "\t\t" : "ZTO" + "\t" + groupTitle + "\t" + "ship pcs") + "\t" +
 				
 				// Col E: Parcel NO. (hard coded value: "1")
 				(emptyFile ? "1" : "") + "\t" +
@@ -374,7 +446,7 @@ package quantum
 				outputLine =
 				// Col A, B, C: Parcel number, Note (skip), Item
 				// Col D–K: Shipping method + {Address fields} (processed by Addressy)
-				(groupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedAddress;
+				(linesGroupExistInFile ? "" : groupTitle) + "\t\t" + itemImgPath + "\t" + processedAddress;
 				
 				return outputLine;
 			}
@@ -393,18 +465,10 @@ package quantum
 			var fileStr:String = fst.readUTFBytes(fst.bytesAvailable);
 			fst.close();
 			
-			// > check CRLF. if not > error
-			/*
-			if (fileStr.search(lineEnding) == -1)
-			{
-				// [To-Do Here ↓]: Вывод глобальной ошибки
-				return;
-			}
-			*/
-			
 			tableDataFileLines = fileStr.split(lineEnding);
 			
-			if (tableDataFileLines.length == 1 && tableDataFileLines[0] == "") tableDataFileLines.shift();
+			if (tableDataFileLines.length == 1 && tableDataFileLines[0] == "")
+				tableDataFileLines.shift();
 		}
 		
 		private function saveFile():void

@@ -195,8 +195,8 @@ package quantum.gui
 					break;
 					
 				default:
-				case Warehouse.SHENZHEN_SEO_TMP:
-				case Warehouse.SHENZHEN_CFF_TMP:
+				case Warehouse.SHENZHEN_SEO:
+				case Warehouse.SHENZHEN_CFF:
 					idBadge = Product.prop_sku;
 					
 					for each (PID in productsIdsList) 

@@ -10,8 +10,8 @@ package quantum.warehouse
 		// Warehouse IDs are used directly in code and [!] may be saved in user data
 		public static const BEIJING:String = "Beijing";
 		public static const CANTON:String = "Canton";
-		public static const SHENZHEN_SEO_TMP:String = "Shenzhen-SEO";
-		public static const SHENZHEN_CFF_TMP:String = "Shenzhen-CFF";
+		public static const SHENZHEN_SEO:String = "Shenzhen-SEO";
+		public static const SHENZHEN_CFF:String = "Shenzhen-CFF";
 		
 		private static var $entities:Vector.<WarehouseEntity>;
 		
@@ -23,8 +23,8 @@ package quantum.warehouse
 				$entities = new Vector.<WarehouseEntity>();
 				$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
 				$entities.push(new WarehouseEntity(CANTON, "Кантон"));
-				$entities.push(new WarehouseEntity(SHENZHEN_SEO_TMP, "SEO (Шэньчжэнь) КАК КАНТОН"));
-				$entities.push(new WarehouseEntity(SHENZHEN_CFF_TMP, "CFF (Шэньчжэнь) КАК КАНТОН"));
+				$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)"));
+				$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)"));
 			}
 			
 			return $entities;
