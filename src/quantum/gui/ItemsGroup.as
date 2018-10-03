@@ -20,6 +20,7 @@ package quantum.gui
 	import quantum.Settings;
 	import quantum.SoundMgr;
 	import quantum.data.DataMgr;
+	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
@@ -35,6 +36,8 @@ package quantum.gui
 	public class ItemsGroup extends Sprite
 	{
 		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
+		
+		public static const observableProperty_title:String = "title";
 		
 		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10;
 		private const ITEMS_SPACING:int = 6; // In pixels
@@ -567,6 +570,7 @@ package quantum.gui
 		public function set title(value:String):void
 		{
 			$title = value;
+			dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_title));
 			
 			if (displayObject != null)
 			{

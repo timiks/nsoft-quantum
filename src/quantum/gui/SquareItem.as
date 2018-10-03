@@ -18,6 +18,7 @@ package quantum.gui
 	import quantum.Main;
 	import quantum.data.DataMgr;
 	import quantum.events.DataEvent;
+	import quantum.events.PropertyEvent;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
@@ -202,17 +203,20 @@ package quantum.gui
 				weightCorner.visible = false;
 			}
 			
-			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
-			
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
 			countTextField.mouseEnabled = false;
+			
+			if (parentItemsGroup.isUntitled && count == 1)
+				countTextField.visible = false;
 			
 			// Listeners
 			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
 			addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
 			addEventListener(MouseEvent.CLICK, onMouseClick);
 			hitBox.addEventListener(MouseEvent.CLICK, hitBoxClick);
+			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
+			parentItemsGroup.addEventListener(PropertyEvent.CHANGED, parentItemsGroupPropertyChanged);
 			
 			// General settings
 			buttonMode = true;
@@ -225,6 +229,15 @@ package quantum.gui
 			grpCnt.registerItemsHint(this, hintTextHandler);
 			
 			checkImage();
+		}
+		
+		private function parentItemsGroupPropertyChanged(e:PropertyEvent):void 
+		{
+			if (e.observablePropertyID == ItemsGroup.observableProperty_title) 
+			{
+				/* Reassign same value to execute checks in setter of the property */
+				parentItemsGroup = parentItemsGroup;
+			}
 		}
 		
 		/**
@@ -400,6 +413,18 @@ package quantum.gui
 				return;
 			}
 			
+			if (countTextField != null)
+			{
+				if (parentItemsGroup.isUntitled) 
+				{
+					countTextField.visible = value > 1 ? true : false;
+				}
+				else
+				{
+					countTextField.visible = true;
+				}
+			}
+			
 			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "count", value);
 			if (selected) main.stQuantumMgr.updateUiElement("selItemCount", count);
 			
@@ -478,6 +503,18 @@ package quantum.gui
 		
 		public function set parentItemsGroup(value:ItemsGroup):void
 		{
+			if (countTextField != null)
+			{
+				if (value.isUntitled && count == 1) 
+				{
+					countTextField.visible = false;
+				}
+				else
+				{
+					countTextField.visible = true;
+				}
+			}
+			
 			$parentItemsGroup = value;
 		}
 		
