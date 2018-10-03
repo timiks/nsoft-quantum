@@ -92,11 +92,6 @@ package quantum.backup
 			
 			// General checks
 			if (main.exiting) return;
-			if (main.stQuantumMgr.grpCnt.empty) // [!] Remove this check or add products check
-			{
-				main.logRed("Groups view is empty. Backup cancelled")
-				return;
-			}
 			
 			// Time check
 			var lastBackupTime:Number = main.settings.getKey(Settings.lastBackupTime); // Unix Time (in seconds)
@@ -107,7 +102,7 @@ package quantum.backup
 			
 			if (minutesSinceLastBackup < backupInterval)
 			{
-				main.logRed("Not the time for backup. Last one was " + minutesSinceLastBackup + " min. ago");
+				//main.logRed("Not the time for backup. Last one was " + minutesSinceLastBackup + " min. ago");
 				return;
 			}
 			
@@ -130,7 +125,7 @@ package quantum.backup
 			dataFile.copyToAsync(dataFileBackup, true);
 			
 			// Save image
-			if (main.settings.getKey(Settings.backupCreateImage))
+			if (main.settings.getKey(Settings.backupCreateImage) && !main.stQuantumMgr.grpCnt.empty)
 			{
 				if (tmrImageSave == null) tmrImageSave = new Timer(3000);
 				tmrImageSave.addEventListener(TimerEvent.TIMER, checkImageSave);
