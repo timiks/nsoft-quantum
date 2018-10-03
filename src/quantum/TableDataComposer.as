@@ -19,6 +19,7 @@ package quantum
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
+	import tim.as3lib.TimUtils;
 	
 	/**
 	 * ...
@@ -295,7 +296,7 @@ package quantum
 			
 			// Shipping column value
 			loadShippingFile();
-			var shippingValue:String = getCntShippingValue(adrPrcResult.resultObj.country);
+			var shippingValue:String = getCntShippingValue(adrPrcResult.resultObj.country, groupWarehouse);
 			
 			// Compose line
 			composedLine = WHT_composingLineTemplateExecutor() as String;
@@ -305,9 +306,22 @@ package quantum
 			{
 				/* Add new line after line with lines group header */
 				tableDataFileLines.splice(foundLinesGroupIndex+1, 0, composedLine);
+				
+				// [!] Shenzhen warehouses specific check
+				if (groupWarehouse == Warehouse.SHENZHEN_SEO || groupWarehouse == Warehouse.SHENZHEN_CFF) 
+				{
+					var linesGroupHeaderLine:String = tableDataFileLines[foundLinesGroupIndex];
+					if (shippingValue != null && linesGroupHeaderLine.search(/^\t{4}/) != -1) 
+					{
+						// Add missing shipping value to the header line (if it wasn't)
+						linesGroupHeaderLine = linesGroupHeaderLine.replace(/^\t{4}/, "\t\t" + shippingValue + "\t\t");
+						tableDataFileLines[foundLinesGroupIndex] = linesGroupHeaderLine;
+					}
+				}
 			}
 			else 
 			{
+				/* Add lines group header line to the end */
 				tableDataFileLines.push(composedLine);
 			}
 			
@@ -489,12 +503,32 @@ package quantum
 			fst.close();
 		}
 		
-		private function getCntShippingValue(cnt:String):String
+		private function getCntShippingValue(cnt:String, whID:String):String
 		{
 			var shipStr:String = null;
 			
+			var idx:int;
+			switch (whID) 
+			{
+				case Warehouse.CANTON:
+					idx = 0;
+					break;
+				
+				case Warehouse.SHENZHEN_SEO:
+					idx = 1;
+					break;
+					
+				case Warehouse.SHENZHEN_CFF:
+					idx = 2;
+					break;
+					
+				default:
+					idx = -1;
+					break;
+			}
+			
 			if (shippingValues[cnt] != null)
-				shipStr = shippingValues[cnt] as String;
+				shipStr = shippingValues[cnt][idx] as String;
 			
 			return shipStr;
 		}
@@ -561,7 +595,7 @@ package quantum
 				
 				if (line.search(re1) == -1)
 				{
-					//outputLogLine("Ошибка в строке файла Shipping: " + line, COLOR_BAD);
+					/* Unexpected line format > error */
 					continue;
 				}
 				
@@ -569,7 +603,24 @@ package quantum
 				cnt = reAr[1];
 				shipStr = reAr[2];
 				
-				shipValues[cnt] = shipStr;
+				var typeValues:Array = shipStr.split("|");
+				
+				var v:String;
+				for (var i:int = 0; i < typeValues.length; i++) 
+				{	
+					v = typeValues[i];
+					
+					if (v == "" || v.search(/^\s+$/) != -1) 
+					{
+						typeValues[i] = null;
+					}
+					else 
+					{
+						typeValues[i] = TimUtils.trimSpaces(v);
+					}
+				}
+				
+				shipValues[cnt] = typeValues;
 			}
 			
 			return shipValues;
@@ -597,6 +648,6 @@ package quantum
 		
 		// ================================================================================
 		
-		private const shippingFileDefaultContent:String = "# Значения колонки Shipping на основе страны адреса\r\n# Формат отдельной строки:\r\n# Country [shipping_value]\r\n\r\n";
+		private const shippingFileDefaultContent:String = "# Значения колонки Shipping на основе страны и склада\r\n# Формат отдельной строки:\r\n# Страна [ значение 1 | значение 2 | значение 3 ]\r\n# Порядок для складов: [ 1. Кантон | 2. SEO (Шэньчжэнь) | 3. CFF (Шэньчжэнь) ]\r\n# Пробелы по краям значения не учитываются. Страна на английском.\r\n\r\n";
 	}
 }
