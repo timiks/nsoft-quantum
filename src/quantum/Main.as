@@ -30,9 +30,11 @@ package quantum
 		// App Version
 		private const $version:int 					= 5;
 		private const $versionService:int 			= 2;
-		private const $betaVersion:Boolean 			= true;
-		private const $futureVersion:Boolean 		= false;
-		private const bugs:Boolean 					= false;
+		private const $betaVersionNumber:int        = 3;
+		
+		private const $betaVersion:Boolean 			= Boolean(1);
+		private const $futureVersion:Boolean 		= Boolean(0);
+		private const bugs:Boolean 					= Boolean(0);
 		
 		// Modules
 		// · Common
@@ -224,10 +226,14 @@ package quantum
 		
 		public function get version():String
 		{
-			var vr:String = String($version); // Major version
-			vr += "." + String($versionService); // Service version
-			if (Capabilities.isDebugger && $futureVersion) vr += " F"; // Future version mark
-			if ($betaVersion) vr += " β"; // Beta tag
+			/* Major version */
+			var vr:String = String($version);
+			/* Minor (service) version */
+			vr += "." + String($versionService);
+			/* Beta version */
+			if ($betaVersion) vr += " β" + String($betaVersionNumber);
+			/* Future version mark */
+			if (Capabilities.isDebugger && $futureVersion) vr += " F";
 			return vr;
 		}
 		

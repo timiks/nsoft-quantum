@@ -12,6 +12,7 @@ package quantum.gui.modules
 	import flash.events.TextEvent;
 	import flash.system.Capabilities;
 	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
 	import flash.ui.Keyboard;
 	import quantum.Main;
 	import quantum.Settings;
@@ -67,6 +68,7 @@ package quantum.gui.modules
 			initWindowAndTray();
 			
 			// App version label
+			ui.tfVer.autoSize = TextFieldAutoSize.LEFT;
 			ui.tfVer.htmlText = Capabilities.isDebugger && main.isFutureVersion ? 
 				colorText(Colors.TXLB_PURPLE, main.version) : 
 				(main.isBetaActive ? colorText(Colors.TXLB_TURQUOISE, main.version) : main.version);
