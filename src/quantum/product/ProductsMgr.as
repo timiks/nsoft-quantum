@@ -1,5 +1,9 @@
 package quantum.product 
 {
+	import com.adobe.crypto.MD5;
+	import com.leeburrows.encoders.AsyncJPGEncoder;
+	import com.leeburrows.encoders.AsyncPNGEncoder;
+	import com.leeburrows.encoders.supportClasses.AsyncImageEncoderEvent;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Loader;
@@ -13,6 +17,8 @@ package quantum.product
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	import quantum.Main;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
@@ -32,6 +38,7 @@ package quantum.product
 		private var MissingFilePic:Class; // 200 x 200
 		
 		private const IMG_SQUARE_SIZE:int = SquareItem.SQUARE_SIZE;
+		private const imgCacheDirName:String = "cache";
 		
 		private var $events:EventDispatcher;
 		
@@ -43,10 +50,16 @@ package quantum.product
 		
 		private var fst:FileStream;
 		private var ldr:Loader;
-		private var imgFile:File;
+		private var imgFile:File; // Current image file being processed
 		private var ba:ByteArray;
 		private var imgLoadingQueue:Vector.<String>;
 		private var queActive:Boolean;
+		private var imgFileCacheList:Dictionary;
+		private var cacheDir:File;
+		private var cacheDirFiles:Array;
+		private var jpegEncoder:AsyncJPGEncoder;
+		private var pngEncoder:AsyncPNGEncoder;
+		private var loadingStartTime:int;
 		
 		public function ProductsMgr():void 
 		{
@@ -76,9 +89,80 @@ package quantum.product
 			
 			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
+			var p:Product;
+			
+			// Cache
+			cacheDir = File.applicationStorageDirectory.resolvePath(imgCacheDirName);
+			
+			if (!cacheDir.exists)
+				cacheDir.createDirectory();
+			
+			cacheDirFiles = cacheDir.getDirectoryListing();
+			imgFileCacheList = new Dictionary(true); // [!]
+			
+			var cacheFileNamePattern:RegExp = /^(\d+)-(.+)-(\d+)-(\d+)/;
+			var rea:Array;
+			var originalFile:File = new File();
+			if (cacheDirFiles.length != 0) 
+			{
+				for each (var f:File in cacheDirFiles) 
+				{
+					if (f.name.search(cacheFileNamePattern) == -1)
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					/*
+					1 — Product ID
+					2 — Original image file path hash
+					3 — Original image file size in bytes
+					4 — Square size of the cached image file
+					*/
+					rea = f.name.match(cacheFileNamePattern);
+					
+					if (int(rea[4]) != IMG_SQUARE_SIZE) 
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					p = null;
+					p = getProductByID(int(rea[1]));
+					
+					if (p == null) 
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					if (MD5.hash(p.imgFile) != TimUtils.trimSpaces(rea[2])) 
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					originalFile.nativePath = p.imgFile;
+					
+					if (!originalFile.exists) 
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					if (originalFile.size != int(rea[3])) 
+					{
+						f.deleteFileAsync();
+						continue;
+					}
+					
+					imgFileCacheList[p.imgFile] = f.nativePath;
+				}
+			}
+			
 			// Shuffle images list (for loading in random order)
 			var imgList:Array = [];
-			for each (var p:Product in productsList) 
+			for each (p in productsList) 
 			{
 				imgList.push(p.imgFile);
 			}
@@ -125,6 +209,8 @@ package quantum.product
 		{
 			if (imgLoadingQueue.length < 1) return;
 			
+			loadingStartTime = getTimer();
+			
 			queActive = true;
 			imgLoading_s1_setup();
 		}
@@ -134,7 +220,8 @@ package quantum.product
 			ba.clear();
 			/* Index is always first element from the top (processed elements are already deleted from queue) */
 			/* First element of the queue is always current processed element */
-			imgFile.nativePath = imgLoadingQueue[0]; 
+			imgFile.nativePath =
+				imgFileCacheList[imgLoadingQueue[0]] != null ? imgFileCacheList[imgLoadingQueue[0]] : imgLoadingQueue[0];
 			fst.openAsync(imgFile, FileMode.READ); // Stage 2
 		}
 		
@@ -148,6 +235,16 @@ package quantum.product
 		private function imgLoading_s3_processImg(e:Event):void
 		{
 			var img:Bitmap = ldr.content as Bitmap;
+			var imgPathQueue:String = imgLoadingQueue[0];
+			
+			// Cache
+			if (img.bitmapData.width == IMG_SQUARE_SIZE) 
+			{
+				opProduct(checkProductByImgPath(imgPathQueue), DataMgr.OP_UPDATE, Product.prop_image, img.bitmapData, true);
+				imgLoadingQueueOutControl();
+				return;
+			}
+			
 			var w:int, h:int;
 			var processedImgMatrix:BitmapData;
 			
@@ -209,7 +306,42 @@ package quantum.product
 			> Check queue. If no more images to process > stop, queActive = false; else > shift queue element and call setup again
 			*/
 			
-			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, processedImgMatrix, true);
+			var pid:int = checkProductByImgPath(imgPathQueue);
+			opProduct(pid, DataMgr.OP_UPDATE, Product.prop_image, processedImgMatrix, true);
+			
+			// Save cache
+			if (imgPathQueue.search(/.png$/i) != -1) 
+			{
+				pngEncoder = new AsyncPNGEncoder();
+				pngEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, imgLoading_s4_saveCache);
+				pngEncoder.start(processedImgMatrix) // Stage 4: PNG
+			}
+			else 
+			{
+				jpegEncoder = new AsyncJPGEncoder(100);
+				jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, imgLoading_s4_saveCache);
+				jpegEncoder.start(processedImgMatrix); // Stage 4: JPG
+			}
+		}
+		
+		private function imgLoading_s4_saveCache(e:AsyncImageEncoderEvent):void 
+		{
+			jpegEncoder.removeEventListener(AsyncImageEncoderEvent.COMPLETE, imgLoading_s4_saveCache);
+			
+			var cacheImageFile:File = new File();
+			var pid:int = checkProductByImgPath(imgFile.nativePath);
+			var isPNG:Boolean = (imgFile.nativePath.search(/.png$/i) != -1);
+			
+			cacheImageFile = cacheDir.resolvePath(
+				String(pid) + "-" + 
+				MD5.hash(imgFile.nativePath) + "-" + 
+				imgFile.size.toString() + "-" +
+				String(IMG_SQUARE_SIZE) + (isPNG ? ".png" : ".jpg"));
+			
+			fst.open(cacheImageFile, FileMode.WRITE);
+			isPNG ? fst.writeBytes(pngEncoder.encodedBytes) : fst.writeBytes(jpegEncoder.encodedBytes);
+			fst.close();
+			trace("Cache image saved.", cacheImageFile.nativePath);
 			
 			// Check image loading queue
 			imgLoadingQueueOutControl();
@@ -242,6 +374,7 @@ package quantum.product
 			{
 				queActive = false; // Stop queue (do nothing)
 				trace("Products images loading complete");
+				trace("Duration:", (getTimer()-loadingStartTime)/1000+" s");
 			}
 			
 			// Otherwise > go to 1st step (next element)
@@ -290,7 +423,7 @@ package quantum.product
 				}
 			}
 			
-			throw new Error("No product with ID " + id);
+			trace("No product with ID " + id);
 			return null;
 		}
 		
