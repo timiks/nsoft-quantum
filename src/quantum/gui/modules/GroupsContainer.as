@@ -53,10 +53,17 @@ package quantum.gui.modules
 		private var scb:UIScrollBar; // Scroll bar
 		private var cropRect:Rectangle; // Visible area
 		private var cntHitBox:Sprite;
-		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
 		
+		// Scroll
+		private const initialScrollSpeed:int = 24;
+		private var appliedScrollSpeed:int;
+		private var scrollDirection:Boolean; // Either right or left (boolean)
+		private var lastMouseWheelDelta:int;
+			
+		// Selection
 		private var groupSelectionRect:Shape;
 		private var groupSelectTimer:Timer;
+		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
 		
 		public function GroupsContainer(baseState:StQuantumManager):void
 		{
@@ -121,14 +128,8 @@ package quantum.gui.modules
 			main.logRed("Container width (init): " + cnt.width);
 			main.logRed("Max scroll position (init): " + scb.maxScrollPosition);
 			
+			stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
 			scb.addEventListener(ScrollEvent.SCROLL, scroll);
-			stage.addEventListener(MouseEvent.MOUSE_WHEEL, function(e:MouseEvent):void
-			{
-				if (!scb.visible) return;
-				var wheelRatio:int = 25;
-				if (e.delta > 0) wheelRatio = -wheelRatio;
-				scb.scrollPosition += -e.delta + wheelRatio;
-			});
 			
 			// Set scroll position from settings (with a little delay due to bug)
 			var tmr:Timer = new Timer(200, 1);
@@ -202,6 +203,55 @@ package quantum.gui.modules
 			addChild(scb);
 		}
 		
+		private function onMouseWheel(e:MouseEvent):void
+		{
+			if (!scb.visible) return;
+							
+			scrollDirection = e.delta > 0 ? true : false;
+			
+			appliedScrollSpeed = appliedScrollSpeed == 0 || e.delta != lastMouseWheelDelta ? 
+				initialScrollSpeed : (appliedScrollSpeed < initialScrollSpeed * 4 ? appliedScrollSpeed + 10 : appliedScrollSpeed);
+				
+			stage.addEventListener(Event.ENTER_FRAME, rollScroll);
+			lastMouseWheelDelta = e.delta;
+		}
+		
+		private function rollScroll(e:Event):void 
+		{
+			scb.scrollPosition += scrollDirection ? -appliedScrollSpeed : appliedScrollSpeed;
+			appliedScrollSpeed -= 2;
+			
+			if (appliedScrollSpeed < 1)
+			{
+				stage.removeEventListener(Event.ENTER_FRAME, rollScroll);
+				appliedScrollSpeed = 0;
+			}
+		}
+		
+		private function scroll(e:Event):void
+		{
+			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
+			rct.x = scb.scrollPosition;
+			cnt.scrollRect = rct;
+			main.settings.setKey(Settings.groupsViewScrollPosition, scb.scrollPosition);
+		}
+		
+		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
+		{
+			cnt.scrollRect = null;
+			
+			var bd:BitmapData = new BitmapData(1, 1, false);
+			bd.draw(cnt);
+			bd.dispose();
+			
+			var msp:Number = (/*cnt.width*/groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
+			
+			cnt.scrollRect = cropRect;
+			scb.visible = msp > 0 ? true : false;
+			
+			return msp;
+		}
+			
 		private function keyDown(e:KeyboardEvent):void
 		{
 			// DELETE
@@ -241,30 +291,6 @@ package quantum.gui.modules
 				baseState.grpTitleTextInput.hide();
 			
 			stage.focus = this;
-		}
-		
-		private function scroll(e:Event):void
-		{
-			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
-			rct.x = scb.scrollPosition;
-			cnt.scrollRect = rct;
-			main.settings.setKey(Settings.groupsViewScrollPosition, scb.scrollPosition);
-		}
-		
-		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
-		{
-			cnt.scrollRect = null;
-			
-			var bd:BitmapData = new BitmapData(1, 1, false);
-			bd.draw(cnt);
-			bd.dispose();
-			
-			var msp:Number = (/*cnt.width*/groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
-			
-			cnt.scrollRect = cropRect;
-			scb.visible = msp > 0 ? true : false;
-			
-			return msp;
 		}
 		
 		private function resetSelected(onlyGroup:Boolean = false):void
