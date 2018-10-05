@@ -149,7 +149,7 @@ package quantum
 
 			if (tmrSaveDelay == null)
 			{
-				tmrSaveDelay = new Timer(3000, 1);
+				tmrSaveDelay = new Timer(4000, 1);
 				tmrSaveDelay.addEventListener(TimerEvent.TIMER, saveOnTimer);
 				tmrSaveDelay.start();
 			}

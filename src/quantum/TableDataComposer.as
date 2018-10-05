@@ -600,7 +600,7 @@ package quantum
 				}
 				
 				reAr = line.match(re1);
-				cnt = reAr[1];
+				cnt = TimUtils.trimSpaces(reAr[1]);
 				shipStr = reAr[2];
 				
 				var typeValues:Array = shipStr.split("|");
