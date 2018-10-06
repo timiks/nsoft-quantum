@@ -42,9 +42,9 @@ package quantum
 			tmr = new Timer(600, 1);
 		}
 		
-		public function play(soundID:String):void
+		public function play(soundID:String, priority:Boolean = false):void
 		{
-			if (playing) return;
+			if (!priority && playing) return;
 			
 			switch (soundID)
 			{

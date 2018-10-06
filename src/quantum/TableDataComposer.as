@@ -329,7 +329,7 @@ package quantum
 			saveFile();
 			
 			// Success sound
-			main.soundMgr.play(SoundMgr.sndSuccess);
+			main.soundMgr.play(SoundMgr.sndSuccess, true);
 			
 			// Item title to show in message
 			var itemTitle:String = null;
