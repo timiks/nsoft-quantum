@@ -117,7 +117,8 @@ package quantum.gui
 			// Элементы подменю выбора склада
 			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList)
 			{
-				menuItmWarehouseSwitchRef = new NativeMenuItem("Переключить склад на «" + whEnt.russianTitle + "»");
+				menuItmWarehouseSwitchRef = new NativeMenuItem(
+					whEnt.ID == Warehouse.NONE ? "Без склада" : "Переключить склад на «" + whEnt.russianTitle + "»");
 				menuItmWarehouseSwitchRef.data = whEnt.ID;
 				menuItmWarehouseSwitchRef.addEventListener(Event.SELECT, menuItmWarehouseSwitchClick);
 				
@@ -479,8 +480,11 @@ package quantum.gui
 				return null;
 			}
 			
-			return (title == UNTITLED_GROUP_SIGN ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) +	
-				"\n" + "<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle;
+			return (title == UNTITLED_GROUP_SIGN ? 
+						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) + "\n" + 
+					(warehouseID == Warehouse.NONE ?
+						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, Warehouse.getByID(warehouseID).russianTitle) :
+						"<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle);
 		}
 		
 		public function checkItemExistenceByProductID(itemProductID:int):Boolean

@@ -8,6 +8,7 @@ package quantum.warehouse
 	public class Warehouse
 	{
 		// Warehouse IDs are used directly in code and [!] may be saved in user data
+		public static const NONE:String = "[None]"; // Special ID, means "No warehouse assigned"
 		public static const BEIJING:String = "Beijing";
 		public static const CANTON:String = "Canton";
 		public static const SHENZHEN_SEO:String = "Shenzhen-SEO";
@@ -21,6 +22,7 @@ package quantum.warehouse
 			{
 				// Add WH entities here and app will be aware of them
 				$entities = new Vector.<WarehouseEntity>();
+				$entities.push(new WarehouseEntity(NONE, "[Без склада]"));
 				$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
 				$entities.push(new WarehouseEntity(CANTON, "Кантон"));
 				$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)"));

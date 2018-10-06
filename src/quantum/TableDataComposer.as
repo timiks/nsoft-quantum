@@ -173,6 +173,12 @@ package quantum
 			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
 			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
 			
+			if (groupWarehouse == Warehouse.NONE) 
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Товар находится в группе без склада. Оформление невозможно", Colors.WARN);
+				return;
+			}
+			
 			// Special pre-checks
 			if (groupWarehouse == Warehouse.SHENZHEN_SEO || groupWarehouse == Warehouse.SHENZHEN_CFF) 
 			{
@@ -516,7 +522,8 @@ package quantum
 					break;
 					
 				default:
-					idx = -1;
+					shipStr = null;
+					return shipStr;
 					break;
 			}
 			
