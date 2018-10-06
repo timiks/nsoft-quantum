@@ -341,17 +341,10 @@ package quantum
 			// Success message
 			main.stQuantumMgr.infoPanel.showMessage
 			(
-				/*
-				"Товар " + (itemTitle != null ? "«" + itemTitle + "» " : "") + "оформлен для " + 
-				adrPrcResult.resultObj.name +
-				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ")" : "") +
-				" из склада " + "«" + Warehouse.getByID(groupWarehouse).russianTitle + "»",
-				Colors.SUCCESS
-				*/
 				(itemTitle != null ? itemTitle + " • " : "") + adrPrcResult.resultObj.name +
 				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ") • " : " • ") +
 				"Склад: «" + Warehouse.getByID(groupWarehouse).russianTitle + "»" + " • <b>Оформлено</b>",
-				Colors.SUCCESS
+				Colors.SUCCESS, true
 			);
 			
 			// Decrease items quantity
