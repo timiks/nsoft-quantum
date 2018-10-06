@@ -37,11 +37,10 @@ package quantum.gui
 				mimeType = "application/x-font",
 				advancedAntiAliasing = "true",
 				embedAsCFF = "false")]
-		private var FontMontserratBold:Class;
+		private static var FontMontserratBold:Class;
 		
-		public static const SQUARE_SIZE:int = 40; // Def: 68 58
-		
-		private const DEF_COUNT_VALUE:int = 1;
+		public  static const SQUARE_SIZE:int = 40; // Def: 68 58
+		private static const DEF_COUNT_VALUE:int = 1;
 		
 		// Fields of data properties
 		private var $count:int;
