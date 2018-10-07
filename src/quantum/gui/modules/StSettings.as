@@ -123,6 +123,7 @@ package quantum.gui.modules
 			uiCmpList.push(uiPlate.cbMoveDeletedItemsToUntitledGroup);
 			uiCmpList.push(uiPlate.cbDimUntitledGroupButton);
 			uiCmpList.push(uiPlate.cbAdrPrcPassAdrsForCanton);
+			uiCmpList.push(uiPlate.cbPaintColorForGroups);
 			uiCmpList.push(uiPlate.lblBuInt);
 			uiCmpList.push(uiPlate.selBackupInterval);
 			uiCmpList.push(uiPlate.selBackupInterval.textField);
@@ -195,6 +196,7 @@ package quantum.gui.modules
 			setupCheckbox(uiPlate.cbMoveDeletedItemsToUntitledGroup, Settings.moveDeletedItemsToUntitledGroup);
 			setupCheckbox(uiPlate.cbDimUntitledGroupButton, Settings.dimUntitledGroupButton);
 			setupCheckbox(uiPlate.cbAdrPrcPassAdrsForCanton, Settings.adrPrcPassAdrsForCanton);
+			setupCheckbox(uiPlate.cbPaintColorForGroups, Settings.paintColorForGroups);
 			
 			// Selects (ComboBoxes)
 			var selItems:Vector.<Object>;

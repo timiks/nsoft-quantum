@@ -38,6 +38,8 @@ package quantum.gui
 		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
 		
 		public static const observableProperty_title:String = "title";
+		public static const observableProperty_warehouseID:String = "warehouseID";
+		public static const observableProperty_selected:String = "selected";
 		
 		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10;
 		private const ITEMS_SPACING:int = 6; // In pixels
@@ -574,7 +576,10 @@ package quantum.gui
 		public function set title(value:String):void
 		{
 			$title = value;
-			dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_title));
+			
+			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_title);
+			dispatchEvent(event);
+			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
 			
 			if (displayObject != null)
 			{
@@ -602,6 +607,11 @@ package quantum.gui
 		public function set warehouseID(value:String):void
 		{
 			$warehouseID = value;
+			
+			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_warehouseID);
+			dispatchEvent(event);
+			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
+			
 			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "warehouseID", value);
 		}
 		
@@ -616,6 +626,8 @@ package quantum.gui
 		public function set selected(value:Boolean):void
 		{
 			$selected = value;
+			
+			dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_selected));
 			
 			if (value == true)
 			{

@@ -16,12 +16,16 @@ package quantum.gui
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import quantum.Main;
+	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.events.DataEvent;
 	import quantum.events.PropertyEvent;
+	import quantum.events.SettingEvent;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
+	import quantum.warehouse.Warehouse;
+	import tim.as3lib.TimUtils;
 	
 	/**
 	 * ...
@@ -41,6 +45,7 @@ package quantum.gui
 		
 		public  static const SQUARE_SIZE:int = 40; // Def: 68 58
 		private static const DEF_COUNT_VALUE:int = 1;
+		private static const FRAME_DEF_COLOR:uint = 0xB7BABC;
 		
 		// Fields of data properties
 		private var $count:int;
@@ -87,8 +92,7 @@ package quantum.gui
 			
 			// Main frame
 			$frame = new Shape();
-			$frame.graphics.lineStyle(1, 0xB7BABC, 1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
-			$frame.graphics.drawRect(0, 0, w-1, h-1);
+			drawFrame(w-1, h-1);
 			
 			// Over frame
 			overFrame = new Shape();
@@ -216,6 +220,7 @@ package quantum.gui
 			hitBox.addEventListener(MouseEvent.CLICK, hitBoxClick);
 			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
 			parentItemsGroup.addEventListener(PropertyEvent.CHANGED, parentItemsGroupPropertyChanged);
+			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
 			
 			// General settings
 			buttonMode = true;
@@ -236,6 +241,15 @@ package quantum.gui
 			{
 				/* Reassign same value to execute checks in setter of the property */
 				parentItemsGroup = parentItemsGroup;
+				drawFrame();
+			}
+			
+			else
+			
+			if (e.observablePropertyID == ItemsGroup.observableProperty_warehouseID ||
+				e.observablePropertyID == ItemsGroup.observableProperty_selected) 
+			{
+				drawFrame();
 			}
 		}
 		
@@ -265,6 +279,14 @@ package quantum.gui
 			if (e.updatedFieldName == Product.prop_image) 
 			{
 				checkImage();
+			}
+		}
+		
+		private function onSettingChange(e:SettingEvent):void 
+		{
+			if (e.settingName == Settings.paintColorForGroups) 
+			{
+				drawFrame();
 			}
 		}
 		
@@ -324,6 +346,38 @@ package quantum.gui
 			}
 			
 			overFrame.visible = false;
+		}
+		
+		private function drawFrame(width:int = 0, height:int = 0):void 
+		{
+			var g:ItemsGroup = parentItemsGroup;
+			var frameColor:uint;
+			var setting:Boolean = main.settings.getKey(Settings.paintColorForGroups);
+			
+			// Color decide
+			if (!setting || g.selected || g.isUntitled || g.warehouseID == Warehouse.NONE) 
+			{
+				frameColor = FRAME_DEF_COLOR;
+			}
+			
+			else
+			{
+				frameColor = Warehouse.getByID(g.warehouseID).uniqueColor;
+			}
+			
+			if (frameColor == 0)
+				frameColor = FRAME_DEF_COLOR;
+			
+			if (width == 0 || height == 0)
+			{
+				width = height = SQUARE_SIZE-1;
+			}
+			
+			$frame.graphics.clear();
+			$frame.graphics.lineStyle(
+				1, (frameColor == FRAME_DEF_COLOR ? frameColor : TimUtils.shadeColor(frameColor, 0.4)), 
+				1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
+			$frame.graphics.drawRect(0, 0, width, height);
 		}
 		
 		/**
@@ -470,6 +524,7 @@ package quantum.gui
 		{
 			$selected = value;
 			
+			/*
 			if (value == true)
 			{
 				selectedFrame.visible = true;
@@ -488,6 +543,7 @@ package quantum.gui
 				if (selectedFrame.numChildren > 0)
 					selectedFrame.removeChildAt(0);
 			}
+			*/
 		}
 		
 		public function get frame():Shape

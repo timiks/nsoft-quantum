@@ -16,24 +16,30 @@ package quantum.warehouse
 		
 		private static var $entities:Vector.<WarehouseEntity>;
 		
+		private static function createEntities():void
+		{
+			// Add WH entities here and app will be aware of them
+			$entities = new Vector.<WarehouseEntity>();
+			$entities.push(new WarehouseEntity(NONE, "[Без склада]"));
+			$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
+			$entities.push(new WarehouseEntity(CANTON, "Кантон", 0x9A2EE3));
+			$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)", 0xFB8109));
+			$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)", 0x1FCBFF));
+		}
+		
 		public static function get entitiesList():Vector.<WarehouseEntity>
 		{
 			if ($entities == null)
-			{
-				// Add WH entities here and app will be aware of them
-				$entities = new Vector.<WarehouseEntity>();
-				$entities.push(new WarehouseEntity(NONE, "[Без склада]"));
-				$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
-				$entities.push(new WarehouseEntity(CANTON, "Кантон"));
-				$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)"));
-				$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)"));
-			}
+				createEntities();
 			
 			return $entities;
 		}
 		
 		public static function getByID(ID:String):WarehouseEntity
 		{
+			if ($entities == null)
+				createEntities();
+				
 			for each (var whe:WarehouseEntity in $entities) 
 			{
 				if (whe.ID == ID) return whe;

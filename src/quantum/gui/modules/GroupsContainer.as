@@ -20,12 +20,16 @@ package quantum.gui.modules
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
+	import quantum.events.PropertyEvent;
+	import quantum.events.SettingEvent;
 	import quantum.gui.Colors;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.gui.modules.StQuantumManager;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
+	import quantum.warehouse.Warehouse;
+	import quantum.warehouse.WarehouseEntity;
 	
 	/**
 	 * ...
@@ -33,9 +37,11 @@ package quantum.gui.modules
 	 */
 	public class GroupsContainer extends Sprite
 	{
-		private const SIDE_MARGIN:int = 14;
+		private const SIDE_MARGIN:int = 7; // GRP_SPACING / 2 (Prev: 14)
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
+		
+		private const groupColorAreaLineThickness:int = 8;
 		
 		// Fields of app properties
 		private var $selectedItem:SquareItem;
@@ -53,6 +59,7 @@ package quantum.gui.modules
 		private var scb:UIScrollBar; // Scroll bar
 		private var cropRect:Rectangle; // Visible area
 		private var cntHitBox:Sprite;
+		private var groupsColorFillsCanvas:Sprite;
 		
 		// Scroll
 		private const initialScrollSpeed:int = 24;
@@ -61,7 +68,7 @@ package quantum.gui.modules
 		private var lastMouseWheelDelta:int;
 			
 		// Selection
-		private var groupSelectionRect:Shape;
+		private var groupSelectionRect:Sprite;
 		private var groupSelectTimer:Timer;
 		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
 		
@@ -107,7 +114,7 @@ package quantum.gui.modules
 					
 					cnt.addChild(itmGrp.displayObject);
 					itmGrp.displayObject.x = SIDE_MARGIN + sizesSum;
-					itmGrp.displayObject.y = SIDE_MARGIN;
+					itmGrp.displayObject.y = SIDE_MARGIN * 2;
 					sizesSum += itmGrp.realWidth + GRP_SPACING;
 				}
 				
@@ -182,25 +189,37 @@ package quantum.gui.modules
 			itemSelectionSticker.mouseEnabled = false;
 			
 			// Group selection rect
-			groupSelectionRect = new Shape();
+			groupSelectionRect = new Sprite();
 			groupSelectionRect.visible = false;
+			groupSelectionRect.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
 			
 			// Group select timer
 			groupSelectTimer = new Timer(2000, 1);
 			groupSelectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
+			
+			// Groups color fills canvas
+			groupsColorFillsCanvas = new Sprite();
+			groupsColorFillsCanvas.cacheAsBitmap = true;
+			groupsColorFillsCanvas.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
+			redrawGroupsColorFills();
 			
 			// Layers display order
 			/* 1. Groups container hit box */
 			addChild(cntHitBox);
 			/* 2. Groups container */
 			addChild(cnt);
-			/* 3. Container → groupsGroup selection rectangle */
-			cnt.addChildAt(groupSelectionRect, 0);
-			/* 4. Container → groups */
-			/* 5. Container → item selection sticker (dynamic) */
+			/* 3. Container → Groups color fills canvas */
+			cnt.addChildAt(groupsColorFillsCanvas, 0);
+			/* 4. Container → Group selection rectangle */
+			cnt.addChildAt(groupSelectionRect, 1);
+			/* 5. Container → Groups */
+			/* 6. Container → Item selection sticker (foremost — dynamically set) */
 			cnt.addChildAt(itemSelectionSticker, cnt.numChildren);
-			/* 6. Scroll bar */
+			/* 7. Scroll bar */
 			addChild(scb);
+			
+			// Additional listeners
+			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
 		}
 		
 		private function onMouseWheel(e:MouseEvent):void
@@ -293,12 +312,19 @@ package quantum.gui.modules
 			stage.focus = this;
 		}
 		
+		private function onSelectTimer(e:TimerEvent):void
+		{
+			resetSelected(true);
+			baseState.grpTitleTextInput.hide();
+		}
+		
 		private function resetSelected(onlyGroup:Boolean = false):void
 		{
 			if (selectedGroup != null)
 			{
 				selectedGroup.selected = false;
 				selectedGroup = null;
+				redrawGroupsColorFills();
 			}
 			
 			if (onlyGroup) return;
@@ -316,7 +342,7 @@ package quantum.gui.modules
 			for each (var grp:ItemsGroup in groups)
 			{
 				grp.displayObject.x = SIDE_MARGIN + sizesSum;
-				grp.displayObject.y = SIDE_MARGIN;
+				grp.displayObject.y = SIDE_MARGIN * 2;
 				sizesSum += grp.realWidth + GRP_SPACING;
 			}
 			
@@ -331,10 +357,84 @@ package quantum.gui.modules
 			trace("Container width (rearrange): " + cnt.width);
 		}
 		
-		private function onSelectTimer(e:TimerEvent):void
+		private function recalculateItemSelectionStickerPosition():void 
 		{
-			resetSelected(true);
-			baseState.grpTitleTextInput.hide();
+			if (selectedItem == null) return;
+			
+			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
+			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
+			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
+		}
+		
+		private function redrawGroupsColorFills():void 
+		{
+			groupsColorFillsCanvas.graphics.clear();
+			
+			if (!main.settings.getKey(Settings.paintColorForGroups)) 
+			{
+				redrawGroupSelectionRectangle(false);
+				return;
+			}
+			
+			const sideMargin:int = GRP_SPACING / 2;
+			var color:uint;
+			var w:Number, h:Number;
+			var xCoord:int;
+			var gWH:WarehouseEntity;
+			var selectedGroupHasColor:Boolean = false;
+			
+			for each (var g:ItemsGroup in groups) 
+			{
+				if (g.isUntitled || g.warehouseID == Warehouse.NONE)
+					continue;
+				
+				gWH = Warehouse.getByID(g.warehouseID);
+					
+				color = 0;
+				color = gWH.uniqueColor;
+					
+				if (color == 0)
+					continue;
+					
+				xCoord = g.displayObject.x - sideMargin;
+				groupsColorFillsCanvas.graphics.moveTo(xCoord, 0);
+				
+				w = g.realWidth + sideMargin * 2;
+				h = cropRect.height - scb.height;
+				
+				// Color line
+				groupsColorFillsCanvas.graphics.beginFill(color);
+				groupsColorFillsCanvas.graphics.drawRect(xCoord, 0, w, groupColorAreaLineThickness);
+				groupsColorFillsCanvas.graphics.endFill();
+				
+				if (g.selected)
+				{
+					selectedGroupHasColor = true;
+					continue;
+				}
+				
+				// Back fill
+				groupsColorFillsCanvas.graphics.beginFill(color, 0.2);
+				groupsColorFillsCanvas.graphics.drawRect(xCoord, groupColorAreaLineThickness, w, h);
+				groupsColorFillsCanvas.graphics.endFill();
+			}
+			
+			redrawGroupSelectionRectangle(selectedGroupHasColor);
+		}
+		
+		private function redrawGroupSelectionRectangle(selectedGroupHasColor:Boolean = false):void 
+		{
+			if (selectedGroup == null)
+				return;
+			
+			var g:ItemsGroup = selectedGroup;
+			groupSelectionRect.graphics.clear();
+			groupSelectionRect.graphics.beginFill(0xFFDD00, 0.6);
+			groupSelectionRect.graphics.drawRect(
+				0, (selectedGroupHasColor ? groupColorAreaLineThickness : 0), g.realWidth + GRP_SPACING, cropRect.height);
+			groupSelectionRect.graphics.endFill();
+			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
+			groupSelectionRect.visible = true;
 		}
 		
 		private function moveSelectedGroup(direction:String):void 
@@ -351,7 +451,6 @@ package quantum.gui.modules
 				idxNext = idx-1;
 				if (idxNext < 0) return;
 				swapGroups(selectedGroup, groups[idxNext]);
-				selectedGroup = selectedGroup;
 			}
 			
 			else
@@ -362,7 +461,6 @@ package quantum.gui.modules
 				idxNext = idx+1;
 				if (idxNext > groups.length-1) return;
 				swapGroups(selectedGroup, groups[idxNext]);
-				selectedGroup = selectedGroup;
 			}
 			
 			function swapGroups(grpA:ItemsGroup, grpB:ItemsGroup):void 
@@ -376,13 +474,12 @@ package quantum.gui.modules
 			}
 		}
 		
-		private function recalculateItemSelectionStickerPosition():void 
+		private function onSettingChange(e:SettingEvent):void 
 		{
-			if (selectedItem == null) return;
-			
-			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
-			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
-			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
+			if (e.settingName == Settings.paintColorForGroups) 
+			{
+				redrawGroupsColorFills();
+			}
 		}
 		
 		/**
@@ -410,6 +507,8 @@ package quantum.gui.modules
 			// Set new selection
 			selectedGroup = grp;
 			selectedGroup.selected = true;
+			
+			redrawGroupsColorFills();
 		}
 		
 		public function selectGroupWithTimer(grp:ItemsGroup):void
@@ -558,6 +657,14 @@ package quantum.gui.modules
 		{
 			rearrange();
 			recalculateItemSelectionStickerPosition();
+			redrawGroupsColorFills();
+		}
+		
+		public function childGroupDataChanged(g:ItemsGroup, event:PropertyEvent):void 
+		{
+			if (event.observablePropertyID == ItemsGroup.observableProperty_warehouseID || 
+				event.observablePropertyID == ItemsGroup.observableProperty_title)
+				redrawGroupsColorFills();
 		}
 		
 		public function stopSelTimer():void
@@ -697,17 +804,7 @@ package quantum.gui.modules
 				return;
 			}
 			
-			// Select rect
-			var g:ItemsGroup = value;
-			groupSelectionRect.graphics.clear();
-			groupSelectionRect.graphics.beginFill(0xFFDD00, 0.3);
-			groupSelectionRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cropRect.height);
-			groupSelectionRect.graphics.endFill();
-			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
-			//selectRect.y = cnt.y;
-			groupSelectionRect.visible = true;
-		
-			//baseState.updateUiElement("selGrpTitle", value == null ? "" : value.title);
+			redrawGroupSelectionRectangle();
 		}
 		
 		public function get image():Bitmap
