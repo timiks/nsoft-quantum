@@ -307,6 +307,9 @@ package quantum.gui
 			if (!selected)
 				return;
 			
+			if (!e.ctrlKey)
+				return;
+			
 			var halfSize:int = hitBox.height / 2;
 			
 			if (e.localY < halfSize)
