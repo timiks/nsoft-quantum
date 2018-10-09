@@ -23,7 +23,7 @@ package quantum.warehouse
 			$entities.push(new WarehouseEntity(NONE, "[Без склада]"));
 			$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
 			$entities.push(new WarehouseEntity(CANTON, "Кантон", 0x9A2EE3));
-			$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)", 0xFB8109));
+			$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)", 0xFF8000));
 			$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)", 0x1FCBFF));
 		}
 		

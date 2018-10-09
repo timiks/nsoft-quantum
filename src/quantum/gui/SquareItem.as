@@ -25,6 +25,7 @@ package quantum.gui
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
+	import tim.as3lib.ColorTools;
 	import tim.as3lib.TimUtils;
 	
 	/**
@@ -219,7 +220,7 @@ package quantum.gui
 			addEventListener(MouseEvent.CLICK, onMouseClick);
 			hitBox.addEventListener(MouseEvent.CLICK, hitBoxClick);
 			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
-			parentItemsGroup.addEventListener(PropertyEvent.CHANGED, parentItemsGroupPropertyChanged);
+			parentItemsGroup.events.addEventListener(PropertyEvent.CHANGED, parentItemsGroupPropertyChanged);
 			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
 			
 			// General settings
@@ -355,7 +356,7 @@ package quantum.gui
 			var setting:Boolean = main.settings.getKey(Settings.paintColorForGroups);
 			
 			// Color decide
-			if (!setting || g.selected || g.isUntitled || g.warehouseID == Warehouse.NONE) 
+			if (!setting || g.isUntitled || g.warehouseID == Warehouse.NONE) 
 			{
 				frameColor = FRAME_DEF_COLOR;
 			}
@@ -373,9 +374,12 @@ package quantum.gui
 				width = height = SQUARE_SIZE-1;
 			}
 			
+			frameColor = (frameColor == FRAME_DEF_COLOR ? frameColor : 
+					(g.selected ? ColorTools.shadeColor(frameColor, 0.6) : ColorTools.shadeColor(frameColor, 0.3)))
+			
 			$frame.graphics.clear();
 			$frame.graphics.lineStyle(
-				1, (frameColor == FRAME_DEF_COLOR ? frameColor : TimUtils.shadeColor(frameColor, 0.4)), 
+				1, frameColor, 
 				1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
 			$frame.graphics.drawRect(0, 0, width, height);
 		}

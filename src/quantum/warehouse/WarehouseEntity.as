@@ -11,7 +11,7 @@ package quantum.warehouse
 		private var $russianTitle:String;
 		private var $uniqueColor:uint;
 			
-		public function WarehouseEntity(ID:String, russianTitle:String, uniqueColor:uint = 0):void 
+		public function WarehouseEntity(ID:String, russianTitle:String, uniqueColor:uint = 0 /* 0 — means "no color" */):void 
 		{
 			$ID = ID;
 			$russianTitle = russianTitle;

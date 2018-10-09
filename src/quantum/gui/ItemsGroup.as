@@ -3,12 +3,18 @@ package quantum.gui
 	import flash.desktop.NativeApplication;
 	import flash.desktop.NativeProcess;
 	import flash.desktop.NativeProcessStartupInfo;
+	import flash.display.CapsStyle;
+	import flash.display.GraphicsSolidFill;
+	import flash.display.IGraphicsData;
+	import flash.display.JointStyle;
 	import flash.display.MovieClip;
 	import flash.display.NativeMenu;
 	import flash.display.NativeMenuItem;
+	import flash.display.Shape;
 	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.FileListEvent;
 	import flash.events.MouseEvent;
 	import flash.filesystem.File;
@@ -22,6 +28,7 @@ package quantum.gui
 	import quantum.data.DataMgr;
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
+	import quantum.gui.buttons.BtnGroupControl;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
@@ -33,7 +40,7 @@ package quantum.gui
 	 * 2016.Q4
 	 * @author Tim Yusupov
 	 */
-	public class ItemsGroup extends Sprite
+	public class ItemsGroup
 	{
 		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
 		
@@ -46,7 +53,8 @@ package quantum.gui
 		private const ITEMS_PLACING_Y_OFFSET:int = 45;
 		
 		// Fields of app properties
-		private var $displayObject:ItemsGroupMC;
+		private var $events:EventDispatcher;
+		private var $displayObject:Sprite;
 		private var $id:int;
 		private var $selected:Boolean;
 		private var $dataXml:XML;
@@ -68,8 +76,7 @@ package quantum.gui
 		private var nextPlace:Point;
 		private var imgFile:File;
 			
-		private var btnSelGrp:MovieClip;
-		private var btnNewItem:SimpleButton;
+		private var btnNewItem:BtnGroupControl;
 		private var ctxMenu:NativeMenu;
 		
 		private var menuItmDeleteThisGroup:NativeMenuItem;
@@ -87,9 +94,17 @@ package quantum.gui
 		
 		public function init():void
 		{
-			displayObject = new ItemsGroupMC();
+			$events = new EventDispatcher();
+			
+			displayObject = new Sprite();
 			displayObject.tabEnabled = false;
-			displayObject.tabChildren = false;
+			displayObject.tabChildren = false
+			
+			btnNewItem = new BtnGroupControl();
+			
+			displayObject.addChild(btnNewItem);
+			
+			// ================================================================================
 			
 			items = new Vector.<SquareItem>();
 			nextPlace = new Point();
@@ -100,9 +115,6 @@ package quantum.gui
 			 * UI functionality
 			 * ================================================================================
 			 */
-			
-			// Кнопка добавления нового объекта в группу
-			btnNewItem = displayObject.getChildByName("btnNewItem") as SimpleButton;
 			
 			// Меню группы
 			menuItmDeleteThisGroup = new NativeMenuItem("Удалить группу");
@@ -549,7 +561,7 @@ package quantum.gui
 		
 		public function set displayObject(value:Sprite):void
 		{
-			$displayObject = value as ItemsGroupMC;
+			$displayObject = value as Sprite;
 		}
 		
 		/**
@@ -578,7 +590,7 @@ package quantum.gui
 			$title = value;
 			
 			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_title);
-			dispatchEvent(event);
+			if ($events != null) $events.dispatchEvent(event);
 			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
 			
 			if (displayObject != null)
@@ -609,7 +621,7 @@ package quantum.gui
 			$warehouseID = value;
 			
 			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_warehouseID);
-			dispatchEvent(event);
+			if ($events != null) $events.dispatchEvent(event);
 			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
 			
 			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "warehouseID", value);
@@ -627,7 +639,7 @@ package quantum.gui
 		{
 			$selected = value;
 			
-			dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_selected));
+			if ($events != null) $events.dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_selected));
 			
 			if (value == true)
 			{
@@ -684,6 +696,11 @@ package quantum.gui
 		public function get isUntitled():Boolean 
 		{
 			return title == UNTITLED_GROUP_SIGN;
+		}
+		
+		public function get events():EventDispatcher 
+		{
+			return $events;
 		}
 	}
 }

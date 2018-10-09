@@ -17,10 +17,10 @@ package quantum
 	 */
 	public class TrayMgr extends EventDispatcher
 	{
-		[Embed(source = "/../lib/icons/adr-icon-16-bright.png")]
+		[Embed(source = "/../lib/app-icons/adr-icon-16-bright.png")]
 		private var Icon16:Class;
 		
-		[Embed(source = "/../lib/icons/adr-ico16-bgmode-green.png")]
+		[Embed(source = "/../lib/app-icons/adr-ico16-bgmode-green.png")]
 		private var Icon16BgMode:Class;
 		
 		private var main:Main;

@@ -30,6 +30,7 @@ package quantum.gui.modules
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
 	import quantum.warehouse.WarehouseEntity;
+	import tim.as3lib.ColorTools;
 	
 	/**
 	 * ...
@@ -229,7 +230,7 @@ package quantum.gui.modules
 			scrollDirection = e.delta > 0 ? true : false;
 			
 			appliedScrollSpeed = appliedScrollSpeed == 0 || e.delta != lastMouseWheelDelta ? 
-				initialScrollSpeed : (appliedScrollSpeed < initialScrollSpeed * 4 ? appliedScrollSpeed + 10 : appliedScrollSpeed);
+				initialScrollSpeed : (appliedScrollSpeed < initialScrollSpeed * 2 ? appliedScrollSpeed + 10 : appliedScrollSpeed);
 				
 			stage.addEventListener(Event.ENTER_FRAME, rollScroll);
 			lastMouseWheelDelta = e.delta;
@@ -400,7 +401,7 @@ package quantum.gui.modules
 				groupsColorFillsCanvas.graphics.moveTo(xCoord, 0);
 				
 				w = g.realWidth + sideMargin * 2;
-				h = cropRect.height - scb.height;
+				h = cropRect.height;
 				
 				// Color line
 				groupsColorFillsCanvas.graphics.beginFill(color);
@@ -414,7 +415,7 @@ package quantum.gui.modules
 				}
 				
 				// Back fill
-				groupsColorFillsCanvas.graphics.beginFill(color, 0.2);
+				groupsColorFillsCanvas.graphics.beginFill(color, 0.3);
 				groupsColorFillsCanvas.graphics.drawRect(xCoord, groupColorAreaLineThickness, w, h);
 				groupsColorFillsCanvas.graphics.endFill();
 			}
@@ -427,12 +428,20 @@ package quantum.gui.modules
 			if (selectedGroup == null)
 				return;
 			
+			var settingAllows:Boolean = main.settings.getKey(Settings.paintColorForGroups);
 			var g:ItemsGroup = selectedGroup;
+			var gWhColor:uint = Warehouse.getByID(g.warehouseID).uniqueColor;
+			var color:uint = 
+				!settingAllows ? Colors.UI_GROUP_SELECTION :
+					(g.isUntitled || gWhColor == 0 ? Colors.UI_GROUP_SELECTION : ColorTools.shadeColor(gWhColor, 0.4));
+			var alpha:Number = color == Colors.UI_GROUP_SELECTION ? 0.4 : 1;
+			
 			groupSelectionRect.graphics.clear();
-			groupSelectionRect.graphics.beginFill(0xFFDD00, 0.6);
+			groupSelectionRect.graphics.beginFill(color, alpha);
 			groupSelectionRect.graphics.drawRect(
 				0, (selectedGroupHasColor ? groupColorAreaLineThickness : 0), g.realWidth + GRP_SPACING, cropRect.height);
 			groupSelectionRect.graphics.endFill();
+			
 			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
 			groupSelectionRect.visible = true;
 		}
@@ -735,7 +744,7 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
-				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN) continue; // [!] Exclude untitled groups
+				if (g.isUntitled) continue; // [!] Exclude untitled groups
 				fullCount += g.getProductFullCount(productID);
 			}
 			

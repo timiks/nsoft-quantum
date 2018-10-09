@@ -27,7 +27,7 @@ package quantum
 	 */
 	public class TableDataComposer
 	{
-		[Embed(source = "/../lib/icons/adr-ico16-grey.png")]
+		[Embed(source = "/../lib/app-icons/adr-ico16-grey.png")]
 		private var AdrIcon16Grey:Class;
 		
 		private var $adrInputTextArea:TextArea;
