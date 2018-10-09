@@ -17,77 +17,124 @@ package quantum.product.images
 	 */
 	public class ImageCacheSaveTask 
 	{
+		private const imagesWithAlphaFileExtensionPattern:RegExp = /\.(png|gif)$/i;
+		
 		private var pm:ProductsMgr;
 		
 		private var fst:FileStream;
 		private var cacheDir:File;
 		private var cacheImgFile:File;
-		private var originalImgFilePath:String;
-		private var originalImgFileBytesCount:int
 		private var jpegEncoder:AsyncJPGEncoder;
 		private var pngEncoder:AsyncPNGEncoder;
 		
-		public function ImageCacheSaveTask(
-			productsMgr:ProductsMgr, 
-			cacheDir:File, pixels:BitmapData, 
-			originalImgFilePath:String,
-			originalImgFileBytesCount:int):void 
+		private var taskQueue:Vector.<Object>;
+		private var currentTask:Object;
+		private var queActive:Boolean;
+		
+		public function ImageCacheSaveTask(productsMgr:ProductsMgr, cacheDir:File):void 
 		{
 			pm = productsMgr;
 			this.cacheDir = cacheDir;
-			this.originalImgFilePath = originalImgFilePath;
-			this.originalImgFileBytesCount = originalImgFileBytesCount;
 			
+			init();
+		}
+		
+		private function init():void 
+		{
 			fst = new FileStream();
+			taskQueue = new Vector.<Object>();
+			pngEncoder = new AsyncPNGEncoder();
+			jpegEncoder = new AsyncJPGEncoder(100);
+		}
+		
+		public function addTask(pixels:BitmapData, originalImgFilePath:String, originalImgFileBytesCount:int):void 
+		{
+			taskQueue.push
+			({
+				pixels: pixels, 
+				originalImgFilePath: originalImgFilePath, 
+				originalImgFileBytesCount: originalImgFileBytesCount
+			});
 			
-			if (originalImgFilePath.search(/.png$/i) != -1) 
+			if (!queActive) startQueue();
+		}
+		
+		private function startQueue():void 
+		{
+			if (taskQueue.length < 1) return;
+			
+			queActive = true;
+			s1_setup();
+		}
+		
+		private function s1_setup():void 
+		{
+			currentTask = taskQueue[0];
+			
+			if (currentTask.originalImgFilePath.search(imagesWithAlphaFileExtensionPattern) != -1) 
 			{
 				// PNG
-				pngEncoder = new AsyncPNGEncoder();
-				pngEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, saveCachedImage);
-				pngEncoder.start(pixels);
+				pngEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, s2_saveCachedImage);
+				pngEncoder.start(currentTask.pixels);
 			}
 			else 
 			{
 				// JPG
-				jpegEncoder = new AsyncJPGEncoder(100);
-				jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, saveCachedImage);
-				jpegEncoder.start(pixels);
+				jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, s2_saveCachedImage);
+				jpegEncoder.start(currentTask.pixels);
 			}
 		}
 		
-		private function saveCachedImage(e:AsyncImageEncoderEvent):void 
+		private function s2_saveCachedImage(e:AsyncImageEncoderEvent):void 
 		{
-			var pid:int = pm.checkProductByImgPath(originalImgFilePath);
-			var isPNG:Boolean = (originalImgFilePath.search(/.png$/i) != -1);
+			var pid:int = pm.checkProductByImgPath(currentTask.originalImgFilePath);
+			var isImageWithAlphaSupport:Boolean = (currentTask.originalImgFilePath.search(imagesWithAlphaFileExtensionPattern) != -1);
 			
-			(isPNG ? pngEncoder : jpegEncoder).removeEventListener(AsyncImageEncoderEvent.COMPLETE, saveCachedImage);
+			(isImageWithAlphaSupport ? pngEncoder : jpegEncoder).removeEventListener(AsyncImageEncoderEvent.COMPLETE, s2_saveCachedImage);
 			
 			cacheImgFile = cacheDir.resolvePath(
 				String(pid) + "-" + 
-				MD5.hash(originalImgFilePath) + "-" + 
-				originalImgFileBytesCount.toString() + "-" +
+				MD5.hash(currentTask.originalImgFilePath) + "-" + 
+				currentTask.originalImgFileBytesCount.toString() + "-" +
 				String(ImageLoader.IMG_SQUARE_SIZE) + 
-				(isPNG ? ".png" : ".jpg"));
+				(isImageWithAlphaSupport ? ".png" : ".jpg"));
 			
 			fst.addEventListener(Event.COMPLETE, taskDone);
 			fst.openAsync(cacheImgFile, FileMode.WRITE);
-			fst.writeBytes((isPNG ? pngEncoder : jpegEncoder).encodedBytes);
-			taskDone(null);
+			fst.writeBytes((isImageWithAlphaSupport ? pngEncoder : jpegEncoder).encodedBytes);
+			fst.close();
+			taskDone();
 		}
 		
-		private function taskDone(e:Event):void 
+		private function taskDone():void 
 		{
-			trace("Cache image saved.", cacheImgFile.nativePath);
+			trace("Cache image saved:", cacheImgFile.nativePath);
 			
 			fst.close();
 			fst.removeEventListener(Event.COMPLETE, taskDone);
-			fst = null;
-			cacheDir = null;
 			cacheImgFile = null;
-			originalImgFilePath = null;
-			jpegEncoder = null;
-			pngEncoder = null;
+			
+			queueOutControl();
+		}
+		
+		private function queueOutControl():void 
+		{
+			// Remove finished element from queue
+			taskQueue.shift();
+			
+			// If no more images to process > stop queue
+			if (taskQueue.length < 1) 
+			{
+				queActive = false; // Stop queue (do nothing)
+				currentTask = null;
+				trace("Image cache saving task complete");
+			}
+			
+			// Otherwise > go to 1st step (next element)
+			else 
+			{
+				s1_setup();
+			}
 		}
 	}
 }

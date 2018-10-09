@@ -340,6 +340,12 @@ package quantum.gui
 				{
 					item = items[idx++];
 					item.parentItemsGroup = this;
+					
+					if (pm.getProductByID(item.productID) == null) 
+					{
+						throw new Error("Group contains item with nonexistent product associated");
+					}
+					
 					displayObject.addChild(item);
 					item.init();
 					
@@ -470,9 +476,13 @@ package quantum.gui
 		
 		public function removeItem(removingItem:SquareItem):void
 		{
-			main.dataMgr.opItem(removingItem, DataMgr.OP_REMOVE);
-			displayObject.removeChild(removingItem);
 			items.splice(items.indexOf(removingItem), 1);
+			main.dataMgr.opItem(removingItem, DataMgr.OP_REMOVE);
+			
+			if (!displayObject.contains(removingItem))
+				return;
+				
+			displayObject.removeChild(removingItem);
 			rearrangeItems();
 			grpCnt.itemRemoved(); // Tell GroupsContainer that item has been removed
 			

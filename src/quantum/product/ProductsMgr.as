@@ -47,6 +47,32 @@ package quantum.product
 			
 			if (idCounter == 0) idCounter = 1;
 			
+			var p:Product;
+			
+			// ID counter validation
+			var ids:Array = [];
+			if (productsList.length > 0) 
+			{
+				for each (p in productsList) 
+				{
+					ids.push(p.id);
+				}
+				
+				ids.sort(Array.NUMERIC|Array.DESCENDING);
+				
+				if (ids[0] != idCounter-1)
+				{
+					idCounter = int(ids[0]) + 1;
+					dm.opProductsIdCounter(DataMgr.OP_UPDATE, idCounter);
+				}
+				
+				ids = null;
+			}
+			else 
+			{
+				idCounter = 1;
+			}
+			
 			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
 			// Cache manager
@@ -65,7 +91,7 @@ package quantum.product
 			if (productsList.length > 0) 
 			{
 				var bunchOfImages:Vector.<String> = new Vector.<String>();
-				for each (var p:Product in productsList) 
+				for each (p in productsList) 
 				{
 					bunchOfImages.push(p.imgFile);
 				}

@@ -371,12 +371,33 @@ package quantum.data
 		{
 			var items:Vector.<SquareItem> = new Vector.<SquareItem>();
 			
+			var itm:XML 
 			var newItem:SquareItem;
-			for each (var itm:XML in grp.item)
+			var xmlQueryList:XMLList
+			var itemsWithNonexistentProducts:Vector.<XML>;
+			for each (itm in grp.item)
 			{
+				xmlQueryList = dataXml.products.product.(@id == itm.@productID);
+				if (xmlQueryList.length() == 0)
+				{
+					if (itemsWithNonexistentProducts == null)
+						itemsWithNonexistentProducts = new Vector.<XML>();
+					itemsWithNonexistentProducts.push(itm);
+					continue;
+				}
+				
 				newItem = new SquareItem(int(itm.@productID), int(itm.@count));
 				newItem.dataXml = itm;
 				items.push(newItem);
+			}
+			
+			if (itemsWithNonexistentProducts != null) 
+			{
+				for each (itm in itemsWithNonexistentProducts) 
+				{
+					delete itm.parent().item[itm.childIndex()];
+					main.logRed("Item with nonexistent product DELETED from database");
+				}
 			}
 			
 			return items;
@@ -446,7 +467,7 @@ package quantum.data
 			
 			if (op == OP_REMOVE)
 			{
-				delete item.parentItemsGroup.dataXml.item[item.dataXml.childIndex()];
+				delete item.dataXml.parent().item[item.dataXml.childIndex()];
 			}
 			
 			dataUpdate();

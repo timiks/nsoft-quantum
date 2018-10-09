@@ -21,6 +21,7 @@ package quantum.product.images
 		private var cacheDir:File;
 		private var cacheDirFiles:Array;
 		private var imgFileCacheList:Dictionary;
+		private var cacheSaveTask:ImageCacheSaveTask;
 		
 		public function ImageCacheMgr(productsMgr:ProductsMgr):void 
 		{
@@ -37,6 +38,7 @@ package quantum.product.images
 			
 			cacheDirFiles = cacheDir.getDirectoryListing();
 			imgFileCacheList = new Dictionary(true);
+			cacheSaveTask = new ImageCacheSaveTask(pm, cacheDir);
 			
 			var cacheFileNamePattern:RegExp = /^(\d+)-(.+)-(\d+)-(\d+)/;
 			var rea:Array;
@@ -108,10 +110,7 @@ package quantum.product.images
 		
 		public function saveImageInCache(pixels:BitmapData, originalImgFilePath:String, originalImgFileBytesCount:int):void 
 		{
-			var t:ImageCacheSaveTask = new ImageCacheSaveTask(pm, cacheDir, pixels, originalImgFilePath, originalImgFileBytesCount);
-			tasks.push(t);
+			cacheSaveTask.addTask(pixels, originalImgFilePath, originalImgFileBytesCount);
 		}
-		
-		private var tasks:Vector.<ImageCacheSaveTask> = new Vector.<ImageCacheSaveTask>();
 	}
 }
