@@ -42,6 +42,7 @@ package quantum
 		public static const composerAdrProcessingActive:String = "composerAdrProcessingActive";
 		public static const groupsViewScrollPosition:String = "groupsViewScrollPosition";
 		public static const adrPrcPassAdrsForCanton:String = "adrPrcPassAdrsForCanton";
+		public static const paintColorForGroups:String = "paintColorForGroups";
 
 		private var main:Main;
 		private var allSets:Object;
@@ -76,7 +77,7 @@ package quantum
 	/*GUI*/	allSets[bgClipboardProcessing]				= new Setting(bgClipboardProcessing, Boolean, false, "1.0");
 	/*GUI*/	allSets[deleteEmptyGroupsOnStartup]			= new Setting(deleteEmptyGroupsOnStartup, Boolean, true, "1.0");
 	/*GUI*/	allSets[backupData]							= new Setting(backupData, Boolean, true, "1.1");
-	/*GUI*/	allSets[defaultWarehouse]					= new Setting(defaultWarehouse, String, Warehouse.CANTON, "2.0");
+	/*GUI*/	allSets[defaultWarehouse]					= new Setting(defaultWarehouse, String, Warehouse.SHENZHEN_SEO, "2.0");
 			allSets[lastBackupTime]						= new Setting(lastBackupTime, Number, 0, "4.0");
 	/*GUI*/	allSets[backupInterval]						= new Setting(backupInterval, int, 360, "4.0"); // In minutes
 	/*GUI*/	allSets[backupCreateImage]					= new Setting(backupCreateImage, Boolean, true, "4.0");
@@ -86,6 +87,7 @@ package quantum
 	/*GUI*/	allSets[composerAdrProcessingActive]		= new Setting(composerAdrProcessingActive, Boolean, true, "4.0");
 			allSets[groupsViewScrollPosition]			= new Setting(groupsViewScrollPosition, Number, 0, "4.0");
 	/*GUI*/	allSets[adrPrcPassAdrsForCanton]			= new Setting(adrPrcPassAdrsForCanton, Boolean, true, "4.3");
+	/*GUI*/	allSets[paintColorForGroups]				= new Setting(paintColorForGroups, Boolean, true, "5.3");
 
 			sets = {};
 			settingsFile = File.applicationStorageDirectory.resolvePath("settings.json");
@@ -144,12 +146,12 @@ package quantum
 
 			sets[key] = value;
 
-			if (key == bgClipboardProcessing || key == dimUntitledGroupButton)
+			if (key == bgClipboardProcessing || key == dimUntitledGroupButton || key == paintColorForGroups)
 				$eventDsp.dispatchEvent(new SettingEvent(SettingEvent.VALUE_CHANGED, key, value));
 
 			if (tmrSaveDelay == null)
 			{
-				tmrSaveDelay = new Timer(3000, 1);
+				tmrSaveDelay = new Timer(4000, 1);
 				tmrSaveDelay.addEventListener(TimerEvent.TIMER, saveOnTimer);
 				tmrSaveDelay.start();
 			}

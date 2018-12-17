@@ -20,12 +20,17 @@ package quantum.gui.modules
 	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
+	import quantum.events.PropertyEvent;
+	import quantum.events.SettingEvent;
 	import quantum.gui.Colors;
 	import quantum.gui.ItemsGroup;
 	import quantum.gui.SquareItem;
 	import quantum.gui.modules.StQuantumManager;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
+	import quantum.warehouse.Warehouse;
+	import quantum.warehouse.WarehouseEntity;
+	import tim.as3lib.ColorTools;
 	
 	/**
 	 * ...
@@ -33,9 +38,11 @@ package quantum.gui.modules
 	 */
 	public class GroupsContainer extends Sprite
 	{
-		private const SIDE_MARGIN:int = 14;
+		private const SIDE_MARGIN:int = 7; // GRP_SPACING / 2 (Prev: 14)
 		private const CNT_Y_OFFSET:int = 42;
 		private const GRP_SPACING:int = 14; // 30
+		
+		private const groupColorAreaLineThickness:int = 8;
 		
 		// Fields of app properties
 		private var $selectedItem:SquareItem;
@@ -53,10 +60,18 @@ package quantum.gui.modules
 		private var scb:UIScrollBar; // Scroll bar
 		private var cropRect:Rectangle; // Visible area
 		private var cntHitBox:Sprite;
-		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
+		private var groupsColorFillsCanvas:Sprite;
 		
-		private var groupSelectionRect:Shape;
+		// Scroll
+		private const initialScrollSpeed:int = 24;
+		private var appliedScrollSpeed:int;
+		private var scrollDirection:Boolean; // Either right or left (boolean)
+		private var lastMouseWheelDelta:int;
+			
+		// Selection
+		private var groupSelectionRect:Sprite;
 		private var groupSelectTimer:Timer;
+		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
 		
 		public function GroupsContainer(baseState:StQuantumManager):void
 		{
@@ -100,7 +115,7 @@ package quantum.gui.modules
 					
 					cnt.addChild(itmGrp.displayObject);
 					itmGrp.displayObject.x = SIDE_MARGIN + sizesSum;
-					itmGrp.displayObject.y = SIDE_MARGIN;
+					itmGrp.displayObject.y = SIDE_MARGIN * 2;
 					sizesSum += itmGrp.realWidth + GRP_SPACING;
 				}
 				
@@ -121,14 +136,8 @@ package quantum.gui.modules
 			main.logRed("Container width (init): " + cnt.width);
 			main.logRed("Max scroll position (init): " + scb.maxScrollPosition);
 			
+			stage.addEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
 			scb.addEventListener(ScrollEvent.SCROLL, scroll);
-			stage.addEventListener(MouseEvent.MOUSE_WHEEL, function(e:MouseEvent):void
-			{
-				if (!scb.visible) return;
-				var wheelRatio:int = 25;
-				if (e.delta > 0) wheelRatio = -wheelRatio;
-				scb.scrollPosition += -e.delta + wheelRatio;
-			});
 			
 			// Set scroll position from settings (with a little delay due to bug)
 			var tmr:Timer = new Timer(200, 1);
@@ -181,27 +190,88 @@ package quantum.gui.modules
 			itemSelectionSticker.mouseEnabled = false;
 			
 			// Group selection rect
-			groupSelectionRect = new Shape();
+			groupSelectionRect = new Sprite();
 			groupSelectionRect.visible = false;
+			groupSelectionRect.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
 			
 			// Group select timer
 			groupSelectTimer = new Timer(2000, 1);
 			groupSelectTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onSelectTimer);
+			
+			// Groups color fills canvas
+			groupsColorFillsCanvas = new Sprite();
+			groupsColorFillsCanvas.cacheAsBitmap = true;
+			groupsColorFillsCanvas.addEventListener(MouseEvent.CLICK, cntHitBoxClick);
+			redrawGroupsColorFills();
 			
 			// Layers display order
 			/* 1. Groups container hit box */
 			addChild(cntHitBox);
 			/* 2. Groups container */
 			addChild(cnt);
-			/* 3. Container → groupsGroup selection rectangle */
-			cnt.addChildAt(groupSelectionRect, 0);
-			/* 4. Container → groups */
-			/* 5. Container → item selection sticker (dynamic) */
+			/* 3. Container → Groups color fills canvas */
+			cnt.addChildAt(groupsColorFillsCanvas, 0);
+			/* 4. Container → Group selection rectangle */
+			cnt.addChildAt(groupSelectionRect, 1);
+			/* 5. Container → Groups */
+			/* 6. Container → Item selection sticker (foremost — dynamically set) */
 			cnt.addChildAt(itemSelectionSticker, cnt.numChildren);
-			/* 6. Scroll bar */
+			/* 7. Scroll bar */
 			addChild(scb);
+			
+			// Additional listeners
+			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
 		}
 		
+		private function onMouseWheel(e:MouseEvent):void
+		{
+			if (!scb.visible) return;
+							
+			scrollDirection = e.delta > 0 ? true : false;
+			
+			appliedScrollSpeed = appliedScrollSpeed == 0 || e.delta != lastMouseWheelDelta ? 
+				initialScrollSpeed : (appliedScrollSpeed < initialScrollSpeed * 2 ? appliedScrollSpeed + 10 : appliedScrollSpeed);
+				
+			stage.addEventListener(Event.ENTER_FRAME, rollScroll);
+			lastMouseWheelDelta = e.delta;
+		}
+		
+		private function rollScroll(e:Event):void 
+		{
+			scb.scrollPosition += scrollDirection ? -appliedScrollSpeed : appliedScrollSpeed;
+			appliedScrollSpeed -= 2;
+			
+			if (appliedScrollSpeed < 1)
+			{
+				stage.removeEventListener(Event.ENTER_FRAME, rollScroll);
+				appliedScrollSpeed = 0;
+			}
+		}
+		
+		private function scroll(e:Event):void
+		{
+			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
+			rct.x = scb.scrollPosition;
+			cnt.scrollRect = rct;
+			main.settings.setKey(Settings.groupsViewScrollPosition, scb.scrollPosition);
+		}
+		
+		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
+		{
+			cnt.scrollRect = null;
+			
+			var bd:BitmapData = new BitmapData(1, 1, false);
+			bd.draw(cnt);
+			bd.dispose();
+			
+			var msp:Number = (/*cnt.width*/groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
+			
+			cnt.scrollRect = cropRect;
+			scb.visible = msp > 0 ? true : false;
+			
+			return msp;
+		}
+			
 		private function keyDown(e:KeyboardEvent):void
 		{
 			// DELETE
@@ -243,28 +313,10 @@ package quantum.gui.modules
 			stage.focus = this;
 		}
 		
-		private function scroll(e:Event):void
+		private function onSelectTimer(e:TimerEvent):void
 		{
-			var rct:Rectangle = cropRect; /*cnt.scrollRect*/
-			rct.x = scb.scrollPosition;
-			cnt.scrollRect = rct;
-			main.settings.setKey(Settings.groupsViewScrollPosition, scb.scrollPosition);
-		}
-		
-		private function calculateMaxScrollPosition(groupsSizesSum:Number):Number
-		{
-			cnt.scrollRect = null;
-			
-			var bd:BitmapData = new BitmapData(1, 1, false);
-			bd.draw(cnt);
-			bd.dispose();
-			
-			var msp:Number = (/*cnt.width*/groupsSizesSum - cropRect.width) + (SIDE_MARGIN * 2);
-			
-			cnt.scrollRect = cropRect;
-			scb.visible = msp > 0 ? true : false;
-			
-			return msp;
+			resetSelected(true);
+			baseState.grpTitleTextInput.hide();
 		}
 		
 		private function resetSelected(onlyGroup:Boolean = false):void
@@ -273,6 +325,7 @@ package quantum.gui.modules
 			{
 				selectedGroup.selected = false;
 				selectedGroup = null;
+				redrawGroupsColorFills();
 			}
 			
 			if (onlyGroup) return;
@@ -290,7 +343,7 @@ package quantum.gui.modules
 			for each (var grp:ItemsGroup in groups)
 			{
 				grp.displayObject.x = SIDE_MARGIN + sizesSum;
-				grp.displayObject.y = SIDE_MARGIN;
+				grp.displayObject.y = SIDE_MARGIN * 2;
 				sizesSum += grp.realWidth + GRP_SPACING;
 			}
 			
@@ -305,10 +358,92 @@ package quantum.gui.modules
 			trace("Container width (rearrange): " + cnt.width);
 		}
 		
-		private function onSelectTimer(e:TimerEvent):void
+		private function recalculateItemSelectionStickerPosition():void 
 		{
-			resetSelected(true);
-			baseState.grpTitleTextInput.hide();
+			if (selectedItem == null) return;
+			
+			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
+			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
+			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
+		}
+		
+		private function redrawGroupsColorFills():void 
+		{
+			groupsColorFillsCanvas.graphics.clear();
+			
+			if (!main.settings.getKey(Settings.paintColorForGroups)) 
+			{
+				redrawGroupSelectionRectangle(false);
+				return;
+			}
+			
+			const sideMargin:int = GRP_SPACING / 2;
+			var color:uint;
+			var w:Number, h:Number;
+			var xCoord:int;
+			var gWH:WarehouseEntity;
+			var selectedGroupHasColor:Boolean = false;
+			
+			for each (var g:ItemsGroup in groups) 
+			{
+				if (g.isUntitled || g.warehouseID == Warehouse.NONE)
+					continue;
+				
+				gWH = Warehouse.getByID(g.warehouseID);
+					
+				color = 0;
+				color = gWH.uniqueColor;
+					
+				if (color == 0)
+					continue;
+					
+				xCoord = g.displayObject.x - sideMargin;
+				groupsColorFillsCanvas.graphics.moveTo(xCoord, 0);
+				
+				w = g.realWidth + sideMargin * 2;
+				h = cropRect.height;
+				
+				// Color line
+				groupsColorFillsCanvas.graphics.beginFill(color);
+				groupsColorFillsCanvas.graphics.drawRect(xCoord, 0, w, groupColorAreaLineThickness);
+				groupsColorFillsCanvas.graphics.endFill();
+				
+				if (g.selected)
+				{
+					selectedGroupHasColor = true;
+					continue;
+				}
+				
+				// Back fill
+				groupsColorFillsCanvas.graphics.beginFill(color, 0.2);
+				groupsColorFillsCanvas.graphics.drawRect(xCoord, groupColorAreaLineThickness, w, h);
+				groupsColorFillsCanvas.graphics.endFill();
+			}
+			
+			redrawGroupSelectionRectangle(selectedGroupHasColor);
+		}
+		
+		private function redrawGroupSelectionRectangle(selectedGroupHasColor:Boolean = false):void 
+		{
+			if (selectedGroup == null)
+				return;
+			
+			var settingAllows:Boolean = main.settings.getKey(Settings.paintColorForGroups);
+			var g:ItemsGroup = selectedGroup;
+			var gWhColor:uint = Warehouse.getByID(g.warehouseID).uniqueColor;
+			var color:uint = 
+				!settingAllows ? Colors.UI_GROUP_SELECTION :
+					(g.isUntitled || gWhColor == 0 ? Colors.UI_GROUP_SELECTION : ColorTools.shadeColor(gWhColor, 0.4));
+			var alpha:Number = color == Colors.UI_GROUP_SELECTION ? 0.4 : 1;
+			
+			groupSelectionRect.graphics.clear();
+			groupSelectionRect.graphics.beginFill(color, alpha);
+			groupSelectionRect.graphics.drawRect(
+				0, (selectedGroupHasColor ? groupColorAreaLineThickness : 0), g.realWidth + GRP_SPACING, cropRect.height);
+			groupSelectionRect.graphics.endFill();
+			
+			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
+			groupSelectionRect.visible = true;
 		}
 		
 		private function moveSelectedGroup(direction:String):void 
@@ -325,7 +460,6 @@ package quantum.gui.modules
 				idxNext = idx-1;
 				if (idxNext < 0) return;
 				swapGroups(selectedGroup, groups[idxNext]);
-				selectedGroup = selectedGroup;
 			}
 			
 			else
@@ -336,7 +470,6 @@ package quantum.gui.modules
 				idxNext = idx+1;
 				if (idxNext > groups.length-1) return;
 				swapGroups(selectedGroup, groups[idxNext]);
-				selectedGroup = selectedGroup;
 			}
 			
 			function swapGroups(grpA:ItemsGroup, grpB:ItemsGroup):void 
@@ -350,13 +483,12 @@ package quantum.gui.modules
 			}
 		}
 		
-		private function recalculateItemSelectionStickerPosition():void 
+		private function onSettingChange(e:SettingEvent):void 
 		{
-			if (selectedItem == null) return;
-			
-			itemSelectionSticker.x = selectedItem.parentItemsGroup.displayObject.x + selectedItem.x - 15;
-			itemSelectionSticker.y = selectedItem.parentItemsGroup.displayObject.y + selectedItem.y - 15;
-			cnt.setChildIndex(itemSelectionSticker, cnt.numChildren-1);
+			if (e.settingName == Settings.paintColorForGroups) 
+			{
+				redrawGroupsColorFills();
+			}
 		}
 		
 		/**
@@ -384,6 +516,8 @@ package quantum.gui.modules
 			// Set new selection
 			selectedGroup = grp;
 			selectedGroup.selected = true;
+			
+			redrawGroupsColorFills();
 		}
 		
 		public function selectGroupWithTimer(grp:ItemsGroup):void
@@ -418,8 +552,13 @@ package quantum.gui.modules
 				case "selItemTypeNotes":
 				{
 					if (selectedItem != null)
+					{
+						if ((val as String).search(/^\s+$/) != -1)
+							val = "";
+						
 						pm.opProduct(selectedItem.productID, 
 							DataMgr.OP_UPDATE, Product.prop_note, String(val));
+					}
 					break;
 				}
 				
@@ -467,7 +606,8 @@ package quantum.gui.modules
 				{
 					if (selectedItem != null)
 					{
-						if (pm.checkProductBySKU(String(val)) != -1) 
+						var checkSkuID:int = pm.checkProductBySKU(String(val));
+						if (checkSkuID != -1 && checkSkuID != selectedItem.productID) 
 						{
 							baseState.infoPanel.showMessage("Товар с таким SKU уже существует", Colors.WARN);
 							pm.opProduct(selectedItem.productID, 
@@ -526,6 +666,14 @@ package quantum.gui.modules
 		{
 			rearrange();
 			recalculateItemSelectionStickerPosition();
+			redrawGroupsColorFills();
+		}
+		
+		public function childGroupDataChanged(g:ItemsGroup, event:PropertyEvent):void 
+		{
+			if (event.observablePropertyID == ItemsGroup.observableProperty_warehouseID || 
+				event.observablePropertyID == ItemsGroup.observableProperty_title)
+				redrawGroupsColorFills();
 		}
 		
 		public function stopSelTimer():void
@@ -596,7 +744,7 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
-				if (g.title == ItemsGroup.UNTITLED_GROUP_SIGN) continue; // [!] Exclude untitled groups
+				if (g.isUntitled) continue; // [!] Exclude untitled groups
 				fullCount += g.getProductFullCount(productID);
 			}
 			
@@ -665,17 +813,7 @@ package quantum.gui.modules
 				return;
 			}
 			
-			// Select rect
-			var g:ItemsGroup = value;
-			groupSelectionRect.graphics.clear();
-			groupSelectionRect.graphics.beginFill(0xFFDD00, 0.3);
-			groupSelectionRect.graphics.drawRect(0, 0, g.realWidth + GRP_SPACING, cropRect.height);
-			groupSelectionRect.graphics.endFill();
-			groupSelectionRect.x = g.displayObject.x - GRP_SPACING / 2;
-			//selectRect.y = cnt.y;
-			groupSelectionRect.visible = true;
-		
-			//baseState.updateUiElement("selGrpTitle", value == null ? "" : value.title);
+			redrawGroupSelectionRectangle();
 		}
 		
 		public function get image():Bitmap

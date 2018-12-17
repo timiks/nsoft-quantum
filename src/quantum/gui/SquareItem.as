@@ -16,11 +16,17 @@ package quantum.gui
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import quantum.Main;
+	import quantum.Settings;
 	import quantum.data.DataMgr;
 	import quantum.events.DataEvent;
+	import quantum.events.PropertyEvent;
+	import quantum.events.SettingEvent;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
+	import quantum.warehouse.Warehouse;
+	import tim.as3lib.ColorTools;
+	import tim.as3lib.TimUtils;
 	
 	/**
 	 * ...
@@ -36,11 +42,11 @@ package quantum.gui
 				mimeType = "application/x-font",
 				advancedAntiAliasing = "true",
 				embedAsCFF = "false")]
-		private var FontMontserratBold:Class;
+		private static var FontMontserratBold:Class;
 		
-		public static const SQUARE_SIZE:int = 40; // Def: 68 58
-		
-		private const DEF_COUNT_VALUE:int = 1;
+		public  static const SQUARE_SIZE:int = 40; // Def: 68 58
+		private static const DEF_COUNT_VALUE:int = 1;
+		private static const FRAME_DEF_COLOR:uint = 0xB7BABC;
 		
 		// Fields of data properties
 		private var $count:int;
@@ -87,8 +93,7 @@ package quantum.gui
 			
 			// Main frame
 			$frame = new Shape();
-			$frame.graphics.lineStyle(1, 0xB7BABC, 1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
-			$frame.graphics.drawRect(0, 0, w-1, h-1);
+			drawFrame(w-1, h-1);
 			
 			// Over frame
 			overFrame = new Shape();
@@ -202,17 +207,21 @@ package quantum.gui
 				weightCorner.visible = false;
 			}
 			
-			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
-			
 			countTextField.y = SQUARE_SIZE - countTextField.height + 2;
 			countTextField.x = SQUARE_SIZE - countTextField.width - 1;
 			countTextField.mouseEnabled = false;
+			
+			if (parentItemsGroup.isUntitled && count == 1)
+				countTextField.visible = false;
 			
 			// Listeners
 			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
 			addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
 			addEventListener(MouseEvent.CLICK, onMouseClick);
 			hitBox.addEventListener(MouseEvent.CLICK, hitBoxClick);
+			pm.events.addEventListener(DataEvent.DATA_UPDATE, associatedProductDataUpdated);
+			parentItemsGroup.events.addEventListener(PropertyEvent.CHANGED, parentItemsGroupPropertyChanged);
+			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
 			
 			// General settings
 			buttonMode = true;
@@ -225,6 +234,24 @@ package quantum.gui
 			grpCnt.registerItemsHint(this, hintTextHandler);
 			
 			checkImage();
+		}
+		
+		private function parentItemsGroupPropertyChanged(e:PropertyEvent):void 
+		{
+			if (e.observablePropertyID == ItemsGroup.observableProperty_title) 
+			{
+				/* Reassign same value to execute checks in setter of the property */
+				parentItemsGroup = parentItemsGroup;
+				drawFrame();
+			}
+			
+			else
+			
+			if (e.observablePropertyID == ItemsGroup.observableProperty_warehouseID ||
+				e.observablePropertyID == ItemsGroup.observableProperty_selected) 
+			{
+				drawFrame();
+			}
 		}
 		
 		/**
@@ -256,6 +283,14 @@ package quantum.gui
 			}
 		}
 		
+		private function onSettingChange(e:SettingEvent):void 
+		{
+			if (e.settingName == Settings.paintColorForGroups) 
+			{
+				drawFrame();
+			}
+		}
+		
 		private function checkImage():void 
 		{
 			var bmd:BitmapData = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_image) as BitmapData;
@@ -270,6 +305,9 @@ package quantum.gui
 		private function hitBoxClick(e:MouseEvent):void
 		{
 			if (!selected)
+				return;
+			
+			if (!e.ctrlKey)
 				return;
 			
 			var halfSize:int = hitBox.height / 2;
@@ -312,6 +350,41 @@ package quantum.gui
 			}
 			
 			overFrame.visible = false;
+		}
+		
+		private function drawFrame(width:int = 0, height:int = 0):void 
+		{
+			var g:ItemsGroup = parentItemsGroup;
+			var frameColor:uint;
+			var setting:Boolean = main.settings.getKey(Settings.paintColorForGroups);
+			
+			// Color decide
+			if (!setting || g.isUntitled || g.warehouseID == Warehouse.NONE) 
+			{
+				frameColor = FRAME_DEF_COLOR;
+			}
+			
+			else
+			{
+				frameColor = Warehouse.getByID(g.warehouseID).uniqueColor;
+			}
+			
+			if (frameColor == 0)
+				frameColor = FRAME_DEF_COLOR;
+			
+			if (width == 0 || height == 0)
+			{
+				width = height = SQUARE_SIZE-1;
+			}
+			
+			frameColor = (frameColor == FRAME_DEF_COLOR ? frameColor : 
+					(g.selected ? ColorTools.shadeColor(frameColor, 0.6) : ColorTools.shadeColor(frameColor, 0.3)))
+			
+			$frame.graphics.clear();
+			$frame.graphics.lineStyle(
+				1, frameColor, 
+				1, true, "normal", CapsStyle.SQUARE, JointStyle.MITER);
+			$frame.graphics.drawRect(0, 0, width, height);
 		}
 		
 		/**
@@ -400,6 +473,18 @@ package quantum.gui
 				return;
 			}
 			
+			if (countTextField != null)
+			{
+				if (parentItemsGroup.isUntitled) 
+				{
+					countTextField.visible = value > 1 ? true : false;
+				}
+				else
+				{
+					countTextField.visible = true;
+				}
+			}
+			
 			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "count", value);
 			if (selected) main.stQuantumMgr.updateUiElement("selItemCount", count);
 			
@@ -446,6 +531,7 @@ package quantum.gui
 		{
 			$selected = value;
 			
+			/*
 			if (value == true)
 			{
 				selectedFrame.visible = true;
@@ -464,6 +550,7 @@ package quantum.gui
 				if (selectedFrame.numChildren > 0)
 					selectedFrame.removeChildAt(0);
 			}
+			*/
 		}
 		
 		public function get frame():Shape
@@ -478,6 +565,18 @@ package quantum.gui
 		
 		public function set parentItemsGroup(value:ItemsGroup):void
 		{
+			if (countTextField != null)
+			{
+				if (value.isUntitled && count == 1) 
+				{
+					countTextField.visible = false;
+				}
+				else
+				{
+					countTextField.visible = true;
+				}
+			}
+			
 			$parentItemsGroup = value;
 		}
 		

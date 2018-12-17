@@ -1,26 +1,13 @@
 package quantum.product 
 {
-	import flash.display.Bitmap;
-	import flash.display.BitmapData;
-	import flash.display.Loader;
-	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.events.IOErrorEvent;
-	import flash.filesystem.File;
-	import flash.filesystem.FileMode;
-	import flash.filesystem.FileStream;
-	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
-	import flash.utils.ByteArray;
 	import quantum.Main;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
-	import quantum.gui.SquareItem;
-	import sk.yoz.image.ImageResizer;
-	import sk.yoz.math.ResizeMath;
-	import tim.as3lib.TimUtils;
+	import quantum.product.images.ImageCacheMgr;
+	import quantum.product.images.ImageLoader;
 		
 	/**
 	 * ...
@@ -28,25 +15,23 @@ package quantum.product
 	 */
 	public class ProductsMgr 
 	{
-		[Embed(source = "/../lib/graphics/missing-file-red-icon.png")]
-		private var MissingFilePic:Class; // 200 x 200
-		
-		private const IMG_SQUARE_SIZE:int = SquareItem.SQUARE_SIZE;
-		
 		private var $events:EventDispatcher;
 		
 		private var main:Main;
 		private var dm:DataMgr; // Shortcut for DataMgr
 		
+		private var imgCacheMgr:ImageCacheMgr;
+		private var imgLoader1:ImageLoader;
+		private var imgLoader2:ImageLoader;
+		private var imgLoader3:ImageLoader;
+		private var imgLoader4:ImageLoader;
+		private var imgLoader5:ImageLoader;
+		private var imgLoader6:ImageLoader;
+		private var imgLoader7:ImageLoader;
+		private var imgLoader8:ImageLoader;
+		
 		private var idCounter:int;
 		private var productsList:Vector.<Product>;
-		
-		private var fst:FileStream;
-		private var ldr:Loader;
-		private var imgFile:File;
-		private var ba:ByteArray;
-		private var imgLoadingQueue:Vector.<String>;
-		private var queActive:Boolean;
 		
 		public function ProductsMgr():void 
 		{
@@ -62,193 +47,106 @@ package quantum.product
 			
 			if (idCounter == 0) idCounter = 1;
 			
-			// Setup stuff for product images processing
-			fst = new FileStream();
-			ldr = new Loader();
-			imgFile = new File();
-			ba = new ByteArray();
-			imgLoadingQueue = new Vector.<String>();
+			var p:Product;
 			
-			// · All time listeners
-			fst.addEventListener(Event.COMPLETE, imgLoading_s2_readFile);
-			fst.addEventListener(IOErrorEvent.IO_ERROR, imgLoadingIoError);
-			ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, imgLoading_s3_processImg);
+			// ID counter validation
+			var ids:Array = [];
+			if (productsList.length > 0) 
+			{
+				for each (p in productsList) 
+				{
+					ids.push(p.id);
+				}
+				
+				ids.sort(Array.NUMERIC|Array.DESCENDING);
+				
+				if (ids[0] != idCounter-1)
+				{
+					idCounter = int(ids[0]) + 1;
+					dm.opProductsIdCounter(DataMgr.OP_UPDATE, idCounter);
+				}
+				
+				ids = null;
+			}
+			else 
+			{
+				idCounter = 1;
+			}
 			
 			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
-			// Shuffle images list (for loading in random order)
-			var imgList:Array = [];
-			for each (var p:Product in productsList) 
-			{
-				imgList.push(p.imgFile);
-			}
-			
-			TimUtils.shuffleArray(imgList);
+			// Cache manager
+			imgCacheMgr = new ImageCacheMgr(this);
 			
 			// Initial load and process of all product images
-			for each (var img:String in imgList) 
-			{
-				addToImgLoadingQueue(img);
-			}
+			imgLoader1 = new ImageLoader(this, imgCacheMgr);
+			imgLoader2 = new ImageLoader(this, imgCacheMgr);
+			imgLoader3 = new ImageLoader(this, imgCacheMgr);
+			imgLoader4 = new ImageLoader(this, imgCacheMgr);
+			imgLoader5 = new ImageLoader(this, imgCacheMgr);
+			imgLoader6 = new ImageLoader(this, imgCacheMgr);
+			imgLoader7 = new ImageLoader(this, imgCacheMgr);
+			imgLoader8 = new ImageLoader(this, imgCacheMgr);
 			
-			p = null;
-			img = null;
-			imgList = null;
+			if (productsList.length > 0) 
+			{
+				var bunchOfImages:Vector.<String> = new Vector.<String>();
+				for each (p in productsList) 
+				{
+					bunchOfImages.push(p.imgFile);
+				}
+				
+				registerBunchOfImageFilesForLoading(bunchOfImages);
+				p = null;
+			}
 		}
 		
 		public function dismiss():void 
 		{
-			fst.removeEventListener(Event.COMPLETE, imgLoading_s2_readFile);
-			fst.removeEventListener(IOErrorEvent.IO_ERROR, imgLoadingIoError);
-			ldr.contentLoaderInfo.removeEventListener(Event.COMPLETE, imgLoading_s3_processImg);
+			productsList = null;
+		}
+		
+		private function registerBunchOfImageFilesForLoading(list:Vector.<String>):void 
+		{
+			var count:int = list.length;
+			var remainder:int = count % 8; // 8 — amount of loaders
+			var amountPerLoader:int = (count - remainder) / 8;
 			
-			fst = null;
-			ldr = null;
-			imgFile = null;
-			ba = null;
-			imgLoadingQueue = null;
-		}
-		
-		/**
-		 * Product image processing
-		 * ================================================================================
-		 */
-		
-		private function addToImgLoadingQueue(imgFilePath:String):void 
-		{
-			imgLoadingQueue.push(imgFilePath);
-			
-			if (!queActive) startLoadingImgs();
-		}
-		
-		private function startLoadingImgs():void 
-		{
-			if (imgLoadingQueue.length < 1) return;
-			
-			queActive = true;
-			imgLoading_s1_setup();
-		}
-		
-		private function imgLoading_s1_setup():void 
-		{
-			ba.clear();
-			/* Index is always first element from the top (processed elements are already deleted from queue) */
-			/* First element of the queue is always current processed element */
-			imgFile.nativePath = imgLoadingQueue[0]; 
-			fst.openAsync(imgFile, FileMode.READ); // Stage 2
-		}
-		
-		private function imgLoading_s2_readFile(e:Event):void 
-		{
-			fst.readBytes(ba, 0, fst.bytesAvailable);
-			fst.close();
-			ldr.loadBytes(ba); // Stage 3
-		}
-		
-		private function imgLoading_s3_processImg(e:Event):void
-		{
-			var img:Bitmap = ldr.content as Bitmap;
-			var w:int, h:int;
-			var processedImgMatrix:BitmapData;
-			
-			// Calculate image size for box with preserved Aspect Ratio
-			if (img.width != img.height)
-			{
-				var minSide:Number = Math.min(img.width, img.height);
-				if (img.width == minSide)
-				{
-					h = IMG_SQUARE_SIZE * img.height / img.width; // W * scrH / scrW
-					w = IMG_SQUARE_SIZE;
-				}
+			var i:int;
+			var il:ImageLoader;
+			for (i = 0; i < count; i++) 
+			{	
+				if (i <= amountPerLoader-1)
+					il = imgLoader1;
+					
+				if (i > amountPerLoader-1) 
+					il = imgLoader2;
 				
-				else
-				{
-					w = img.width * IMG_SQUARE_SIZE / img.height; // srcW * H / srcH
-					h = IMG_SQUARE_SIZE;
-				}
+				if (i > (amountPerLoader-1)*2)
+					il = imgLoader3;
+					
+				if (i > (amountPerLoader-1)*3)
+					il = imgLoader4;
+					
+				if (i > (amountPerLoader-1)*4)
+					il = imgLoader5;
+					
+				if (i > (amountPerLoader-1)*5)
+					il = imgLoader6;
+					
+				if (i > (amountPerLoader-1)*6)
+					il = imgLoader7;
+					
+				if (i > (amountPerLoader-1)*7)
+					il = imgLoader8;
+					
+				il.registerImageFileForLoading(list[i] as String);
 			}
-			
-			else
-			{
-				w = h = IMG_SQUARE_SIZE;
-			}
-			
-			// Resize image using Bilinear Interpolation algorithm
-			processedImgMatrix = ImageResizer.bilinearIterative(img.bitmapData, w, h, ResizeMath.METHOD_PAN_AND_SCAN);
-			img.bitmapData.dispose();
-			img = null;
-			
-			// Crop pixels to fit square
-			if (w != h)
-			{
-				// Calculate crop rect position and dimensions
-				var cropRect:Rectangle = new Rectangle();
-				if (h < w)
-				{
-					cropRect.x = (processedImgMatrix.width - IMG_SQUARE_SIZE) / 2;
-					cropRect.width = cropRect.height = IMG_SQUARE_SIZE;
-				}
-				
-				else
-				
-				if (h > w)
-				{
-					cropRect.width = cropRect.height = IMG_SQUARE_SIZE;
-				}
-				
-				var croppedMatrix:BitmapData = new BitmapData(cropRect.width, cropRect.height);
-				croppedMatrix.copyPixels(processedImgMatrix, cropRect, new Point(0, 0));
-				processedImgMatrix.dispose();
-				processedImgMatrix = croppedMatrix;
-			}
-			
-			/*
-			Алгоритм
-			> Set final bitmap data (processedImgMatrix) to product image property
-			> Dispatch event for items [x] — dispatching of 'update' events goes in opProduct method
-			> Check queue. If no more images to process > stop, queActive = false; else > shift queue element and call setup again
-			*/
-			
-			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, processedImgMatrix, true);
-			
-			// Check image loading queue
-			imgLoadingQueueOutControl();
 		}
 		
-		private function imgLoadingIoError(e:IOErrorEvent):void 
+		private function registerSingleImageFileForLoading(imgFilePath:String):void 
 		{
-			/*
-			Алгоритм
-			> Set cor. product image property with bad image sign
-			> Remove bad element from queue (shift)
-			*/
-			var missingFilePic:Bitmap = new MissingFilePic();
-			var resizedPixels:BitmapData =
-				ImageResizer.bilinearIterative(missingFilePic.bitmapData,
-				IMG_SQUARE_SIZE, IMG_SQUARE_SIZE, ResizeMath.METHOD_PAN_AND_SCAN);
-			missingFilePic.bitmapData.dispose();
-			
-			opProduct(checkProductByImgPath(imgLoadingQueue[0]), DataMgr.OP_UPDATE, Product.prop_image, resizedPixels, true);
-			imgLoadingQueueOutControl();
-		}
-		
-		private function imgLoadingQueueOutControl():void 
-		{
-			// Remove finished element from queue
-			imgLoadingQueue.shift();
-			
-			// If no more images to process > stop queue
-			if (imgLoadingQueue.length < 1) 
-			{
-				queActive = false; // Stop queue (do nothing)
-				trace("Products images loading complete");
-			}
-			
-			// Otherwise > go to 1st step (next element)
-			else 
-			{
-				imgLoading_s1_setup();
-			}
+			imgLoader1.registerImageFileForLoading(imgFilePath);
 		}
 		
 		// ================================================================================
@@ -275,12 +173,12 @@ package quantum.product
 			productsList.push(newProductEntry);
 			
 			dm.opProduct(newProductEntry.id, DataMgr.OP_ADD, null, newProductEntry as Product);
-			addToImgLoadingQueue(imgFilePath);
+			registerSingleImageFileForLoading(imgFilePath);
 			
 			return newProductEntry;
 		}
 		
-		private function getProductByID(id:int):Product
+		public function getProductByID(id:int):Product
 		{
 			for each (var p:Product in productsList) 
 			{
@@ -290,7 +188,7 @@ package quantum.product
 				}
 			}
 			
-			throw new Error("No product with ID " + id);
+			trace("No product with ID " + id);
 			return null;
 		}
 		
@@ -396,7 +294,7 @@ package quantum.product
 		
 		public function get imagesLoadingActive():Boolean
 		{
-			return queActive;
+			return imgLoader1.loadingActive || imgLoader2.loadingActive || imgLoader3.loadingActive || imgLoader4.loadingActive;
 		}
 	}
 }

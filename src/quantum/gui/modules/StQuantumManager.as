@@ -12,6 +12,7 @@ package quantum.gui.modules
 	import flash.events.TextEvent;
 	import flash.system.Capabilities;
 	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
 	import flash.ui.Keyboard;
 	import quantum.Main;
 	import quantum.Settings;
@@ -67,8 +68,10 @@ package quantum.gui.modules
 			initWindowAndTray();
 			
 			// App version label
+			ui.tfVer.autoSize = TextFieldAutoSize.LEFT;
 			ui.tfVer.htmlText = Capabilities.isDebugger && main.isFutureVersion ? 
-				"<font color=\"" + Colors.TXLB_PURPLE + "\">" + main.version + "</font>" : main.version;
+				colorText(Colors.TXLB_PURPLE, main.version) : 
+				(main.isBetaActive ? colorText(Colors.TXLB_TURQUOISE, main.version) : main.version);
 			
 			/**
 			 * UI components
@@ -166,6 +169,14 @@ package quantum.gui.modules
 			hintMgr.registerHint(ui.tiWeight, "Вес товара (в КГ)");
 			hintMgr.registerHint(ui.tiSku, "Значение SKU");
 			
+			if (main.isBetaActive)
+				hintMgr.registerHint(ui.tfVer, "Бета-версия\n" + colorText(Colors.TXLB_LIGHT_GREY, "В процессе тестирования"));
+			
+			// Info panel
+			$infoPanel = new QnInfoPanel(ui.infopanel);
+			ui.infopanel.y = 590 - 48;
+			$infoPanel.init();
+			
 			// Products manager
 			$productsMgr = new ProductsMgr();
 			$productsMgr.init();
@@ -181,11 +192,6 @@ package quantum.gui.modules
 			$grpTitleTextInput = new BigTextInput();
 			$grpTitleTextInput.tf = ui.tiGrpTitle;
 			$grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
-			
-			// Info panel
-			$infoPanel = new QnInfoPanel(ui.infopanel);
-			ui.infopanel.y = 590 - 48;
-			$infoPanel.init();
 			
 			// Layers display order
 			ui.addChildAt(grpCnt, 0);

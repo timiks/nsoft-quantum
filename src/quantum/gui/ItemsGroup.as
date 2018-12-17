@@ -3,12 +3,18 @@ package quantum.gui
 	import flash.desktop.NativeApplication;
 	import flash.desktop.NativeProcess;
 	import flash.desktop.NativeProcessStartupInfo;
+	import flash.display.CapsStyle;
+	import flash.display.GraphicsSolidFill;
+	import flash.display.IGraphicsData;
+	import flash.display.JointStyle;
 	import flash.display.MovieClip;
 	import flash.display.NativeMenu;
 	import flash.display.NativeMenuItem;
+	import flash.display.Shape;
 	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.FileListEvent;
 	import flash.events.MouseEvent;
 	import flash.filesystem.File;
@@ -20,7 +26,9 @@ package quantum.gui
 	import quantum.Settings;
 	import quantum.SoundMgr;
 	import quantum.data.DataMgr;
+	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
+	import quantum.gui.buttons.BtnGroupControl;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
@@ -32,16 +40,21 @@ package quantum.gui
 	 * 2016.Q4
 	 * @author Tim Yusupov
 	 */
-	public class ItemsGroup extends Sprite
+	public class ItemsGroup
 	{
 		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
+		
+		public static const observableProperty_title:String = "title";
+		public static const observableProperty_warehouseID:String = "warehouseID";
+		public static const observableProperty_selected:String = "selected";
 		
 		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10;
 		private const ITEMS_SPACING:int = 6; // In pixels
 		private const ITEMS_PLACING_Y_OFFSET:int = 45;
 		
 		// Fields of app properties
-		private var $displayObject:ItemsGroupMC;
+		private var $events:EventDispatcher;
+		private var $displayObject:Sprite;
 		private var $id:int;
 		private var $selected:Boolean;
 		private var $dataXml:XML;
@@ -63,8 +76,7 @@ package quantum.gui
 		private var nextPlace:Point;
 		private var imgFile:File;
 			
-		private var btnSelGrp:MovieClip;
-		private var btnNewItem:SimpleButton;
+		private var btnNewItem:BtnGroupControl;
 		private var ctxMenu:NativeMenu;
 		
 		private var menuItmDeleteThisGroup:NativeMenuItem;
@@ -82,9 +94,17 @@ package quantum.gui
 		
 		public function init():void
 		{
-			displayObject = new ItemsGroupMC();
+			$events = new EventDispatcher();
+			
+			displayObject = new Sprite();
 			displayObject.tabEnabled = false;
-			displayObject.tabChildren = false;
+			displayObject.tabChildren = false
+			
+			btnNewItem = new BtnGroupControl();
+			
+			displayObject.addChild(btnNewItem);
+			
+			// ================================================================================
 			
 			items = new Vector.<SquareItem>();
 			nextPlace = new Point();
@@ -95,9 +115,6 @@ package quantum.gui
 			 * UI functionality
 			 * ================================================================================
 			 */
-			
-			// Кнопка добавления нового объекта в группу
-			btnNewItem = displayObject.getChildByName("btnNewItem") as SimpleButton;
 			
 			// Меню группы
 			menuItmDeleteThisGroup = new NativeMenuItem("Удалить группу");
@@ -114,7 +131,8 @@ package quantum.gui
 			// Элементы подменю выбора склада
 			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList)
 			{
-				menuItmWarehouseSwitchRef = new NativeMenuItem("Переключить склад на «" + whEnt.russianTitle + "»");
+				menuItmWarehouseSwitchRef = new NativeMenuItem(
+					whEnt.ID == Warehouse.NONE ? "Без склада" : "Переключить склад на «" + whEnt.russianTitle + "»");
 				menuItmWarehouseSwitchRef.data = whEnt.ID;
 				menuItmWarehouseSwitchRef.addEventListener(Event.SELECT, menuItmWarehouseSwitchClick);
 				
@@ -195,8 +213,8 @@ package quantum.gui
 					break;
 					
 				default:
-				case Warehouse.SHENZHEN_SEO_TMP:
-				case Warehouse.SHENZHEN_CFF_TMP:
+				case Warehouse.SHENZHEN_SEO:
+				case Warehouse.SHENZHEN_CFF:
 					idBadge = Product.prop_sku;
 					
 					for each (PID in productsIdsList) 
@@ -322,6 +340,12 @@ package quantum.gui
 				{
 					item = items[idx++];
 					item.parentItemsGroup = this;
+					
+					if (pm.getProductByID(item.productID) == null) 
+					{
+						throw new Error("Group contains item with nonexistent product associated");
+					}
+					
 					displayObject.addChild(item);
 					item.init();
 					
@@ -452,9 +476,13 @@ package quantum.gui
 		
 		public function removeItem(removingItem:SquareItem):void
 		{
-			main.dataMgr.opItem(removingItem, DataMgr.OP_REMOVE);
-			displayObject.removeChild(removingItem);
 			items.splice(items.indexOf(removingItem), 1);
+			main.dataMgr.opItem(removingItem, DataMgr.OP_REMOVE);
+			
+			if (!displayObject.contains(removingItem))
+				return;
+				
+			displayObject.removeChild(removingItem);
 			rearrangeItems();
 			grpCnt.itemRemoved(); // Tell GroupsContainer that item has been removed
 			
@@ -476,8 +504,11 @@ package quantum.gui
 				return null;
 			}
 			
-			return (title == UNTITLED_GROUP_SIGN ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) +	
-				"\n" + "<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle;
+			return (title == UNTITLED_GROUP_SIGN ? 
+						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) + "\n" + 
+					(warehouseID == Warehouse.NONE ?
+						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, Warehouse.getByID(warehouseID).russianTitle) :
+						"<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle);
 		}
 		
 		public function checkItemExistenceByProductID(itemProductID:int):Boolean
@@ -540,7 +571,7 @@ package quantum.gui
 		
 		public function set displayObject(value:Sprite):void
 		{
-			$displayObject = value as ItemsGroupMC;
+			$displayObject = value as Sprite;
 		}
 		
 		/**
@@ -568,6 +599,10 @@ package quantum.gui
 		{
 			$title = value;
 			
+			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_title);
+			if ($events != null) $events.dispatchEvent(event);
+			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
+			
 			if (displayObject != null)
 			{
 				if (title == UNTITLED_GROUP_SIGN)
@@ -594,6 +629,11 @@ package quantum.gui
 		public function set warehouseID(value:String):void
 		{
 			$warehouseID = value;
+			
+			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_warehouseID);
+			if ($events != null) $events.dispatchEvent(event);
+			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
+			
 			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "warehouseID", value);
 		}
 		
@@ -608,6 +648,8 @@ package quantum.gui
 		public function set selected(value:Boolean):void
 		{
 			$selected = value;
+			
+			if ($events != null) $events.dispatchEvent(new PropertyEvent(PropertyEvent.CHANGED, observableProperty_selected));
 			
 			if (value == true)
 			{
@@ -664,6 +706,11 @@ package quantum.gui
 		public function get isUntitled():Boolean 
 		{
 			return title == UNTITLED_GROUP_SIGN;
+		}
+		
+		public function get events():EventDispatcher 
+		{
+			return $events;
 		}
 	}
 }

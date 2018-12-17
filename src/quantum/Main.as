@@ -13,6 +13,7 @@ package quantum
 	import quantum.adr.processing.ProcessingEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
+	import quantum.gui.GraphicsLibMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.GimGlobalError;
 	import quantum.gui.modules.StAddressyUI;
@@ -29,10 +30,12 @@ package quantum
 		
 		// App Version
 		private const $version:int 					= 5;
-		private const $versionService:int 			= 1;
-		private const $betaVersion:Boolean 			= false;
-		private const $futureVersion:Boolean 		= false;
-		private const bugs:Boolean 					= false;
+		private const $versionService:int 			= 2;
+		private const $betaVersionNumber:int        = 0;
+		
+		private const $betaVersion:Boolean 			= Boolean(0);
+		private const $futureVersion:Boolean 		= Boolean(0);
+		private const bugs:Boolean 					= Boolean(0);
 		
 		// Modules
 		// · Common
@@ -49,6 +52,7 @@ package quantum
 		private var $formatMgr:FormatMgr;
 		
 		// · UI
+		private var $graphicsLibMgr:GraphicsLibMgr;
 		private var $uiCmpMgr:UIComponentsMgr;
 		private var $stQuantumMgr:StQuantumManager;
 		private var $stAddressyUI:StAddressyUI;
@@ -150,6 +154,9 @@ package quantum
 			// UI Components Manager
 			$uiCmpMgr = new UIComponentsMgr();
 			
+			// Graphics Lib Manager
+			$graphicsLibMgr = new GraphicsLibMgr();
+			
 			// Main UI module (Quantum Manager) [with Window — Main Window]
 			$stQuantumMgr = new StQuantumManager();
 			addChild($stQuantumMgr);
@@ -224,10 +231,14 @@ package quantum
 		
 		public function get version():String
 		{
-			var vr:String = String($version); // Major version
-			vr += "." + String($versionService); // Service version
-			if (Capabilities.isDebugger && $futureVersion) vr += " F"; // Future version mark
-			if ($betaVersion) vr += " β"; // Beta tag
+			/* Major version */
+			var vr:String = String($version);
+			/* Minor (service) version */
+			vr += "." + String($versionService);
+			/* Beta version */
+			if ($betaVersion) vr += " β" + String($betaVersionNumber);
+			/* Future version mark */
+			if (Capabilities.isDebugger && $futureVersion) vr += " F";
 			return vr;
 		}
 		
@@ -249,6 +260,11 @@ package quantum
 		public function get isFutureVersion():Boolean
 		{
 			return $futureVersion;
+		}
+		
+		public function get isBetaActive():Boolean
+		{
+			return $betaVersion;
 		}
 		
 		// ================================================================================
@@ -333,6 +349,11 @@ package quantum
 		public function get numFrm():NumberFormatter 
 		{
 			return $numFrm;
+		}
+		
+		public function get graphicsLibMgr():GraphicsLibMgr 
+		{
+			return $graphicsLibMgr;
 		}
 	}
 }

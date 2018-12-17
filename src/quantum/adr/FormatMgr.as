@@ -8,14 +8,17 @@ package quantum.adr
 	 */
 	public class FormatMgr
 	{
-		// Beijing Warehouse
+		// Beijing warehouse
 		public static const FRM_BJN_TITLES:String = "frmBjnTitles";
 		public static const FRM_BJN_BLOCK:String = "frmBjnBlock";
 		public static const FRM_BJN_STR:String = "frmBjnStr";
 		
-		// Canton Warehouse
+		// Canton warehouse
 		public static const FRM_CNT_STR1:String = "frmCntStr1";
 		public static const FRM_CNT_STR2:String = "frmCntStr2";
+		
+		// Shenzhen warehouses
+		public static const FRM_SHZ1:String = "frmShz1";
 		
 		private static const STRING_DELIM:String = "\t";
 		
@@ -134,6 +137,21 @@ package quantum.adr
 					output = jointString;
 					break;
 				
+				case FRM_SHZ1:
+					
+					jointString =
+						name + STRING_DELIM +
+						country + STRING_DELIM +
+						addr1 + STRING_DELIM +
+						(addr2 != null ? addr2 : "") + STRING_DELIM +
+						city + STRING_DELIM +
+						region + STRING_DELIM +
+						postCode + STRING_DELIM +
+						phone;
+					
+					output = jointString;
+					break;
+					
 				default: 
 					output = "Ошибка форматирования. Неизвестный формат";
 					break;

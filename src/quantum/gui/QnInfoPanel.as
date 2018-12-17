@@ -31,7 +31,7 @@ package quantum.gui
 		private var msgQueue:Vector.<Object>;
 		private var queTmr:Timer;
 		private var blinkTimer:Timer;
-		private var lastShowCallTime:Number;
+		private var lastShowCallTime:Number = 0;
 		
 		public function QnInfoPanel(disOb:QuantumInfoPanel):void 
 		{
@@ -74,9 +74,9 @@ package quantum.gui
 				disOb.visible = true;
 		}
 		
-		public function showMessage(text:String, color:String = null, queShow:Boolean = false):void
+		public function showMessage(text:String, color:String = null, priority:Boolean = false, queShow:Boolean = false):void
 		{
-			if (!queShow && (new Date().time - lastShowCallTime) < 1300 && disOb.isPlaying && $currentMessage != text)
+			if (!priority && !queShow && (new Date().time - lastShowCallTime) < 1300 && disOb.isPlaying && $currentMessage != text)
 			{
 				if (lastQueMessage != text) 
 				{
@@ -96,6 +96,7 @@ package quantum.gui
 				
 				else
 				{
+					/* Don't put the same message on queue CONSECUTIVELY */
 					return;
 				}
 			}
@@ -189,7 +190,7 @@ package quantum.gui
 			if (msgQueue.length > 0) 
 			{
 				var msgParams:Object = msgQueue.shift();
-				showMessage(msgParams.text, msgParams.color, true);
+				showMessage(msgParams.text, msgParams.color, false, true);
 			}
 			
 			else 
