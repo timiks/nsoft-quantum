@@ -415,7 +415,7 @@ package quantum.gui.modules
 				}
 				
 				// Back fill
-				groupsColorFillsCanvas.graphics.beginFill(color, 0.3);
+				groupsColorFillsCanvas.graphics.beginFill(color, 0.2);
 				groupsColorFillsCanvas.graphics.drawRect(xCoord, groupColorAreaLineThickness, w, h);
 				groupsColorFillsCanvas.graphics.endFill();
 			}
