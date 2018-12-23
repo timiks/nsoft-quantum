@@ -176,7 +176,7 @@ package quantum.gui
 			// Y axis
 			if (hintsContainer.stage.mouseY + hintDisOb.height + 20 > hintsContainer.stage.stageHeight) 
 			{
-				y = hintsContainer.stage.mouseY - 3 - hintDisOb.height;
+				y = hintsContainer.stage.mouseY - 15 - hintDisOb.height;
 			}
 			
 			else 
