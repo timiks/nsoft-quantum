@@ -744,7 +744,9 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
-				if (g.isUntitled) continue; // [!] Exclude untitled groups
+				// [!] Exclude untitled groups AND groups with no warehouse
+				if (g.isUntitled || g.warehouseID == Warehouse.NONE)
+					continue;
 				fullCount += g.getProductFullCount(productID);
 			}
 			
