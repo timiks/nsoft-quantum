@@ -33,6 +33,7 @@ package quantum.product
 		private var $image:BitmapData;
 		public static const prop_image:String = "image";
 		
+		private var $weightStatList:Vector.<Number>; // Weight values from gathered statistics by TrackScript
 		private var $dataXml:XML; // associated XML-entry in data
 		
 		/**
@@ -129,6 +130,14 @@ package quantum.product
 		public function set dataXml(value:XML):void 
 		{
 			$dataXml = value;
+		}
+		
+		public function get weightStatList():Vector.<Number> 
+		{
+			if ($weightStatList == null)
+				$weightStatList = new Vector.<Number>();
+				
+			return $weightStatList;
 		}
 	}
 }

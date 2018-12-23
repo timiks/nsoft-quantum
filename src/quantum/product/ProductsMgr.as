@@ -1,6 +1,9 @@
 package quantum.product 
 {
 	import flash.events.EventDispatcher;
+	import flash.filesystem.File;
+	import flash.filesystem.FileMode;
+	import flash.filesystem.FileStream;
 	import flash.system.Capabilities;
 	import quantum.Main;
 	import quantum.data.DataMgr;
@@ -72,6 +75,9 @@ package quantum.product
 			{
 				idCounter = 1;
 			}
+			
+			// Weight stat
+			checkWeightStat();
 			
 			if (Capabilities.isDebugger && !DevSettings.loadProductsImages) return;
 			
@@ -200,6 +206,80 @@ package quantum.product
 			dm.opProductsIdCounter(DataMgr.OP_UPDATE, ++idCounter);
 			/* Returned value is the value BEFORE increment */
 			return setId;
+		}
+		
+		private function checkWeightStat():void 
+		{
+			var weightStatFile:File = File.userDirectory.resolvePath("AppData\\Roaming\\TrackScript\\Local Store\\weight-stat.xml");
+			
+			if (!weightStatFile.exists || weightStatFile.size == 0)
+				return;
+			
+			var weightStatXml:XML;
+			var fst:FileStream = new FileStream();
+			fst.open(weightStatFile, FileMode.READ);
+			weightStatXml = new XML(fst.readUTFBytes(fst.bytesAvailable));
+			fst.close();
+			
+			if (weightStatXml.children().length() == 0)
+				return;
+				
+			var p:XML;
+			var w:XML;
+			var wv:Number;
+			var qnp:Product;
+			var qnpId:int;
+			var qnpW:Number;
+			var avgW:Number;
+			
+			for each (p in weightStatXml.p) 
+			{
+				if (p.@sku == "" || p.@sku == null)
+					continue;
+				
+				if (p.children().length() > 0) 
+				{
+					qnpId = checkProductBySKU(String(p.@sku));
+					
+					if (qnpId == -1)
+						continue;
+					
+					qnp = getProductByID(qnpId);
+					trace("Product for weight stat found: " + qnp.id + " " + qnp.sku);
+						
+					for each (w in p.w) 
+					{
+						wv = parseFloat(String(w.@v).replace(",", "."));
+						if (isNaN(wv) || wv <= 0)
+							continue;
+						
+						qnp.weightStatList.push(wv);
+					}
+					
+					avgW = 0;
+					
+					if (qnp.weightStatList.length > 1) 
+					{
+						for each (qnpW in qnp.weightStatList) 
+						{
+							avgW += qnpW;
+						}
+						
+						avgW = avgW / qnp.weightStatList.length;
+						avgW = parseFloat(avgW.toFixed(3));
+					}
+					else if (qnp.weightStatList.length == 1) 
+					{
+						avgW = qnp.weightStatList[0];
+					}
+					
+					if (avgW > 0 && qnp.weight != avgW) 
+					{
+						// Update weight in DB
+						opProduct(qnp.id, DataMgr.OP_UPDATE, Product.prop_weight, avgW);
+					}
+				}
+			}
 		}
 		
 		/**

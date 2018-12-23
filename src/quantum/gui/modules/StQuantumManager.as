@@ -158,16 +158,10 @@ package quantum.gui.modules
 			 * ================================================================================
 			 */
 			
-			// Hints
+			// Hint manager
 			hintsCnt = new Sprite;
 			$hintMgr = new HintMgr();
 			$hintMgr.init(hintsCnt);
-			
-			hintMgr.registerHint(ui.nsCount, "Количество товара в группе");
-			hintMgr.registerHint(ui.taDetails, "Заметка");
-			hintMgr.registerHint(ui.tiPrice, "Цена товара (в USD)");
-			hintMgr.registerHint(ui.tiWeight, "Вес товара (в КГ)");
-			hintMgr.registerHint(ui.tiSku, "Значение SKU");
 			
 			if (main.isBetaActive)
 				hintMgr.registerHint(ui.tfVer, "Бета-версия\n" + colorText(Colors.TXLB_LIGHT_GREY, "В процессе тестирования"));
@@ -196,6 +190,13 @@ package quantum.gui.modules
 			// Layers display order
 			ui.addChildAt(grpCnt, 0);
 			addChildAt(hintsCnt, numChildren);
+			
+			// Register hints for UI elements
+			hintMgr.registerHint(ui.nsCount, "Количество товара в группе");
+			hintMgr.registerHint(ui.taDetails, "Заметка");
+			hintMgr.registerHint(ui.tiPrice, "Цена товара (в USD)");
+			hintMgr.registerHint(ui.tiSku, "Значение SKU");
+			hintMgr.registerHintWithHandler(ui.tiWeight, grpCnt.selItemWeightEditHintTextHandler);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		}

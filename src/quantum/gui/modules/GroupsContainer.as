@@ -744,11 +744,57 @@ package quantum.gui.modules
 			
 			for each (var g:ItemsGroup in groups) 
 			{
-				if (g.isUntitled) continue; // [!] Exclude untitled groups
+				// [!] Exclude untitled groups AND groups with no warehouse
+				if (g.isUntitled || g.warehouseID == Warehouse.NONE)
+					continue;
 				fullCount += g.getProductFullCount(productID);
 			}
 			
 			return fullCount;
+		}
+		
+		public function selItemWeightEditHintTextHandler():String
+		{
+			const defLabel:String = "Вес товара (в КГ)";
+			
+			if (selectedItem == null)
+			{
+				return defLabel;
+			}
+			
+			var selItemProduct:Product;
+			selItemProduct = pm.getProductByID(selectedItem.productID);
+			
+			if (selItemProduct.weightStatList.length <= 0 || selItemProduct.weightStatList.length == 1)
+				return defLabel;
+			
+			var weightStatText:String = "";
+			var w:Number;
+			var useGramForWeight:Boolean = false;
+			var count:uint = 0;
+			
+			weightStatText += "<b>Вес посылки</b>\n";
+			
+			for each (w in selItemProduct.weightStatList) 
+			{
+				if (isNaN(w))
+					continue;
+					
+				if (w < 1)
+				{
+					useGramForWeight = true;
+					w *= 1000;
+				}
+				else 
+				{
+					useGramForWeight = false;
+				}
+				
+				weightStatText += String(++count) + ". " + 
+					(main.numFrm.formatNumber(w) as String) + " " + (useGramForWeight ? "г" : "кг") + "\n";
+			}
+			
+			return weightStatText;
 		}
 		
 		/**
