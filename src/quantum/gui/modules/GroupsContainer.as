@@ -632,7 +632,7 @@ package quantum.gui.modules
 		
 		public function addNewGroup():ItemsGroup
 		{
-			var newGroup:ItemsGroup = new ItemsGroup("", main.settings.getKey(Settings.defaultWarehouse));
+			var newGroup:ItemsGroup = new ItemsGroup(ItemsGroup.UNTITLED_GROUP_SIGN, main.settings.getKey(Settings.defaultWarehouse));
 			main.dataMgr.opGroup(newGroup, DataMgr.OP_ADD);
 			groups.push(newGroup);
 			newGroup.grpCnt = this;
@@ -696,20 +696,11 @@ package quantum.gui.modules
 		
 		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:SquareItem):void 
 		{
-			var g:ItemsGroup;
-			var suchItemExists:Boolean = false; // At least one in all groups space
-			
-			for each (g in groups) 
-			{
-				if (g.checkItemExistenceByProductID(deletedItem.productID)) {
-					suchItemExists = true;
-					break;
-				}
-			}
-			
-			if (suchItemExists) return;
+			if (getProductFullCount(deletedItem.productID) > 0) 
+				return;
 			
 			var i:int;
+			var g:ItemsGroup;
 			var untitledGroup:ItemsGroup;
 			
 			// Search from the end (add to last untitled group in list)
