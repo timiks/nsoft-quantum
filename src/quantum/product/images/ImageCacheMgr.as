@@ -16,7 +16,7 @@ package quantum.product.images
 	{
 		private const imgCacheDirName:String = "cache";
 		
-		private var pm:ProductsMgr
+		private var pm:ProductsMgr;
 		
 		private var cacheDir:File;
 		private var cacheDirFiles:Array;
