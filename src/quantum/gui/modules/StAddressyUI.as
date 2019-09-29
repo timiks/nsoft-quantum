@@ -114,8 +114,8 @@ package quantum.gui.modules {
 			 */
 
 			// Show Version
-			ui.tfVer.text = main.prcEng.version;
-			//ui.tfVer.text = "";
+			ui.tfVer.text = "";
+			//ui.tfVer.autoSize = TextFieldAutoSize.LEFT;
 			//if (bugs) ui.tfVer.setTextFormat(new TextFormat(null, null, 0xB11318));
 
 			// Checkbox Automatic Copy in Clipboard
