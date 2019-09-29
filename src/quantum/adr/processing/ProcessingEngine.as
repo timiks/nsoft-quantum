@@ -1,17 +1,17 @@
-package quantum.adr.processing {
-
+package quantum.adr.processing
+{
 	import quantum.Main;
 	import quantum.adr.processing.ResultObject;
-
+	
 	/**
-	 * Движок обработки адресов Addressy
+	 * Движок обработки адресов “Addressy” · C 2016 — модуль Quantum
 	 * @author Tim Yusupov
-	 * @copy ©2015–2017
+	 * @copy ©2015
 	 */
-	public class ProcessingEngine {
-
+	public class ProcessingEngine
+	{
 		// Version
-		private const $version:int = 25;
+		private const $version:int = 26;
 		
 		// Special modes of processing
 		/* 1: Process just name and leave source lines as they are */
@@ -27,9 +27,9 @@ package quantum.adr.processing {
 		
 		private var $resultObj:ResultObject;
 		private var addrExamples:Array;
-
-		public function ProcessingEngine():void {
-
+		
+		public function ProcessingEngine():void
+		{
 			//{ region Country Regions Arrays Initialization
 
 			// Штаты США
@@ -158,62 +158,65 @@ package quantum.adr.processing {
 
 			// Main link
 			main = Main.ins;
-
 		}
-
+		
 		/**
 		 * Главная функция обработки
 		 * @param inputText Входная строка
 		 * @return Информация о результате обработки
 		 */
-		public function process(inputText:String, specialMode:int = 0):ProcessingResult {
+		public function process(inputText:String, specialMode:int = 0):ProcessingResult
+		{
 			var tx:String = inputText;
 			var ctrlCharPattern:RegExp = /(\r|\n|\r\n)/;
-
-			/**
-			 * Pre-processing Step #1
-			 * ================================================================================
-			 */
-
+			
+			// ================================================================================
+			//
+			// Pre-processing Step #1
+			//
+			// ================================================================================
+			
 			// Check: empty or one line
-			if (tx.length < 1 || tx.search(ctrlCharPattern) == -1) {
+			if (tx.length < 1 || tx.search(ctrlCharPattern) == -1)
+			{
 				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
 				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
 			}
-
+			
 			var lines:Array;
 			var linesTemp:Array = [];
-
+			
 			// Разделить по строкам
 			lines = tx.split(ctrlCharPattern);
-
+			
 			var i:int;
-
+			
 			// Отчистить от управляющих символов
-			for (i = 0; i < lines.length; i++) {
-				if ((lines[i] as String).search(ctrlCharPattern) == -1) {
+			for (i = 0; i < lines.length; i++)
+			{
+				if ((lines[i] as String).search(ctrlCharPattern) == -1)
 					linesTemp.push(lines[i]);
-				}
 			}
-
+			
 			lines = linesTemp;
 			linesTemp = [];
-
+			
 			// Отчистить от пустых символов
-			for (i = 0; i < lines.length; i++) {
-				if ((lines[i] as String).length != 0 || (lines[i] as String) != "") {
+			for (i = 0; i < lines.length; i++)
+			{
+				if ((lines[i] as String).length != 0 || (lines[i] as String) != "")
 					linesTemp.push(lines[i]);
-				}
 			}
-
+			
 			lines = linesTemp;
 			linesTemp = null;
 			$resultObj.sourceAdrLines = lines;
 			
-			/**
-			 * Special Modes
-			 * ================================================================================
-			 */
+			// ================================================================================
+			//
+			// Special Modes
+			//
+			// ================================================================================
 			
 			if (specialMode != 0) 
 			{
@@ -229,12 +232,13 @@ package quantum.adr.processing {
 					);
 				}
 			}
-
-			/**
-			 * Pre-processing Step #2 — Addresses without Country on the last line
-			 * ================================================================================
-			 */
-
+			
+			// ================================================================================
+			//
+			// Pre-processing Step #2 — Addresses without Country on the last line
+			//
+			// ================================================================================
+			
 			var lineX:String
 			var lineXObj:Object;
 			var lc:uint = lines.length; // Lines Count — число строк
@@ -242,27 +246,30 @@ package quantum.adr.processing {
 			var theLineBeforeLast:String = lines[lines.length-2] as String;
 			var reArr:Array;
 			var rePattern:RegExp;
-
-			if (lc == 3 || lc == 4 || lc == 5) {
-
-				// #SPECIAL: Проверка адреса без страны отдельно на последней строчке (Голландия)
+			
+			if (lc == 3 || lc == 4 || lc == 5 || lc == 6)
+			{
+				// [*] NETHERLANDS: Проверка адреса без страны отдельно на последней строчке (Голландия)
 				rePattern = /(.+) ?(Netherlands)$/;
-
+				
 				reArr = theLastLine.match(rePattern);
-				if (reArr != null) {
+				if (reArr != null)
+				{
 					trace("3:" + reArr[2]);
 					theLastLine = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны
 					lines[lines.length-1] = theLastLine; // Обновить последнюю строку
 					lines.push(reArr[2]); // Добавить новую строку со страной в конец
 					lc = lines.length; // Обновить число строк
 				}
-
-				// #SPECIAL: Американские адреса без страны на конце
+				
+				// [*] Американские адреса без страны на конце
 				var spcLnObj:Object = processSpecialLine(theLastLine);
-
-				if (spcLnObj != null && spcLnObj.region != null) {
+				
+				if (spcLnObj != null && spcLnObj.region != null)
+				{
 					// Process America's States
-					for (i = 0; i < usRegions.length; i++) {
+					for (i = 0; i < usRegions.length; i++)
+					{
 						if (
 						(usRegions[i].ab == (spcLnObj.region as String).toUpperCase())
 							||
@@ -273,38 +280,104 @@ package quantum.adr.processing {
 						}
 					}
 				}
-
-				// #SPECIAL: Сингапур
-				rePattern = /^Singapore/;
-
+				
+				// [*] СИНГАПУР
+				rePattern = /^Singapore/i;
+				
 				reArr = (lines[lines.length-2] as String).match(rePattern);
-
-				if (reArr != null) {
-
+				
+				if (reArr != null)
+				{
 					lines.pop(); // Delete last line with post code
 					lines.push(lines[lines.length-1]); // Add new line with string 'Singapore', which was on the last line before this op.
 					var lineBeforeLast:String = lines[lines.length-2] as String;
 					lineBeforeLast += " " + theLastLine; // Add post code to the line before last (Singapore)
 					lines[lines.length-2] = lineBeforeLast;
 					lc = lines.length;
-
-				} else {
-
+				}
+				else
+				{
 					reArr = theLastLine.match(rePattern);
-					if (reArr != null) {
+					if (reArr != null)
+					{
 						lines.push("Singapore");
 						lc = lines.length;
 					}
-
 				}
-
+				
+				// [*] ЯПОНИЯ / JAPAN
+				if ((lines[0] as String).search(/^〒/) != -1 || (lines[lines.length-2] as String).search(/^Japan/i) != -1) 
+				{
+					var japanTemplateError:Boolean = false;
+					var japanPostCodePattern:RegExp = /^〒 ?(.+)/;
+					var japanCityAndRegionPattern:RegExp = /(.+), ?(.+)/;
+					
+					// Japan › Name and Country
+					var japanName:String = trimSpaces(lines[lines.length-1]); // Last line
+					var japanCountry:String = trimSpaces(lines[lines.length-2]) // Last −1
+					
+					// Japan › Post code
+					reArr = trimSpaces(lines[0] as String).match(japanPostCodePattern);
+					if (reArr == null || reArr.length == 0 )
+						japanTemplateError = true;
+					else 
+						var japanPostCode:String = reArr[1];
+					
+					// Japan › City and Region
+					reArr = (lines[1] as String).match(japanCityAndRegionPattern);
+					if (reArr == null || reArr.length == 0 )
+					{
+						japanTemplateError = true;
+					}
+					else 
+					{
+						var japanRegion:String = trimSpaces(reArr[1]);
+						var japanCity:String = trimSpaces(reArr[2]);
+					}
+					
+					// Japan › Addr1 and Addr2
+					var japanAdr1:String;
+					var japanAdr2:String;
+					if (lc == 5)
+					{
+						japanAdr1 = trimSpaces(lines[2]);
+					}
+					else if (lc == 6)
+					{
+						 japanAdr1 = trimSpaces(lines[2]);
+						 japanAdr2 = trimSpaces(lines[3]);
+					}
+					
+					// Check error
+					if (japanTemplateError)
+					{
+						processingEnd(ProcessingResult.STATUS_ERROR);
+						return new ProcessingResult(
+							ProcessingResult.STATUS_ERROR,
+							new ProcessingDetails("Неверный формат спец. шаблона Японии")
+						);
+					}
+					
+					// If OK › Convert to TPL #1
+					for (i = 0; i < lc; i++)
+						lines.shift();
+					
+					lines.push(japanName);
+					lines.push(japanAdr1);
+					if (japanAdr2 != null)
+						lines.push(japanAdr2);
+					lines.push(japanCity + ", " + japanRegion + " " + japanPostCode);
+					lines.push(japanCountry)
+					lc = lines.length;
+				}
 			}
-
-			/**
-			 * Processing Initial Step
-			 * ================================================================================
-			 */
-
+			
+			// ================================================================================
+			//
+			// Processing Initial Step
+			//
+			// ================================================================================
+			
 			var name:String;
 			var addr1:String;
 			var addr2:String;
@@ -312,37 +385,39 @@ package quantum.adr.processing {
 			var city:String;
 			var region:String;
 			var postCode:String;
-
-			/**
-			 * COUNTRY (Last Line)
-			 * ================================================================================
-			 */
-			switch (lc) {
+			
+			// COUNTRY (Last Line)
+			// ================================================================================
+			
+			switch (lc)
+			{
 				case 4:
 					country = lines[3];
-				break;
+					break;
 				case 5:
 					country = lines[4];
-				break;
+					break;
 				case 6:
 					country = lines[5];
-				break;
+					break;
 				case 7:
 					country = lines[6];
-				break;
+					break;
 				default:
 					country = null;
-				break;
+					break;
 			}
-
-			if (country != null) country = processCountry(country);
-
-			/**
-			 * Pre-processing Step #3 — Based on Country; Converting to known templates
-			 * ================================================================================
-			 */
-
-			// RUSSIA. Converting to TPL #1
+			
+			if (country != null) 
+				country = processCountry(country);
+				
+			// ================================================================================
+			//
+			// Pre-processing Step #3 — Based on Country; Converting to known templates
+			//
+			// ================================================================================
+			
+			// [*] RUSSIA. Converting to TPL #1
 			if (country == "Russia" && (lc == 6 || lc == 7)) {
 				if (lc == 7) {
 					lines[1] += ", " + lines[2]; // Add Address2 to Address1
@@ -360,7 +435,7 @@ package quantum.adr.processing {
 				lc = lines.length; // Обновить число строк
 			}
 
-			// CANADA. Converting to TPL #2
+			// [*] CANADA. Converting to TPL #2
 			if (country == "Canada") {
 
 				rePattern = /^([A-Za-z]{2})\s+/;
@@ -393,7 +468,7 @@ package quantum.adr.processing {
 
 			}
 			
-			// ITALY. Converting to TPL #1
+			// [*] ITALY. Converting to TPL #1
 			if (country == "Italy" && lc >= 5)
 			{
 				rePattern = /[A-Z]{2}/;
@@ -407,7 +482,7 @@ package quantum.adr.processing {
 				}
 			}
 			
-			// IRELAND. Converting to TPL#2 (with 'default' post code)
+			// [*] IRELAND. Converting to TPL#2 (with 'default' post code)
 			if (country == "Ireland") 
 			{
 				rePattern = /default/i;
@@ -419,13 +494,17 @@ package quantum.adr.processing {
 					lc = lines.length;
 				}
 			}
-
-			/**
-			 * Pre-processing Step #4 — Identifying
-			 * ================================================================================
-			 */
-
-			switch (lc) {
+			
+			// ================================================================================
+			//
+			// PROCESSING
+			//
+			// ================================================================================
+			
+			// Identifying template
+			// ================================================================================
+			switch (lc)
+			{
 				case 4:
 				case 5:
 				case 6:
@@ -438,115 +517,114 @@ package quantum.adr.processing {
 					);
 				break;
 			}
-
+			
 			// IDENTIFY TEMPLATE
 			var tplType:int; // 1 or 2
 			var postalCodePattern:RegExp = /^([A-Za-z\d]{2,4}|\d{4,8})[-| ]?([A-Za-z\d]{2,4}|\d{4,8})$/;
-
-			if (lc == 4) {
+			
+			if (lc == 4)
+			{
 				tplType = 1;
-			} else
+			}
+			
+			else
 
-			if (lc == 5) {
-				if (String(lines[lines.length-2]).search(postalCodePattern) != -1) {
+			if (lc == 5)
+			{
+				if (String(lines[lines.length-2]).search(postalCodePattern) != -1)
+				{
 					tplType = 2;
-				} else {
+				} 
+				else
+				{
 					tplType = 1;
 				}
-			} else
+			}
+			
+			else
 
-			if (lc == 6) {
+			if (lc == 6)
+			{
 				tplType = 2;
 			}
-
+			
 			trace("Template type is " + tplType);
-
-			/**
-			 * Processing
-			 * ================================================================================
-			 */
-
-			/**
-			 * NAME (Line 1 — Index 0) and ADDRESS #1 (Line 2 — Index 1)
-			 * ================================================================================
-			 */
-
+			
+			// NAME (Line 1 — Index 0) and ADDRESS #1 (Line 2 — Index 1)
+			// ================================================================================
+			
 			name = processName(lines[0]);
 			addr1 = lines[1];
-
-			// HARD POINT
+			
+			// === HARD POINT ===
+			
+			// ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
 			// ================================================================================
-
-			/**
-			 * ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
-			 * ================================================================================
-			 */
-
-			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6)) {
+			
+			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6))
+			{
 				addr2 = lines[2];
 			}
-
-			/**
-			 * CITY, REGION & POSTAL CODE
-			 * ================================================================================
-			 */
-
+			
+			// CITY, REGION & POSTAL CODE
+			// ================================================================================
+			
 			var lastLineIndex:int = lc-1;
-			if (tplType == 1) {
-
+			if (tplType == 1)
+			{
 				lineX = lines[lastLineIndex-1];
-
+				
 				lineXObj = processSpecialLine(lineX, country, tplType);
-
-				if (lineXObj == null) {
-
+				
+				if (lineXObj == null)
+				{
 					processingEnd(ProcessingResult.STATUS_ERROR);
 					return new ProcessingResult(
 						ProcessingResult.STATUS_ERROR,
 						new ProcessingDetails("Ошибка обработки")
 					);
-
-				} else {
-
+				} 
+				else
+				{
 					city = lineXObj.city;
 					region = lineXObj.region;
 					postCode = lineXObj.postCode;
-
 				}
+			} 
+			
+			else
 
-			} else
-
-			if (tplType == 2) {
-
+			if (tplType == 2)
+			{
 				postCode = lines[lastLineIndex-1];
 				lineX = lines[lastLineIndex-2];
-
+				
 				lineXObj = processSpecialLine(lineX, country, tplType);
-
-				if (lineXObj == null) {
-
+				
+				if (lineXObj == null)
+				{
 					processingEnd(ProcessingResult.STATUS_ERROR);
 					return new ProcessingResult(
 						ProcessingResult.STATUS_ERROR,
 						new ProcessingDetails("Ошибка обработки")
 					);
-
-				} else {
-
+				} 
+				else
+				{
 					city = lineXObj.city;
 					region = lineXObj.region;
-
 				}
-
 			}
-
-			if (region != null) region = processRegion(region, country);
-
-			/**
-			 * Processing Final
-			 * ================================================================================
-			 */
-
+			
+			if (region != null) 
+				region = processRegion(region, country);
+			
+			// ================================================================================
+			//
+			// PROCESSING FINAL
+			//
+			// ================================================================================
+			
 			$resultObj.name = name;
 			$resultObj.country = country;
 			$resultObj.city = city;
@@ -555,7 +633,7 @@ package quantum.adr.processing {
 			$resultObj.address1 = addr1;
 			$resultObj.address2 = addr2;
 			$resultObj.sourceAdr = tx;
-
+			
 			// Успешный финал обработки
 			processingEnd(ProcessingResult.STATUS_OK);
 			return new ProcessingResult(
@@ -568,29 +646,33 @@ package quantum.adr.processing {
 		/**
 		 * Вызывается всякий раз при завершении обработки (включая неудачную обработку)
 		 */
-		private function processingEnd(status:int):void {
+		private function processingEnd(status:int):void
+		{
 			// Do some stuff when processing has finished either ok or bad
 			// e.g. reset resultObject
-
-			if (status != ProcessingResult.STATUS_OK) {
+			
+			if (status != ProcessingResult.STATUS_OK)
 				resetResultObject();
-			}
 		}
-
-		private function processSpecialLine(theLine:String, country:String = null, tplType:int = 0):Object {
+		
+		private function processSpecialLine(theLine:String, country:String = null, tplType:int = 0):Object
+		{
 			var retObj:Object = {};
 			var reArr:Array;
-
+			
 			// Триминг начального и конечного пробела в строке
-			if (theLine.search(/^\s(.+)\s$/) != -1) {
+			if (theLine.search(/^\s(.+)\s$/) != -1)
+			{
 				theLine = theLine.replace(/^\s(.+)\s$/, "$1");
 				//trace("Found Both");
-			} else
-			if (theLine.search(/^\s|\s$/) != -1) {
+			} 
+			else
+			if (theLine.search(/^\s|\s$/) != -1)
+			{
 				theLine = theLine.replace(/^\s|\s$/, "");
 				//trace("Found");
 			}
-
+			
 			/**
 			 * Cпециальная обработка для отдельных стран
 			 * ================================================================================
@@ -813,14 +895,18 @@ package quantum.adr.processing {
 				return retObj;
 			}
 		}
-
-		private function processName(name:String):String {
-			if (name.search(/\[change\]/) != -1) name = name.replace(/\[change\]/, "");
+		
+		private function processName(name:String):String
+		{
+			if (name.search(/\[change\]/) != -1)
+				name = name.replace(/\[change\]/, "");
 			return name;
 		}
-
-		private function processCountry(cn:String):String {
-			switch (cn) {
+		
+		private function processCountry(cn:String):String
+		{
+			switch (cn)
+			{
 				case "США":
 				case "Соединенные Штаты Америки":
 				case "USA":
@@ -828,44 +914,44 @@ package quantum.adr.processing {
 				case "United States of America":
 					cn = "United States";
 					break;
-
+				
 				case "Канада":
 					cn = "Canada";
 					break;
-
+				
 				case "Австралия":
 					cn = "Australia";
 					break;
-
+				
 				case "Испания":
 					cn = "Spain";
 					break;
-
+				
 				case "Франция":
 					cn = "France";
 					break;
-
+				
 				case "Германия":
 				case "Deutschland":
 					cn = "Germany";
 					break;
-
+				
 				case "Швеция":
 					cn = "Sweden";
 					break;
-
+				
 				case "Мексика":
 					cn = "Mexico";
 					break;
-
+				
 				case "Швейцария":
 					cn = "Switzerland";
 					break;
-
+				
 				case "Нидерланды":
 					cn = "Netherlands"
 					break;
-
+				
 				case "Великобритания":
 				case "UK":
 				case "Соединённое королевство":
@@ -874,105 +960,107 @@ package quantum.adr.processing {
 				case "Britain":
 					cn = "United Kingdom";
 					break;
-
+				
 				case "Италия":
 					cn = "Italy";
 					break;
-
+				
 				case "Япония":
 					cn = "Japan";
 					break;
-
+				
 				case "Хорватия":
 					cn = "Croatia";
 					break;
-
+				
 				case "Ирландия":
 					cn = "Ireland";
 					break;
-
+				
 				case "Норвегия":
 					cn = "Norway";
 					break;
-
+				
 				case "Бразилия":
 					cn = "Brazil";
 					break;
-
+				
 				case "Чили":
 					cn = "Chile";
 					break;
-
+				
 				case "Португалия":
 					cn = "Portugal";
 					break;
-
+				
 				case "Финляндия":
 					cn = "Finland";
 					break;
-
+				
 				default:
 					break;
 			}
 			return cn;
 		}
-
-		private function processRegion(rg:String, country:String):String {
-
-			function iterateRegions(list:Vector.<Object>):void {
-				for (var i:int = 0; i < list.length; i++) {
-					if (list[i].ab == rg.toUpperCase()) {
+		
+		private function processRegion(rg:String, country:String):String
+		{
+			function iterateRegions(list:Vector.<Object>):void
+			{
+				for (var i:int = 0; i < list.length; i++)
+				{
+					if (list[i].ab == rg.toUpperCase())
+					{
 						rg = list[i].name;
 						break;
 					}
 				}
 			}
-
-			if (rg.search(/NOT[- ]?PROVIDED/i) != -1) {
-
+			
+			if (rg.search(/NOT[- ]?PROVIDED/i) != -1)
+			{
 				rg = null;
-
-			} else
-
-			if (country == "United States") {
-
+			}
+			else
+			if (country == "United States")
+			{
 				// Process US states
 				iterateRegions(usRegions);
-
-			} else
-
-			if (country == "Canada") {
-
+			} 
+			else
+			if (country == "Canada")
+			{
 				// Process canadian regions
 				iterateRegions(caRegions);
-
-			} else
-
-			if (country == "Australia") {
-
+			}
+			else
+			if (country == "Australia")
+			{
 				// Process australian regions
 				iterateRegions(auRegions);
-
 			}
-
+			
 			return rg;
 		}
-
-		private function resetResultObject():void {
+		
+		private function resetResultObject():void
+		{
 			$resultObj.reset();
 		}
-
-		private function trimSpaces(str:String):String {
+		
+		private function trimSpaces(str:String):String
+		{
 			var ret:String = str.replace(/^\s*(.*?)\s*$/, "$1");
 			return ret;
 		}
-
+		
 		/**
 		 * PUBLIC INTERFACE
 		 * ================================================================================
 		 */
-
-		public function setOwnAddress():void {
+		
+		public function setOwnAddress():void
+		{
 			resetResultObject();
 			$resultObj.name = "Ponomareva Anastasia Alexandrovna";
 			$resultObj.address1 = "5-5-33";
@@ -981,30 +1069,31 @@ package quantum.adr.processing {
 			$resultObj.postCode = "628181";
 			$resultObj.country = "Russia";
 		}
-
-		public function getRandomAddress():String {
+		
+		public function getRandomAddress():String
+		{
 			return addrExamples[Math.round(Math.random() * 10)] as String;
 		}
-
+		
 		/**
 		 * PROPERTIES
 		 * ================================================================================
 		 */
-
+		
 		/**
 		 * Объект с отдельными полями результата
 		 */
-		public function get resultObject():ResultObject {
+		public function get resultObject():ResultObject
+		{
 			return $resultObj;
 		}
-
+		
 		/**
 		 * Версия движка
 		 */
-		public function get version():String {
+		public function get version():String
+		{
 			return String($version);
 		}
-
 	}
-
 }

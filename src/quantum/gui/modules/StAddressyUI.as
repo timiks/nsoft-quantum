@@ -114,8 +114,8 @@ package quantum.gui.modules {
 			 */
 
 			// Show Version
-			ui.tfVer.text = main.prcEng.version;
-			//ui.tfVer.text = "";
+			ui.tfVer.text = "";
+			//ui.tfVer.autoSize = TextFieldAutoSize.LEFT;
 			//if (bugs) ui.tfVer.setTextFormat(new TextFormat(null, null, 0xB11318));
 
 			// Checkbox Automatic Copy in Clipboard
@@ -439,31 +439,31 @@ package quantum.gui.modules {
 			if (addr2 == null) {
 
 				ui.previewTF.htmlText =
-					"Name: <font color=\"#000000\">" +
-					name + "</font> • Country: <font color=\"#000000\">" +
-					country + "</font> • City: <font color=\"#000000\">" +
+					"Имя: <font color=\"#000000\">" +
+					name + "</font> • Страна: <font color=\"#000000\">" +
+					country + "</font> • Город: <font color=\"#000000\">" +
 					city + "</font>\n";
 				ui.previewTF.htmlText +=
-					"Address: <font color=\"#000000\">" +
+					"Адрес: <font color=\"#000000\">" +
 					addr1 + "</font>\n";
 				ui.previewTF.htmlText +=
-					"Region: <font color=\"#000000\">" +
-					region + "</font> • Post code: <font color=\"#000000\">" +
+					"Регион: <font color=\"#000000\">" +
+					region + "</font> • Индекс: <font color=\"#000000\">" +
 					postCode + "</font>\n";
 
 			} else {
 
-				ui.previewTF.htmlText = "Name: <font color=\"#000000\">" +
-					name + "</font> • Country: <font color=\"#000000\">" +
-					country + "</font> • City: <font color=\"#000000\">" +
+				ui.previewTF.htmlText = "Имя: <font color=\"#000000\">" +
+					name + "</font> • Страна: <font color=\"#000000\">" +
+					country + "</font> • Город: <font color=\"#000000\">" +
 					city + "</font>\n";
 				ui.previewTF.htmlText +=
-					"Addr 1: <font color=\"#000000\">" +
-					addr1 + "</font> • Region: <font color=\"#000000\">" +
+					"Адрес 1: <font color=\"#000000\">" +
+					addr1 + "</font> • Регион: <font color=\"#000000\">" +
 					region + "</font>\n";
 				ui.previewTF.htmlText +=
-				"Addr 2: <font color=\"#000000\">" +
-				(addr2 == null ? "[no]" : addr2) + "</font> • Post code: <font color=\"#000000\">" +
+				"Адрес 2: <font color=\"#000000\">" +
+				(addr2 == null ? "[no]" : addr2) + "</font> • Индекс: <font color=\"#000000\">" +
 				postCode + "</font>\n";
 
 			}

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <application xmlns="http://ns.adobe.com/air/application/3.7">
   <id>Quantum</id>
-  <versionNumber>1.0</versionNumber>
+  <versionNumber>5.5</versionNumber>
   <filename>Quantum</filename>
   <name>Quantum</name>
   <initialWindow>
