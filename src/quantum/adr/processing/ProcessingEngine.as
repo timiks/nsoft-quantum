@@ -259,10 +259,21 @@ package quantum.adr.processing
 				reArr = theLastLine.match(rePattern);
 				if (reArr != null)
 				{
-					trace("3:" + reArr[2]);
-					theLastLine = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны
-					lines[lines.length-1] = theLastLine; // Обновить последнюю строку
-					lines.push(reArr[2]); // Добавить новую строку со страной в конец
+					lines[lines.length-1] = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны и обновить
+					theLastLine = reArr[2]; // New last line
+					lines.push(theLastLine); // Добавить новую строку со страной в конец
+					lc = lines.length; // Обновить число строк
+				}
+				
+				// [*] POLAND (ПОЛЬША)
+				rePattern = /(.+) ?(Poland)$/i;
+				
+				reArr = theLastLine.match(rePattern);
+				if (reArr != null)
+				{
+					lines[lines.length-1] = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны и обновить
+					theLastLine = reArr[2]; // New last line
+					lines.push(theLastLine); // Добавить новую строку со страной в конец
 					lc = lines.length; // Обновить число строк
 				}
 				
