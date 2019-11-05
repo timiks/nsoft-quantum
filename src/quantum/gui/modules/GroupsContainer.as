@@ -723,6 +723,13 @@ package quantum.gui.modules
 			}
 			else
 			{
+				// Don't add if this product already presented in untitled group
+				if (untitledGroup.getProductFullCount(deletedItem.productID) > 0)
+				{
+					baseState.infoPanel.showMessage("Товар кончился", Colors.WARN);
+					return;
+				}
+				
 				// Use found untitled group
 				untitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
