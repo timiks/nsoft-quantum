@@ -21,7 +21,7 @@ package quantum
 	import quantum.gui.modules.StSettings;
 	
 	/**
-	 * Quantum Application Main Module (CEM — Chef Executive Module)
+	 * Quantum Application Main Module (CEM — Chief Executive Module)
 	 * @author Tim Yusupov
 	 */
 	public class Main extends Sprite
@@ -30,7 +30,7 @@ package quantum
 		
 		// App Version
 		private const $version:int 					= 5;
-		private const $versionService:int 			= 5;
+		private const $versionService:int 			= 6;
 		private const $betaVersionNumber:int        = 0;
 		
 		private const $betaVersion:Boolean 			= Boolean(0);
