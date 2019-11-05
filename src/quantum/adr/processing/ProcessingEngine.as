@@ -185,6 +185,7 @@ package quantum.adr.processing
 			
 			var lines:Array;
 			var linesTemp:Array = [];
+			var rawSourceLines:Array = [];
 			
 			// Разделить по строкам
 			lines = tx.split(ctrlCharPattern);
@@ -195,7 +196,10 @@ package quantum.adr.processing
 			for (i = 0; i < lines.length; i++)
 			{
 				if ((lines[i] as String).search(ctrlCharPattern) == -1)
+				{
 					linesTemp.push(lines[i]);
+					rawSourceLines.push(lines[i]); // Form raw source lines array along the way 
+				}
 			}
 			
 			lines = linesTemp;
@@ -255,10 +259,21 @@ package quantum.adr.processing
 				reArr = theLastLine.match(rePattern);
 				if (reArr != null)
 				{
-					trace("3:" + reArr[2]);
-					theLastLine = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны
-					lines[lines.length-1] = theLastLine; // Обновить последнюю строку
-					lines.push(reArr[2]); // Добавить новую строку со страной в конец
+					lines[lines.length-1] = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны и обновить
+					theLastLine = reArr[2]; // New last line
+					lines.push(theLastLine); // Добавить новую строку со страной в конец
+					lc = lines.length; // Обновить число строк
+				}
+				
+				// [*] POLAND (ПОЛЬША)
+				rePattern = /(.+) ?(Poland)$/i;
+				
+				reArr = theLastLine.match(rePattern);
+				if (reArr != null)
+				{
+					lines[lines.length-1] = theLastLine.replace(rePattern, "$1"); // Очистить последнюю строку от страны и обновить
+					theLastLine = reArr[2]; // New last line
+					lines.push(theLastLine); // Добавить новую строку со страной в конец
 					lc = lines.length; // Обновить число строк
 				}
 				
@@ -322,6 +337,10 @@ package quantum.adr.processing
 						japanTemplateError = true;
 					else 
 						var japanPostCode:String = reArr[1];
+					
+					// · Add hyphen if not present (Format: XXX-XXXX)
+					if (japanPostCode.search("-") == -1)
+						japanPostCode = japanPostCode.slice(0, 3) + "-" + japanPostCode.slice(3);
 					
 					// Japan › City and Region
 					reArr = (lines[1] as String).match(japanCityAndRegionPattern);
@@ -435,7 +454,7 @@ package quantum.adr.processing
 				lc = lines.length; // Обновить число строк
 			}
 
-			// [*] CANADA. Converting to TPL #2
+			// [*] CANADA #2. Converting to TPL #2
 			if (country == "Canada") {
 
 				rePattern = /^([A-Za-z]{2})\s+/;
@@ -482,7 +501,7 @@ package quantum.adr.processing
 				}
 			}
 			
-			// [*] IRELAND. Converting to TPL#2 (with 'default' post code)
+			// [*] IRELAND. Converting to TPL #2 (with 'default' post code)
 			if (country == "Ireland") 
 			{
 				rePattern = /default/i;
@@ -490,7 +509,9 @@ package quantum.adr.processing
 				
 				if (reArr == null) 
 				{
-					lines.splice(lines.length-1, 0, "default");
+					if (rawSourceLines[rawSourceLines.length-2] == "")
+						lines.splice(lines.length-1, 0, "default");
+					
 					lc = lines.length;
 				}
 			}
@@ -663,48 +684,58 @@ package quantum.adr.processing
 			// Триминг начального и конечного пробела в строке
 			if (theLine.search(/^\s(.+)\s$/) != -1)
 			{
+				// Found both spaces
 				theLine = theLine.replace(/^\s(.+)\s$/, "$1");
-				//trace("Found Both");
 			} 
 			else
 			if (theLine.search(/^\s|\s$/) != -1)
 			{
+				// Found one
 				theLine = theLine.replace(/^\s|\s$/, "");
-				//trace("Found");
 			}
 			
-			/**
-			 * Cпециальная обработка для отдельных стран
-			 * ================================================================================
-			 */
-			if (country == "Canada") {
+			// ================================================================================
+			// Cпециальная обработка для отдельных стран
+			// ================================================================================
+			
+			// [*] Canada #1: Custom SPL
+			if (country == "Canada")
+			{
 				reArr = theLine.match(/^([^,]+)  ([^,]+)$/);
-
-				if (reArr == null) {
+				
+				if (reArr == null)
+				{
 					//return null;
-				} else {
+				} 
+				else
+				{
 					retObj.postCode = reArr[2];
 					var cityAndRegion:String = reArr[1];
-
+					
 					reArr = cityAndRegion.match(/^([^,]+) ([A-Z]+)$/);
-
-					if (reArr == null) {
+					
+					if (reArr == null)
+					{
 						//return null;
-					} else {
+					} 
+					else
+					{
 						retObj.city = reArr[1];
 						retObj.region = reArr[2];
 						return retObj;
 					}
 				}
 			}
-
-			//{ region UK + Canada (former)
-
+			
+			//{ region [*] UK + Canada (former)
+			
 			/*
-			if (country == "Canada" || country == "United Kingdom") {
+			if (country == "Canada" || country == "United Kingdom")
+			{
 				reArr = theLine.match(/^([^,]+)  ([^,]+) , ([^,]+)$/);
-
-				if (reArr != null) {
+				
+				if (reArr != null)
+				{
 					retObj.postCode = reArr[1];
 					retObj.city = reArr[2];
 					retObj.region = reArr[3];
@@ -714,33 +745,45 @@ package quantum.adr.processing
 			*/
 
 			//} endregion
-
-			if (country == "Brazil") {
+			
+			// [*] Brazil: Custom SPL
+			if (country == "Brazil")
+			{
 				reArr = theLine.match(/^([^,]+)  - ([^,]+)$/);
-
-				if (reArr == null) {
+				
+				if (reArr == null)
+				{
 					//return null;
-				} else {
+				} 
+				else
+				{
 					retObj.city = reArr[1];
 					retObj.region = reArr[2];
 					return retObj;
 				}
 			}
-
-			if (country == "Netherlands") {
+			
+			// [*] Netherlands: Custom SPL
+			if (country == "Netherlands")
+			{
 				reArr = theLine.match(/^(\d+ ?[A-Z]{2}) (.+)$/);
-
-				if (reArr == null) {
+				
+				if (reArr == null)
+				{
 					//return null;
-				} else {
+				}
+				else
+				{
 					retObj.postCode = reArr[1];
 					retObj.city = reArr[2];
 					retObj.region = null;
 					return retObj;
 				}
 			}
-
-			if (country == "Sweden") {
+			
+			// [*] Sweden: Custom SPL
+			if (country == "Sweden")
+			{
 				reArr = theLine.match(/^(\d+[-| ]?\d+) ([^,]+)$/);
 
 				if (reArr == null) {
@@ -752,143 +795,147 @@ package quantum.adr.processing
 					return retObj;
 				}
 			}
-
-			/**
-			 * Общая обработка
-			 * ================================================================================
-			 */
-			// TPL #2 General SPL
-			if (tplType == 2) {
-
+			
+			// ================================================================================
+			// Общая обработка
+			// ================================================================================
+			
+			// === TPL #2 General SPL ===
+			
+			if (tplType == 2)
+			{
 				reArr = theLine.match(/^([^,]+),? ?([^,]*)$/);
-
-				if (reArr == null) {
+				
+				if (reArr == null)
+				{
 					return null;
-				} else {
+				}
+				else
+				{
 					retObj.city = reArr[1];
 					retObj.region = reArr[2] == "" ? null : reArr[2];
 					return retObj;
 				}
-
 			}
-
-			// TPL #1 General SPL
-
+			
+			// === TPL #1 General SPL ===
+			
 			// Обрезать лишние пробелы
-			if (theLine.search(/\s{2,}/) != -1) {
+			if (theLine.search(/\s{2,}/) != -1)
+			{
 				theLine = theLine.replace(/\s{2,}/, " ");
 			}
-
+			
 			// Вся строка, почтовый индекс в конце
 			reArr = theLine.match(/^([^,]+) ?,? ([^,]*) (\d+[-| ]?\d+)$/);
-
-			if (reArr == null) {
-
+			
+			if (reArr == null)
+			{
 				// Вся строка, почтовый индекс в начале
 				reArr = theLine.match(/^(\d+[-| ]?\d+) ([^,]+) ?,? ([^,]*)$/);
-
-				if (reArr == null) {
+				
+				if (reArr == null)
+				{
 					//clearResultArea();
 					//return null;
-
+					
 					var pcBegin:RegExp = /^([A-Z\d]+[-|]?[A-Z\d]+)/; // Индекс в начале (пробелы нельзя)
 					reArr = theLine.match(pcBegin);
-
-					if (reArr == null) {
-
+					
+					if (reArr == null)
+					{
 						var pcEnd:RegExp = /([A-Z\d]+[-|]?[A-Z\d]+)$/; // Индекс в конце (можно с пробелами)
 						reArr = theLine.match(pcEnd);
-
-						if (reArr == null) {
-
+						
+						if (reArr == null)
+						{
 							return null; // END POINT
-
-						} else {
-
-							trace("Найден почт. индекс с буквами в конце", reArr[1]);
+						}
+						else
+						{
+							// Найден почт. индекс с буквами в конце
 							retObj.postCode = reArr[1];
 							theLine = theLine.replace(pcEnd, "");
 							theLine = theLine.replace(/\s$/, "");
-
+							
 							// Город
 							reArr = theLine.match(/^([^,]+)/);
-
-							if (reArr == null) {
-
+							
+							if (reArr == null)
+							{
 								return null; // END POINT
-
-							} else {
-
+							}
+							else
+							{
 								retObj.city = reArr[1];
 								theLine = theLine.replace(/^([^,]+)/, "");
 								theLine = theLine.replace(/^\s/, "");
-
+								
 								// Регион
 								reArr = theLine.match(/,? ?([^,]+)/);
-
-								if (reArr == null) {
-
+								
+								if (reArr == null)
+								{
 									retObj.region = null;
 									return retObj;
-
-								} else {
-
+								} 
+								else
+								{
 									retObj.region = reArr[1];
 									return retObj;
-
 								}
-
 							}
-
 						}
-
-					} else {
-
-						trace("Найден почт. индекс с буквами в начале", reArr[1]);
+					}
+					
+					else
+					{
+						// Найден почт. индекс с буквами в начале
 						retObj.postCode = reArr[1];
 						theLine = theLine.replace(pcBegin, "");
 						theLine = theLine.replace(/^\s/, "");
-
+						
 						// Город
 						reArr = theLine.match(/^([^,]+)/);
-
-						if (reArr == null) {
-
+						
+						if (reArr == null)
+						{
 							return null; // END POINT
-
-						} else {
-
+						}
+						else
+						{
 							retObj.city = reArr[1];
 							theLine = theLine.replace(/^([^,]+)/, "");
 							theLine = theLine.replace(/^\s/, "");
-
+							
 							// Регион
 							reArr = theLine.match(/,? ?([^,]+)/);
-
-							if (reArr == null) {
-
+							
+							if (reArr == null)
+							{
 								retObj.region = null;
 								return retObj;
-
-							} else {
-
+							}
+							else
+							{
 								retObj.region = reArr[1];
 								return retObj;
-
 							}
-
 						}
-
 					}
-
-				} else {
+				}
+				
+				else
+				{
 					retObj.postCode = reArr[1];
 					retObj.city = reArr[2];
 					retObj.region = reArr[3];
 					return retObj;
 				}
-
-			} else {
+			}
+			
+			else
+			{
 				retObj.city = reArr[1];
 				retObj.region = reArr[2];
 				retObj.postCode = reArr[3];
