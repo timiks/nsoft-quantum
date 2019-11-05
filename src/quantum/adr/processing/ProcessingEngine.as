@@ -185,6 +185,7 @@ package quantum.adr.processing
 			
 			var lines:Array;
 			var linesTemp:Array = [];
+			var rawSourceLines:Array = [];
 			
 			// Разделить по строкам
 			lines = tx.split(ctrlCharPattern);
@@ -195,7 +196,10 @@ package quantum.adr.processing
 			for (i = 0; i < lines.length; i++)
 			{
 				if ((lines[i] as String).search(ctrlCharPattern) == -1)
+				{
 					linesTemp.push(lines[i]);
+					rawSourceLines.push(lines[i]); // Form raw source lines array along the way 
+				}
 			}
 			
 			lines = linesTemp;
@@ -482,7 +486,7 @@ package quantum.adr.processing
 				}
 			}
 			
-			// [*] IRELAND. Converting to TPL#2 (with 'default' post code)
+			// [*] IRELAND. Converting to TPL #2 (with 'default' post code)
 			if (country == "Ireland") 
 			{
 				rePattern = /default/i;
@@ -490,7 +494,9 @@ package quantum.adr.processing
 				
 				if (reArr == null) 
 				{
-					lines.splice(lines.length-1, 0, "default");
+					if (rawSourceLines[rawSourceLines.length-2] == "")
+						lines.splice(lines.length-1, 0, "default");
+					
 					lc = lines.length;
 				}
 			}
