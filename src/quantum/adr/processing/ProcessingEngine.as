@@ -327,6 +327,10 @@ package quantum.adr.processing
 					else 
 						var japanPostCode:String = reArr[1];
 					
+					// · Add hyphen if not present (Format: XXX-XXXX)
+					if (japanPostCode.search("-") == -1)
+						japanPostCode = japanPostCode.slice(0, 3) + "-" + japanPostCode.slice(3);
+					
 					// Japan › City and Region
 					reArr = (lines[1] as String).match(japanCityAndRegionPattern);
 					if (reArr == null || reArr.length == 0 )
