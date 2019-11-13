@@ -637,8 +637,12 @@ package quantum.adr.processing
 				}
 			}
 			
+			// Process region
 			if (region != null) 
 				region = processRegion(region, country);
+			
+			// Process postal code
+			postCode = processPostalCode(postCode, country);
 			
 			// ================================================================================
 			//
@@ -1088,6 +1092,17 @@ package quantum.adr.processing
 			}
 			
 			return rg;
+		}
+		
+		private function processPostalCode(postCode:String, country:String):String 
+		{
+			if (country == "Switzerland") 
+				postCode = postCode.replace(/^CH-/, "");
+			else
+			if (country == "Poland" && postCode.search("-") == -1)
+				postCode = postCode.slice(0, 2) + "-" + postCode.slice(2);
+				
+			return postCode;
 		}
 		
 		private function resetResultObject():void
