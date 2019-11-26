@@ -81,6 +81,7 @@ package quantum.gui
 		
 		private var menuItmDeleteThisGroup:NativeMenuItem;
 		private var menuItmExport:NativeMenuItem;
+		private var menuItmExportInStockSumReport:NativeMenuItem;
 		private var menuItmWarehouseSwitchRef:NativeMenuItem;
 		
 		public function ItemsGroup(title:String = "", warehouseID:String = ""):void
@@ -123,9 +124,13 @@ package quantum.gui
 			menuItmExport = new NativeMenuItem("Экспорт содержимого группы в файл");
 			menuItmExport.addEventListener(Event.SELECT, menuItmExportClick);
 			
+			menuItmExportInStockSumReport = new NativeMenuItem("Оформить сводный отчёт о наличии товаров в складcких группах");
+			menuItmExportInStockSumReport.addEventListener(Event.SELECT, menuItmExportInStockSumReportClick);
+			
 			ctxMenu = new NativeMenu();
 			ctxMenu.addItem(menuItmDeleteThisGroup);
 			ctxMenu.addItem(menuItmExport);
+			ctxMenu.addItem(menuItmExportInStockSumReport);
 			ctxMenu.addItem(new NativeMenuItem("[separator]", true));
 			
 			// Элементы подменю выбора склада
@@ -184,6 +189,11 @@ package quantum.gui
 		private function menuItmExportClick(e:Event):void
 		{
 			exportGroup();
+		}
+		
+		private function menuItmExportInStockSumReportClick(e:Event):void 
+		{
+			grpCnt.createInStockProductsFullReport();
 		}
 		
 		private function exportGroup():void
@@ -706,6 +716,11 @@ package quantum.gui
 		public function get isUntitled():Boolean 
 		{
 			return title == UNTITLED_GROUP_SIGN;
+		}
+		
+		public function get isActiveWarehouseGroup():Boolean
+		{
+			return warehouseID != Warehouse.NONE && !isUntitled;
 		}
 		
 		public function get events():EventDispatcher 
