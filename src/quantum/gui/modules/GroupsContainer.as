@@ -12,12 +12,17 @@ package quantum.gui.modules
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.filesystem.File;
+	import flash.filesystem.FileMode;
+	import flash.filesystem.FileStream;
 	import flash.geom.Rectangle;
 	import flash.system.Capabilities;
 	import flash.ui.Keyboard;
+	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.Settings;
+	import quantum.SoundMgr;
 	import quantum.data.DataMgr;
 	import quantum.dev.DevSettings;
 	import quantum.events.PropertyEvent;
@@ -749,6 +754,94 @@ package quantum.gui.modules
 			}
 			
 			return fullCount;
+		}
+		
+		public function createInStockProductsFullReport():void 
+		{
+			if (groups.length == 0)
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Деление на ноль", Colors.WARN);
+				return;
+			}
+			
+			var inStockProductsTotal:Dictionary = new Dictionary();
+			var groupContainedProductsList:Vector.<int>;
+			
+			// [!] For active warehouse groups only
+			for each (var g:ItemsGroup in groups) 
+			{
+				if (g.isActiveWarehouseGroup && !g.empty) 
+				{
+					groupContainedProductsList = g.getContainedProductsList();
+					
+					if (groupContainedProductsList == null)
+						continue;
+					
+					var pFullCountInGroup:int;
+					for each (var pid:int in groupContainedProductsList) 
+					{
+						pFullCountInGroup = g.getProductFullCount(pid);
+						
+						if (inStockProductsTotal[pid] == null)
+						{
+							inStockProductsTotal[pid] = pFullCountInGroup;
+						}
+						else
+						{
+							inStockProductsTotal[pid] = inStockProductsTotal[pid] + pFullCountInGroup;
+						}
+					}
+				}
+			}
+			
+			var outputList:Array = [];
+			var pSkuVal:String;
+			
+			for (var pidKey:Object in inStockProductsTotal) 
+			{
+				pSkuVal = pm.opProduct(int(pidKey), DataMgr.OP_READ, Product.prop_sku) as String;
+				
+				if (pSkuVal == "" || pSkuVal == null)
+					pSkuVal = "[Без SKU · ID товара: " + pidKey.toString() +  "]";
+					
+				outputList.push(pSkuVal + "\t" + inStockProductsTotal[pidKey]);
+			}
+			
+			if (outputList.length <= 0)
+			{
+				main.stQuantumMgr.infoPanel.showMessage("Ничего не нашлось", Colors.WARN);
+				return;
+			}
+			
+			// ================
+			// Ok sector
+			// ================
+			
+			// Sort alphabetically
+			outputList = outputList.sort();
+			
+			// Write result to file
+			var i:int;
+			var len:int = outputList.length;
+			var line:String;
+			var fileStr:String = "";
+			var lineEnding:String = "\r\n";
+			
+			for (i = 0; i < len; i++)
+			{
+				line = outputList[i];
+				fileStr += (i < len-1) ? line + lineEnding : line;
+			}
+			
+			var exportFile:File = File.applicationStorageDirectory.resolvePath("instock-sum.txt");
+			var fst:FileStream = new FileStream();
+			
+			fst.open(exportFile, FileMode.WRITE);
+			fst.writeUTFBytes(fileStr);
+			fst.close();
+			
+			main.stQuantumMgr.infoPanel.showMessage("Отчёт готов: " + exportFile.name, Colors.SUCCESS);
+			main.soundMgr.play(SoundMgr.sndSuccess);
 		}
 		
 		public function selItemWeightEditHintTextHandler():String
