@@ -728,8 +728,8 @@ package quantum.gui.modules
 			}
 			else
 			{
-				// Don't add if this product already presented in untitled group
-				if (untitledGroup.getProductFullCount(deletedItem.productID) > 0)
+				// Don't add if this product already presented at least in one group in ALL groups space
+				if (checkProductExistenceInAllGroups(deletedItem.productID))
 				{
 					baseState.infoPanel.showMessage("Товар кончился", Colors.WARN);
 					return;
@@ -739,6 +739,17 @@ package quantum.gui.modules
 				untitledGroup.addItem(deletedItem.productID);
 				baseState.infoPanel.showMessage("Товар кончился и был добавлен в последнюю безымянную группу");
 			}
+		}
+		
+		public function checkProductExistenceInAllGroups(productID:int):Boolean 
+		{
+			for each (var g:ItemsGroup in groups)
+			{
+				if (g.checkItemExistenceByProductID(productID)) 
+					return true;
+			}
+			
+			return false;
 		}
 		
 		public function getProductFullCount(productID:int):int
