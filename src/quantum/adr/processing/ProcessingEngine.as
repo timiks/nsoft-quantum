@@ -541,7 +541,7 @@ package quantum.adr.processing
 			
 			// IDENTIFY TEMPLATE
 			var tplType:int; // 1 or 2
-			var postalCodePattern:RegExp = /^([A-Za-z\d]{2,4}|\d{4,8})[-| ]?([A-Za-z\d]{2,4}|\d{4,8})$/;
+			var postalCodePattern:RegExp = /^([A-Za-z\d]{1,4}|\d{4,8})[-| ]?([A-Za-z\d]{1,4}|\d{4,8})$/;
 			
 			if (lc == 4)
 			{
