@@ -4,7 +4,7 @@ package quantum.adr.processing
 	import quantum.adr.processing.ResultObject;
 	
 	/**
-	 * Движок обработки адресов “Addressy” · C 2016 — модуль Quantum
+	 * Движок обработки адресов “Addressy” · C 2016 — модуль Квантума
 	 * @author Tim Yusupov
 	 * @copy ©2015
 	 */
@@ -770,7 +770,7 @@ package quantum.adr.processing
 			// [*] Netherlands: Custom SPL
 			if (country == "Netherlands")
 			{
-				reArr = theLine.match(/^(\d+ ?[A-Z]{2}) (.+)$/);
+				reArr = theLine.match(/^(\d+ ?[A-Z]{2}) (.+)$/i);
 				
 				if (reArr == null)
 				{
@@ -1101,7 +1101,13 @@ package quantum.adr.processing
 			else
 			if (country == "Poland" && postCode.search("-") == -1)
 				postCode = postCode.slice(0, 2) + "-" + postCode.slice(2);
-				
+			else
+			if (country == "Canada" && postCode.search(/^[A-Z\d]{6}$/i) != -1)
+				postCode = postCode.slice(0, 3) + " " + postCode.slice(3);
+			else
+			if (country == "Netherlands" && postCode.search(/^\d{4}[A-Z]{2}/i) != -1)
+				postCode = postCode.slice(0, 4) + " " + postCode.slice(4);
+			
 			return postCode;
 		}
 		
