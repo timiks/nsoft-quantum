@@ -20,11 +20,15 @@ package quantum.warehouse
 		{
 			// Add WH entities here and app will be aware of them
 			$entities = new Vector.<WarehouseEntity>();
+			
+			// Actual types
 			$entities.push(new WarehouseEntity(NONE, "[Без склада]"));
-			$entities.push(new WarehouseEntity(BEIJING, "Пекин"));
-			$entities.push(new WarehouseEntity(CANTON, "Кантон", 0x9A2EE3));
-			$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)", 0xFF8000));
-			$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)", 0x1FCBFF));
+			$entities.push(new WarehouseEntity(SHENZHEN_SEO, "SEO (Шэньчжэнь)", false, 0xFF8000));
+			$entities.push(new WarehouseEntity(CANTON, "Кантон", false, 0x9A2EE3));
+			
+			// [Deprecated] These types disabled in UI (but not in overall engine)
+			$entities.push(new WarehouseEntity(SHENZHEN_CFF, "CFF (Шэньчжэнь)", true, 0x1FCBFF));
+			$entities.push(new WarehouseEntity(BEIJING, "Пекин", true));
 		}
 		
 		public static function get entitiesList():Vector.<WarehouseEntity>

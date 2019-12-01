@@ -355,9 +355,13 @@ package quantum.data
 			// Fields
 			for each (var grp:XML in dataXml.groups.itemsGroup)
 			{
+				// Check attribute presence
+				var isTransparentProp:Boolean = grp.@transpFlag.length() > 0 ? true : false;
+				
 				newGrp = new ItemsGroup(
 					grp.@title,
-					grp.@warehouseID
+					grp.@warehouseID,
+					isTransparentProp
 				);
 				
 				newGrp.dataXml = grp;
@@ -413,7 +417,19 @@ package quantum.data
 		{
 			if (op == OP_UPDATE)
 			{
-				grp.dataXml.@[field] = value;
+				if (field == ItemsGroup.xmlEntityAttr_transpFlag) 
+				{
+					if (value == true)
+						grp.dataXml.@[ItemsGroup.xmlEntityAttr_transpFlag] = 1;
+					else
+						delete grp.dataXml.@[ItemsGroup.xmlEntityAttr_transpFlag];
+				}
+				
+				// General handling
+				else
+				{
+					grp.dataXml.@[field] = value;
+				}
 			}
 			
 			else
@@ -421,8 +437,13 @@ package quantum.data
 			if (op == OP_ADD)
 			{
 				var newGroup:XML = <itemsGroup/>;
+				
 				newGroup.@title = grp.title;
 				newGroup.@warehouseID = grp.warehouseID;
+				
+				if (grp.isTransparent == true)
+					newGroup.@[ItemsGroup.xmlEntityAttr_transpFlag] = 1;
+				
 				grp.dataXml = newGroup;
 				dataXml.groups.appendChild(newGroup);
 			}

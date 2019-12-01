@@ -10,12 +10,16 @@ package quantum.warehouse
 		private var $ID:String;
 		private var $russianTitle:String;
 		private var $uniqueColor:uint;
+		private var $uiDisabled:Boolean;
 			
-		public function WarehouseEntity(ID:String, russianTitle:String, uniqueColor:uint = 0 /* 0 — means "no color" */):void 
+		public function WarehouseEntity(
+			ID:String, russianTitle:String, uiDisabled:Boolean = false, 
+			uniqueColor:uint = 0 /* 0 — means "no color" */):void 
 		{
 			$ID = ID;
 			$russianTitle = russianTitle;
 			$uniqueColor = uniqueColor;
+			$uiDisabled = uiDisabled;
 		}
 		
 		public function get ID():String 
@@ -31,6 +35,11 @@ package quantum.warehouse
 		public function get uniqueColor():uint 
 		{
 			return $uniqueColor;
+		}
+		
+		public function get uiDisabled():Boolean 
+		{
+			return $uiDisabled;
 		}
 	}
 }

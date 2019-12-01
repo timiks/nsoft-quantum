@@ -1,11 +1,11 @@
-package quantum.adr.processing {
-
+package quantum.adr.processing
+{
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class ResultObject {
-
+	public class ResultObject
+	{
 		public var name:String;
 		public var country:String;
 		public var city:String;
@@ -16,12 +16,14 @@ package quantum.adr.processing {
 		public var phone:String;
 		public var sourceAdr:String;
 		public var sourceAdrLines:Array;
-
-		public function ResultObject():void {
+		
+		public function ResultObject():void
+		{
 			phone = "+1234567890";
 		}
-
-		public function reset():void {
+		
+		public function reset():void
+		{
 			name = null;
 			country = null;
 			city = null;
@@ -32,7 +34,5 @@ package quantum.adr.processing {
 			sourceAdr = null;
 			sourceAdrLines = null;
 		}
-
 	}
-
 }

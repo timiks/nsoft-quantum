@@ -44,9 +44,16 @@ package quantum.gui
 	{
 		public static const UNTITLED_GROUP_SIGN:String = ""; // And dev-feature marker
 		
+		// Observable properties constants
 		public static const observableProperty_title:String = "title";
 		public static const observableProperty_warehouseID:String = "warehouseID";
+		public static const observableProperty_isTransparent:String = "isTransparent";
 		public static const observableProperty_selected:String = "selected";
+		
+		// Persistent properties (attributes) of corresp. XML-entities in DB
+		public static const xmlEntityAttr_title:String = "title"; // = 'title'
+		public static const xmlEntityAttr_warehouseID:String = "warehouseID"; // = 'warehouseID'
+		public static const xmlEntityAttr_transpFlag:String = "transpFlag"; // = 'isTransparent'
 		
 		private const MAX_ITEMS_NUMBER_VERTICALLY:int = 10;
 		private const ITEMS_SPACING:int = 6; // In pixels
@@ -66,6 +73,7 @@ package quantum.gui
 		// Fields of data properties
 		private var $title:String;
 		private var $warehouseID:String;
+		private var $isTransparent:Boolean;
 		
 		private var main:Main;
 		private var pm:ProductsMgr;
@@ -83,11 +91,13 @@ package quantum.gui
 		private var menuItmExport:NativeMenuItem;
 		private var menuItmExportInStockSumReport:NativeMenuItem;
 		private var menuItmWarehouseSwitchRef:NativeMenuItem;
+		private var menuItmTransparentFlagControl:NativeMenuItem;
 		
-		public function ItemsGroup(title:String = "", warehouseID:String = ""):void
+		public function ItemsGroup(title:String = "", warehouseID:String = "", isTransparentFlag:Boolean = false):void
 		{
 			this.title = title;
 			this.warehouseID = warehouseID;
+			this.isTransparent = isTransparentFlag;
 			
 			main = Main.ins;
 			pm = main.stQuantumMgr.productsMgr;
@@ -121,14 +131,22 @@ package quantum.gui
 			menuItmDeleteThisGroup = new NativeMenuItem("Удалить группу");
 			menuItmDeleteThisGroup.addEventListener(Event.SELECT, menuItmDeleteThisGroupClick);
 			
+			menuItmTransparentFlagControl = new NativeMenuItem("Сделать товары в группе прозрачными");
+			menuItmTransparentFlagControl.checked = isTransparent; // Initial setup
+			menuItmTransparentFlagControl.addEventListener(Event.SELECT, menuItmTransparentFlagControlClick);
+			
 			menuItmExport = new NativeMenuItem("Экспорт содержимого группы в файл");
 			menuItmExport.addEventListener(Event.SELECT, menuItmExportClick);
 			
 			menuItmExportInStockSumReport = new NativeMenuItem("Оформить сводный отчёт о наличии товаров в складcких группах");
 			menuItmExportInStockSumReport.addEventListener(Event.SELECT, menuItmExportInStockSumReportClick);
 			
+			// ================================================================================
+			
 			ctxMenu = new NativeMenu();
 			ctxMenu.addItem(menuItmDeleteThisGroup);
+			ctxMenu.addItem(menuItmTransparentFlagControl);
+			ctxMenu.addItem(new NativeMenuItem("[separator]", true));
 			ctxMenu.addItem(menuItmExport);
 			ctxMenu.addItem(menuItmExportInStockSumReport);
 			ctxMenu.addItem(new NativeMenuItem("[separator]", true));
@@ -136,6 +154,9 @@ package quantum.gui
 			// Элементы подменю выбора склада
 			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList)
 			{
+				if (whEnt.uiDisabled)
+					continue;
+				
 				menuItmWarehouseSwitchRef = new NativeMenuItem(
 					whEnt.ID == Warehouse.NONE ? "Без склада" : "Переключить склад на «" + whEnt.russianTitle + "»");
 				menuItmWarehouseSwitchRef.data = whEnt.ID;
@@ -170,6 +191,12 @@ package quantum.gui
 		private function menuItmDeleteThisGroupClick(e:Event):void 
 		{
 			grpCnt.removeGroup(this);
+		}
+		
+		private function menuItmTransparentFlagControlClick(e:Event):void 
+		{
+			isTransparent = !isTransparent;
+			menuItmTransparentFlagControl.checked = isTransparent;
 		}
 		
 		private function menuItmWarehouseSwitchClick(e:Event):void
@@ -248,7 +275,10 @@ package quantum.gui
 			{
 				PID = productsIdsList[i] as int;
 				idBadgeValue = pm.opProduct(PID, DataMgr.OP_READ, idBadge) as String;
-				line = idBadgeValue + "\t" + String(getProductFullCount(PID)) + (idBadge == Product.prop_sku ? "\t" + "1" : "");
+				
+				// "1" {tab} {ProductSKU} {tab} {ProductFullCountInThisGroup)
+				line = "1" + "\t" + idBadgeValue + "\t" + String(getProductFullCount(PID));
+				
 				fileStr += (i < len-1) ? line + lineEnding : line;
 			}
 			
@@ -628,7 +658,7 @@ package quantum.gui
 			
 			checkTitleAndUpdateStyle();
 			
-			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "title", value);
+			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, xmlEntityAttr_title, value);
 		}
 		
 		public function get warehouseID():String
@@ -644,7 +674,24 @@ package quantum.gui
 			if ($events != null) $events.dispatchEvent(event);
 			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
 			
-			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, "warehouseID", value);
+			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, xmlEntityAttr_warehouseID, value);
+		}
+		
+		public function get isTransparent():Boolean 
+		{
+			return $isTransparent;
+		}
+		
+		public function set isTransparent(value:Boolean):void 
+		{
+			$isTransparent = value;
+			
+			var event:PropertyEvent = new PropertyEvent(PropertyEvent.CHANGED, observableProperty_isTransparent);
+			if ($events != null) $events.dispatchEvent(event);
+			if (grpCnt != null) grpCnt.childGroupDataChanged(this, event); // Special
+			
+			// Update persistent DB
+			if (main != null) main.dataMgr.opGroup(this, DataMgr.OP_UPDATE, xmlEntityAttr_transpFlag, value);
 		}
 		
 		/**

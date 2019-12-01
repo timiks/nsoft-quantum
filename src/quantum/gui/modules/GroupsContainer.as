@@ -35,7 +35,7 @@ package quantum.gui.modules
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
 	import quantum.warehouse.WarehouseEntity;
-	import tim.as3lib.ColorTools;
+	import timicore.ColorTools;
 	
 	/**
 	 * ...
@@ -815,7 +815,7 @@ package quantum.gui.modules
 				if (pSkuVal == "" || pSkuVal == null)
 					pSkuVal = "[Без SKU · ID товара: " + pidKey.toString() +  "]";
 					
-				outputList.push(pSkuVal + "\t" + inStockProductsTotal[pidKey]);
+				outputList.push({ pid: pidKey, sku: pSkuVal, countTotal: inStockProductsTotal[pidKey]});
 			}
 			
 			if (outputList.length <= 0)
@@ -829,7 +829,7 @@ package quantum.gui.modules
 			// ================
 			
 			// Sort alphabetically
-			outputList = outputList.sort();
+			outputList = outputList.sortOn("sku");
 			
 			// Write result to file
 			var i:int;
@@ -840,7 +840,7 @@ package quantum.gui.modules
 			
 			for (i = 0; i < len; i++)
 			{
-				line = outputList[i];
+				line = outputList[i].countTotal + "\t" + outputList[i].sku;
 				fileStr += (i < len-1) ? line + lineEnding : line;
 			}
 			

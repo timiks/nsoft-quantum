@@ -24,7 +24,7 @@ package quantum.gui.modules
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.GroupsContainer;
 	import quantum.product.ProductsMgr;
-	import tim.as3lib.TimUtils;
+	import timicore.TimUtils;
 	
 	/**
 	 * ...

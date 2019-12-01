@@ -143,29 +143,38 @@ package quantum.gui.modules {
 
 			// Select Format
 			ui.selFormat.tabEnabled = false;
-			ui.selFormat.addItem({label: "Шэньчжень (SEO и CFF)", data: FormatMgr.FRM_SHZ1});
+			
+			// [!] Actual formats first
+			ui.selFormat.addItem({label: "Шэньчжень (SEO)", data: FormatMgr.FRM_SHZ1});
+			ui.selFormat.addItem({label: "Вывод Адресси", data: FormatMgr.FRM_ADR_CONCLUSION});
 			ui.selFormat.addItem({label: "Кантон: формат 2", data: FormatMgr.FRM_CNT_STR2});
 			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
-			ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
-			ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
-			ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
+			//ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
+			//ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
+			//ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
 			ui.selFormat.addEventListener("change", onSelFormatChange);
 
 			var selItem:Object;
 			var setsFormat:String = main.settings.getKey(Settings.outputFormat);
-			for (var i:int = 0; i < ui.selFormat.length; i++) {
+			for (var i:int = 0; i < ui.selFormat.length; i++)
+			{
 				selItem = ui.selFormat.getItemAt(i);
-				if (selItem.data == setsFormat) {
+				
+				if (selItem.data == setsFormat)
+				{
 					ui.selFormat.selectedIndex = i;
 					break;
 				}
 				
-				// If last iteration and format obtained from settings is unknown
+				// If last iteration and format obtained from settings is still unknown
 				if (i == ui.selFormat.length-1)
 				{
-					ui.selFormat.selectedIndex = ui.selFormat.length-1; // Set to Canton format 2
+					// Auto set default: to the most actual format ([!] it always comes first)
+					ui.selFormat.selectedIndex = 0;
+					
+					// Incorporate the change in settings
 					main.settings.setKey(Settings.outputFormat,
-						ui.selFormat.getItemAt(ui.selFormat.selectedIndex).data); // Incorporate the change in settings
+						ui.selFormat.getItemAt(ui.selFormat.selectedIndex).data); 
 				}
 			}
 
