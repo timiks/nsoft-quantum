@@ -8,6 +8,9 @@ package quantum.adr
 	 */
 	public class FormatMgr
 	{
+		// Special formats
+		public static const FRM_ADR_CONCLUSION:String = "frmAdrConclusion";
+		
 		// Beijing warehouse
 		public static const FRM_BJN_TITLES:String = "frmBjnTitles";
 		public static const FRM_BJN_BLOCK:String = "frmBjnBlock";
@@ -57,6 +60,15 @@ package quantum.adr
 			
 			switch (format)
 			{
+				case FRM_ADR_CONCLUSION:
+					output += "Имя: " + name + "\n";
+					output += "Адрес: " + addrs + "\n";
+					output += "Страна: " + country + "\n";
+					output += "Регион: " + region + "\n";
+					output += "Город: " + city + "\n";
+					output += "Индекс: " + postCode;
+					break;
+				
 				case FRM_BJN_TITLES:
 					
 					output += "Recipient: " + name + "\n";

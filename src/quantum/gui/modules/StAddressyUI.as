@@ -146,6 +146,7 @@ package quantum.gui.modules {
 			
 			// [!] Actual formats first
 			ui.selFormat.addItem({label: "Шэньчжень (SEO)", data: FormatMgr.FRM_SHZ1});
+			ui.selFormat.addItem({label: "Вывод Адресси", data: FormatMgr.FRM_ADR_CONCLUSION});
 			ui.selFormat.addItem({label: "Кантон: формат 2", data: FormatMgr.FRM_CNT_STR2});
 			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
 			//ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
