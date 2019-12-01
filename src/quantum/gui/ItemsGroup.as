@@ -136,6 +136,9 @@ package quantum.gui
 			// Элементы подменю выбора склада
 			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList)
 			{
+				if (whEnt.uiDisabled)
+					continue;
+				
 				menuItmWarehouseSwitchRef = new NativeMenuItem(
 					whEnt.ID == Warehouse.NONE ? "Без склада" : "Переключить склад на «" + whEnt.russianTitle + "»");
 				menuItmWarehouseSwitchRef.data = whEnt.ID;

@@ -178,6 +178,17 @@ package quantum.gui.modules
 						sel.selectedIndex = i;
 						break;
 					}
+					
+					// If last iteration and no corresp. item found
+					if (i == sel.length-1)
+					{
+						// Auto set default: to the first item
+						sel.selectedIndex = 0;
+						
+						// Incorporate the change in settings
+						main.settings.setKey(setting,
+							sel.getItemAt(sel.selectedIndex).data); 
+					}
 				}
 			}
 			
@@ -205,6 +216,9 @@ package quantum.gui.modules
 			selItems = new Vector.<Object>();
 			for each (var whEnt:WarehouseEntity in Warehouse.entitiesList) 
 			{
+				if (whEnt.uiDisabled)
+					continue;
+					
 				selItems.push({label: whEnt.russianTitle, data: whEnt.ID});
 			}
 			setupSelect(uiPlate.selDefWarehouse, Settings.defaultWarehouse, selItems);
