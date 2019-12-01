@@ -6,7 +6,7 @@ package quantum.product.images
 	import flash.utils.Dictionary;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
-	import tim.as3lib.TimUtils;
+	import timicore.TimUtils;
 		
 	/**
 	 * ...

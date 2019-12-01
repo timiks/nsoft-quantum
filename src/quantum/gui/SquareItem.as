@@ -25,8 +25,8 @@ package quantum.gui
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
-	import tim.as3lib.ColorTools;
-	import tim.as3lib.TimUtils;
+	import timicore.ColorTools;
+	import timicore.TimUtils;
 	
 	/**
 	 * ...

@@ -35,7 +35,7 @@ package quantum.gui.modules
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
 	import quantum.warehouse.WarehouseEntity;
-	import tim.as3lib.ColorTools;
+	import timicore.ColorTools;
 	
 	/**
 	 * ...

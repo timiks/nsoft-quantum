@@ -1,4 +1,4 @@
-package tim.as3lib 
+package timicore
 {
 		
 	/**
