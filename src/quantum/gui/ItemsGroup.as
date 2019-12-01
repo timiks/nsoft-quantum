@@ -275,7 +275,10 @@ package quantum.gui
 			{
 				PID = productsIdsList[i] as int;
 				idBadgeValue = pm.opProduct(PID, DataMgr.OP_READ, idBadge) as String;
-				line = idBadgeValue + "\t" + String(getProductFullCount(PID)) + (idBadge == Product.prop_sku ? "\t" + "1" : "");
+				
+				// "1" {tab} {ProductSKU} {tab} {ProductFullCountInThisGroup)
+				line = "1" + "\t" + idBadgeValue + "\t" + String(getProductFullCount(PID));
+				
 				fileStr += (i < len-1) ? line + lineEnding : line;
 			}
 			
