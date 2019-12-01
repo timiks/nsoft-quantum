@@ -214,6 +214,9 @@ package quantum.gui
 			if (parentItemsGroup.isUntitled && count == 1)
 				countTextField.visible = false;
 			
+			// Initial check
+			controlOpacity();
+				
 			// Listeners
 			addEventListener(MouseEvent.MOUSE_OVER, onMouseOver);
 			addEventListener(MouseEvent.MOUSE_OUT, onMouseOut);
@@ -251,6 +254,13 @@ package quantum.gui
 				e.observablePropertyID == ItemsGroup.observableProperty_selected) 
 			{
 				drawFrame();
+			}
+			
+			else
+			
+			if (e.observablePropertyID == ItemsGroup.observableProperty_isTransparent)
+			{
+				controlOpacity();
 			}
 		}
 		
@@ -300,6 +310,15 @@ package quantum.gui
 			
 			if (imageBitmap.bitmapData != null) imageBitmap.bitmapData.dispose();
 			imageBitmap.bitmapData = bmd;
+		}
+		
+		private function controlOpacity():void 
+		{
+			// ======================================================
+			// Control logic: opacity state for this item
+			// ======================================================
+			
+			parentItemsGroup.isTransparent ? this.alpha = 0.4 : this.alpha = 1;
 		}
 		
 		private function hitBoxClick(e:MouseEvent):void
@@ -399,6 +418,9 @@ package quantum.gui
 		
 		public function hintTextHandler():String
 		{
+			if (parentItemsGroup.isTransparent)
+				return null;
+			
 			var sku:String = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_sku);
 			var price:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_price);
 			var weight:* = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_weight);
