@@ -410,6 +410,9 @@ package quantum.adr.processing
 			
 			switch (lc)
 			{
+				case 3:
+					country = lines[2];
+					break;
 				case 4:
 					country = lines[3];
 					break;
@@ -514,6 +517,14 @@ package quantum.adr.processing
 					
 					lc = lines.length;
 				}
+			}
+			
+			// [*] HONG KONG. To TPL #2
+			if (country.search(/Hong Kong/i) != -1) 
+			{
+				lines.push("default");
+				lines.push("Hong Kong");
+				lc = lines.length;
 			}
 			
 			// ================================================================================
