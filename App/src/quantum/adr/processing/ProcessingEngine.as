@@ -713,6 +713,13 @@ package quantum.adr.processing
 			// Cпециальная обработка для отдельных стран
 			// ================================================================================
 			
+			// [*] United Kingdom: comma fix · 23.04.20
+			if (country == "United Kingdom") 
+			{
+				theLine = theLine.replace(/(.*?),*$/, "$1");
+				// > Then proceed to common processing
+			}
+			
 			// [*] Canada #1: Custom SPL
 			if (country == "Canada")
 			{
