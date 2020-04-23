@@ -1,10 +1,1 @@
-bin/
-bundle/
-releases/
-patches/
-
-obj/
-
-*.air
-
-src/quantum/dev/DevSettings.as
+Releases/

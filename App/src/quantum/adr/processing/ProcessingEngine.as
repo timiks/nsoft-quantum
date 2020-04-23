@@ -430,8 +430,17 @@ package quantum.adr.processing
 					break;
 			}
 			
-			if (country != null) 
+			if (country != null)
+			{
 				country = processCountry(country);
+			}
+			
+			// No sense to proceed without country
+			else
+			{
+				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
+				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+			}
 				
 			// ================================================================================
 			//
@@ -712,6 +721,13 @@ package quantum.adr.processing
 			// ================================================================================
 			// Cпециальная обработка для отдельных стран
 			// ================================================================================
+			
+			// [*] United Kingdom: comma fix · 23.04.20
+			if (country == "United Kingdom") 
+			{
+				theLine = theLine.replace(/(.*?),*$/, "$1");
+				// > Then proceed to common processing
+			}
 			
 			// [*] Canada #1: Custom SPL
 			if (country == "Canada")
