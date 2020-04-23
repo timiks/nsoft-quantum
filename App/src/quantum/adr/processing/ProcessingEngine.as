@@ -430,8 +430,17 @@ package quantum.adr.processing
 					break;
 			}
 			
-			if (country != null) 
+			if (country != null)
+			{
 				country = processCountry(country);
+			}
+			
+			// No sense to proceed without country
+			else
+			{
+				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
+				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+			}
 				
 			// ================================================================================
 			//
