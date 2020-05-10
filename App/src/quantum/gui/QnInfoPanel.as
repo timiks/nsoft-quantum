@@ -140,7 +140,7 @@ package quantum.gui
 					break;
 			}
 			
-			tf.htmlText = main.stQuantumMgr.colorText("#FFFFFF", text);
+			tf.htmlText = main.qnMgrGim.colorText("#FFFFFF", text);
 			
 			backRect.width = tf.textWidth + 50;
 			backRect.height = tf.textHeight + 4;

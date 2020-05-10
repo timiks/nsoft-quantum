@@ -11,7 +11,7 @@ package quantum.data
 	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
 	import quantum.gui.ItemsGroup;
-	import quantum.gui.SquareItem;
+	import quantum.gui.GroupItem;
 	import quantum.product.Product;
 	import quantum.warehouse.Warehouse;
 	
@@ -371,12 +371,12 @@ package quantum.data
 			return groups;
 		}
 
-		public function getGroupItems(grp:XML):Vector.<SquareItem>
+		public function getGroupItems(grp:XML):Vector.<GroupItem>
 		{
-			var items:Vector.<SquareItem> = new Vector.<SquareItem>();
+			var items:Vector.<GroupItem> = new Vector.<GroupItem>();
 			
 			var itm:XML 
-			var newItem:SquareItem;
+			var newItem:GroupItem;
 			var xmlQueryList:XMLList
 			var itemsWithNonexistentProducts:Vector.<XML>;
 			for each (itm in grp.item)
@@ -390,7 +390,7 @@ package quantum.data
 					continue;
 				}
 				
-				newItem = new SquareItem(int(itm.@productID), int(itm.@count));
+				newItem = new GroupItem(int(itm.@productID), int(itm.@count));
 				newItem.dataXml = itm;
 				items.push(newItem);
 			}
@@ -465,7 +465,7 @@ package quantum.data
 			dataUpdate();
 		}
 		
-		public function opItem(item:SquareItem, op:String, field:String = null, value:* = null):void
+		public function opItem(item:GroupItem, op:String, field:String = null, value:* = null):void
 		{
 			if (op == OP_UPDATE)
 			{

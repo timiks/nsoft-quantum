@@ -193,8 +193,8 @@ package quantum.adr {
 				main.soundMgr.play(SoundMgr.sndSuccess);
 
 				// Show result in Main Window if it's visible
-				if (main.stAdrUI.isVisible)
-					main.stAdrUI.showBgProcessingResult(prcResult.resultObj);
+				if (main.adrUiGim.isVisible)
+					main.adrUiGim.showBgProcessingResult(prcResult.resultObj);
 
 			} else
 

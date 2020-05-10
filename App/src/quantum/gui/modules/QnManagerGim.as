@@ -22,7 +22,7 @@ package quantum.gui.modules
 	import quantum.gui.HintMgr;
 	import quantum.gui.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
-	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.modules.GroupsGim;
 	import quantum.product.ProductsMgr;
 	import timicore.TimUtils;
 	
@@ -30,7 +30,7 @@ package quantum.gui.modules
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class StQuantumManager extends Sprite
+	public class QnManagerGim extends Sprite
 	{
 		private var main:Main;
 		private var ui:QnManagerComposition;
@@ -38,14 +38,14 @@ package quantum.gui.modules
 		private var hintsCnt:Sprite;
 		
 		// Public modules
-		private var $grpCnt:GroupsContainer;
+		private var $grpCnt:GroupsGim;
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
 		private var $hintMgr:HintMgr;
 		private var $infoPanel:QnInfoPanel;
 		private var $productsMgr:ProductsMgr;
 		
-		public function StQuantumManager():void
+		public function QnManagerGim():void
 		{
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
@@ -90,14 +90,14 @@ package quantum.gui.modules
 			ui.btnShowAdrUI.tabEnabled = false;
 			ui.btnShowAdrUI.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
-				main.stAdrUI.showWindow(true);
+				main.adrUiGim.showWindow(true);
 			});
 			
 			// · Settings window show
 			ui.btnSettings.tabEnabled = false;
 			ui.btnSettings.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
-				main.stSettings.showWindow(true);
+				main.settingsGim.showWindow(true);
 			});
 			
 			// · New group
@@ -105,6 +105,13 @@ package quantum.gui.modules
 			ui.btnNewGroup.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				grpCnt.addNewGroup();
+			});
+			
+			// · eBay button
+			ui.btnEbay.tabEnabled = false;
+			ui.btnEbay.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+			{
+				trace("eBay win open");
 			});
 			
 			// Selected item properties editors
@@ -176,7 +183,7 @@ package quantum.gui.modules
 			$productsMgr.init();
 			
 			// Groups Container
-			$grpCnt = new GroupsContainer(this);
+			$grpCnt = new GroupsGim(this);
 			
 			// Table data composer
 			$tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -401,7 +408,7 @@ package quantum.gui.modules
 			return $hintMgr;
 		}
 		
-		public function get grpCnt():GroupsContainer
+		public function get grpCnt():GroupsGim
 		{
 			return $grpCnt;
 		}

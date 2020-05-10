@@ -15,10 +15,10 @@ package quantum
 	import quantum.data.DataMgr;
 	import quantum.gui.GraphicsLibMgr;
 	import quantum.gui.UIComponentsMgr;
-	import quantum.gui.modules.GimGlobalError;
-	import quantum.gui.modules.StAddressyUI;
-	import quantum.gui.modules.StQuantumManager;
-	import quantum.gui.modules.StSettings;
+	import quantum.gui.modules.SysErrorGim;
+	import quantum.gui.modules.AddressyUiGim;
+	import quantum.gui.modules.QnManagerGim;
+	import quantum.gui.modules.SettingsGim;
 	
 	/**
 	 * Quantum Application Main Module (CEM — Chief Executive Module)
@@ -54,10 +54,10 @@ package quantum
 		// · UI
 		private var $graphicsLibMgr:GraphicsLibMgr;
 		private var $uiCmpMgr:UIComponentsMgr;
-		private var $stQuantumMgr:StQuantumManager;
-		private var $stAddressyUI:StAddressyUI;
-		private var $stSettings:StSettings;
-		private var $gimGlobalError:GimGlobalError;
+		private var $qnMgrGim:QnManagerGim;
+		private var $adrUiGim:AddressyUiGim;
+		private var $settingsGim:SettingsGim;
+		private var $sysErrorGim:SysErrorGim;
 		
 		private var $inited:Boolean;
 		private var $exiting:Boolean;
@@ -85,14 +85,14 @@ package quantum
 					
 				if (args[0] == "/showWindow")
 				{
-					stQuantumMgr.activateWindow();
+					qnMgrGim.activateWindow();
 				}
 				
 				else
 						
 				if (args[0] == "/showAdrWindow")
 				{
-					stAdrUI.showWindow(true);
+					adrUiGim.showWindow(true);
 				}
 				
 				return;
@@ -111,7 +111,7 @@ package quantum
 			// It should be created very first
 			if (!Capabilities.isDebugger) 
 			{
-				$gimGlobalError = new GimGlobalError();
+				$sysErrorGim = new SysErrorGim();
 				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onSystemError);
 			}
 			
@@ -158,14 +158,14 @@ package quantum
 			$graphicsLibMgr = new GraphicsLibMgr();
 			
 			// Main UI module (Quantum Manager) [with Window — Main Window]
-			$stQuantumMgr = new StQuantumManager();
-			addChild($stQuantumMgr);
+			$qnMgrGim = new QnManagerGim();
+			addChild($qnMgrGim);
 			
 			// Addressy UI (UI module) [with Window]
-			$stAddressyUI = new StAddressyUI();
+			$adrUiGim = new AddressyUiGim();
 			
 			// Settings State (UI module) [with Window]
-			$stSettings = new StSettings();
+			$settingsGim = new SettingsGim();
 			
 			// Addressy's Background Processing Service
 			$bgProcessor = new BgProcessor();
@@ -184,7 +184,7 @@ package quantum
 			if (event.error is Error)
 			{
 				var e:Error = event.error as Error;
-				gimGlobalError.showError(e.message);
+				sysErrorGim.showError(e.message);
 			}
 		}
 		
@@ -311,24 +311,24 @@ package quantum
 			return $bgProcessor;
 		}
 		
-		public function get stAdrUI():StAddressyUI
+		public function get adrUiGim():AddressyUiGim
 		{
-			return $stAddressyUI;
+			return $adrUiGim;
 		}
 		
-		public function get stQuantumMgr():StQuantumManager
+		public function get qnMgrGim():QnManagerGim
 		{
-			return $stQuantumMgr;
+			return $qnMgrGim;
 		}
 		
-		public function get stSettings():StSettings
+		public function get settingsGim():SettingsGim
 		{
-			return $stSettings;
+			return $settingsGim;
 		}
 		
-		public function get gimGlobalError():GimGlobalError 
+		public function get sysErrorGim():SysErrorGim 
 		{
-			return $gimGlobalError;
+			return $sysErrorGim;
 		}
 		
 		public function get uiCmpMgr():UIComponentsMgr

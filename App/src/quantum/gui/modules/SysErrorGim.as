@@ -21,7 +21,7 @@ package quantum.gui.modules
 	* ...
 	* @author Tim Yusupov
 	*/
-	public class GimGlobalError extends Sprite
+	public class SysErrorGim extends Sprite
 	{
 		[Embed(source = "/../lib/graphics/global-error-window-back.png")]
 		private var ErrorWindowBackImage:Class;
@@ -35,7 +35,7 @@ package quantum.gui.modules
 		
 		private var inited:Boolean = false;
 		
-		public function GimGlobalError():void {}
+		public function SysErrorGim():void {}
 		
 		public function init():void 
 		{

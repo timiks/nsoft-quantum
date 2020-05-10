@@ -29,8 +29,8 @@ package quantum.gui.modules
 	import quantum.events.SettingEvent;
 	import quantum.gui.Colors;
 	import quantum.gui.ItemsGroup;
-	import quantum.gui.SquareItem;
-	import quantum.gui.modules.StQuantumManager;
+	import quantum.gui.GroupItem;
+	import quantum.gui.modules.QnManagerGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
@@ -41,7 +41,7 @@ package quantum.gui.modules
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class GroupsContainer extends Sprite
+	public class GroupsGim extends Sprite
 	{
 		private const SIDE_MARGIN:int = 7; // GRP_SPACING / 2 (Prev: 14)
 		private const CNT_Y_OFFSET:int = 42;
@@ -50,13 +50,13 @@ package quantum.gui.modules
 		private const groupColorAreaLineThickness:int = 8;
 		
 		// Fields of app properties
-		private var $selectedItem:SquareItem;
+		private var $selectedItem:GroupItem;
 		private var $selectedGroup:ItemsGroup;
 		private var $events:EventDispatcher;
 		private var $empty:Boolean;
 		
 		private var main:Main;
-		private var baseState:StQuantumManager;
+		private var baseState:QnManagerGim;
 		private var pm:ProductsMgr;
 		
 		private var groups:Vector.<ItemsGroup> = new Vector.<ItemsGroup>();
@@ -78,7 +78,7 @@ package quantum.gui.modules
 		private var groupSelectTimer:Timer;
 		private var itemSelectionSticker:ItemSelectionOutlineAnimated;
 		
-		public function GroupsContainer(baseState:StQuantumManager):void
+		public function GroupsGim(baseState:QnManagerGim):void
 		{
 			this.baseState = baseState;
 			main = Main.ins;
@@ -501,7 +501,7 @@ package quantum.gui.modules
 		 * ================================================================================
 		 */
 		
-		public function selectItem(item:SquareItem):void
+		public function selectItem(item:GroupItem):void
 		{
 			if (selectedItem != null && selectedItem !== item)
 				selectedItem.selected = false;
@@ -699,7 +699,7 @@ package quantum.gui.modules
 			groupSelectTimer.start();
 		}
 		
-		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:SquareItem):void 
+		public function processDeletedItemAndMoveToUntitledGroup(deletedItem:GroupItem):void 
 		{
 			if (getProductFullCount(deletedItem.productID) > 0) 
 				return;
@@ -771,7 +771,7 @@ package quantum.gui.modules
 		{
 			if (groups.length == 0)
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Деление на ноль", Colors.WARN);
+				main.qnMgrGim.infoPanel.showMessage("Деление на ноль", Colors.WARN);
 				return;
 			}
 			
@@ -820,7 +820,7 @@ package quantum.gui.modules
 			
 			if (outputList.length <= 0)
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Ничего не нашлось", Colors.WARN);
+				main.qnMgrGim.infoPanel.showMessage("Ничего не нашлось", Colors.WARN);
 				return;
 			}
 			
@@ -851,7 +851,7 @@ package quantum.gui.modules
 			fst.writeUTFBytes(fileStr);
 			fst.close();
 			
-			main.stQuantumMgr.infoPanel.showMessage("Отчёт готов: " + exportFile.name, Colors.SUCCESS);
+			main.qnMgrGim.infoPanel.showMessage("Отчёт готов: " + exportFile.name, Colors.SUCCESS);
 			main.soundMgr.play(SoundMgr.sndSuccess);
 		}
 		
@@ -904,12 +904,12 @@ package quantum.gui.modules
 		 * ================================================================================
 		 */
 		
-		public function get selectedItem():SquareItem
+		public function get selectedItem():GroupItem
 		{
 			return $selectedItem;
 		}
 		
-		public function set selectedItem(value:SquareItem):void
+		public function set selectedItem(value:GroupItem):void
 		{
 			$selectedItem = value;
 			

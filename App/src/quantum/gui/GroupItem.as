@@ -21,7 +21,7 @@ package quantum.gui
 	import quantum.events.DataEvent;
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
-	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
@@ -29,10 +29,10 @@ package quantum.gui
 	import timicore.TimUtils;
 	
 	/**
-	 * ...
+	 * ex. SquareItem
 	 * @author Tim Yusupov
 	 */
-	public class SquareItem extends Sprite
+	public class GroupItem extends Sprite
 	{
 		[Embed(source="/../lib/fonts/Montserrat-ExtraBold.ttf",
 				fontName = "Montserrat",
@@ -59,7 +59,7 @@ package quantum.gui
 		private var $parentItemsGroup:ItemsGroup;
 		
 		private var main:Main;
-		private var grpCnt:GroupsContainer;
+		private var grpCnt:GroupsGim;
 		private var pm:ProductsMgr;
 		
 		private var imageBitmap:Bitmap;
@@ -73,7 +73,7 @@ package quantum.gui
 		private var weightCorner:Shape;
 		private var selectFrameAnimation:MovieClip;
 		
-		public function SquareItem(productID:int, count:int):void
+		public function GroupItem(productID:int, count:int):void
 		{
 			this.productID = productID;
 			this.count = count == 0 ? DEF_COUNT_VALUE : count;
@@ -84,7 +84,7 @@ package quantum.gui
 		public function init():void
 		{
 			grpCnt = parentItemsGroup.grpCnt;
-			pm = main.stQuantumMgr.productsMgr;
+			pm = main.qnMgrGim.productsMgr;
 			imagePath = pm.opProduct(productID, DataMgr.OP_READ, Product.prop_imgFile) as String; // Cache image path
 			
 			var w:int;
@@ -429,7 +429,7 @@ package quantum.gui
 			var inStockFullCountStr:String;
 			var hintOutput:String;
 			
-			sku = sku == "" ? main.stQuantumMgr.colorText(Colors.WARN, "[SKU не указан]") : sku;
+			sku = sku == "" ? main.qnMgrGim.colorText(Colors.WARN, "[SKU не указан]") : sku;
 			note = note != "" ? "\n" + "<b>Заметка</b>\n" + note : "";
 						
 			inStockFullCountStr = 
@@ -437,12 +437,12 @@ package quantum.gui
 			
 			if (inStockFullCount == 1)
 			{
-				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.WARN, inStockFullCountStr);
+				inStockFullCountStr = main.qnMgrGim.colorText(Colors.WARN, inStockFullCountStr);
 			}
 			else 
 			if (inStockFullCount == 0)
 			{
-				inStockFullCountStr = main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "Нет в наличии");
+				inStockFullCountStr = main.qnMgrGim.colorText(Colors.TXLB_LIGHT_GREY, "Нет в наличии");
 			}
 				
 			if (price == 0 && weight == 0) 
@@ -459,10 +459,10 @@ package quantum.gui
 					weight *= 1000;
 				}
 								
-				price = price == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Цена не указана]") : 
+				price = price == 0 ? main.qnMgrGim.colorText(Colors.TXLB_LIGHT_GREY, "[Цена не указана]") : 
 					"<b>Цена:</b> $" + (main.numFrm.formatNumber(price) as String);
 					
-				weight = weight == 0 ? main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Вес не указан]") : 
+				weight = weight == 0 ? main.qnMgrGim.colorText(Colors.TXLB_LIGHT_GREY, "[Вес не указан]") : 
 					"<b>Вес:</b> " + (main.numFrm.formatNumber(weight) as String) + " " + (useGramForWeight ? "г" : "кг");
 					
 				hintOutput = sku + "\n" + price + "\n" + weight + "\n" + inStockFullCountStr + note;
@@ -508,7 +508,7 @@ package quantum.gui
 			}
 			
 			if (main != null) main.dataMgr.opItem(this, DataMgr.OP_UPDATE, "count", value);
-			if (selected) main.stQuantumMgr.updateUiElement("selItemCount", count);
+			if (selected) main.qnMgrGim.updateUiElement("selItemCount", count);
 			
 			if (countTextField != null) countTextField.text = String(value);
 		}
