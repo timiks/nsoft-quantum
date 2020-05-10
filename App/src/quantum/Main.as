@@ -15,6 +15,7 @@ package quantum
 	import quantum.data.DataMgr;
 	import quantum.gui.GraphicsLibMgr;
 	import quantum.gui.UIComponentsMgr;
+	import quantum.gui.modules.EbayGim;
 	import quantum.gui.modules.SysErrorGim;
 	import quantum.gui.modules.AddressyUiGim;
 	import quantum.gui.modules.QnManagerGim;
@@ -58,6 +59,7 @@ package quantum
 		private var $adrUiGim:AddressyUiGim;
 		private var $settingsGim:SettingsGim;
 		private var $sysErrorGim:SysErrorGim;
+		private var $ebayGim:EbayGim;
 		
 		private var $inited:Boolean;
 		private var $exiting:Boolean;
@@ -173,6 +175,9 @@ package quantum
 			{
 				$bgProcessor.on();
 			}
+			
+			// Ebay Config (UI module) [with Window]
+			$ebayGim = new EbayGim();
 			
 			$inited = true;
 		}
@@ -329,6 +334,11 @@ package quantum
 		public function get sysErrorGim():SysErrorGim 
 		{
 			return $sysErrorGim;
+		}
+		
+		public function get ebayGim():EbayGim 
+		{
+			return $ebayGim;
 		}
 		
 		public function get uiCmpMgr():UIComponentsMgr

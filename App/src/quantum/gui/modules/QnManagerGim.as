@@ -112,6 +112,7 @@ package quantum.gui.modules
 			ui.btnEbay.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				trace("eBay win open");
+				main.ebayGim.showWindow(true);
 			});
 			
 			// Selected item properties editors
