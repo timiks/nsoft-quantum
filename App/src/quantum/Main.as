@@ -13,6 +13,8 @@ package quantum
 	import quantum.adr.processing.ProcessingEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
+	import quantum.ebay.EbayHubController;
+	import quantum.ebay.EbayOrdersRegistry;
 	import quantum.gui.GraphicsLibMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.EbayGim;
@@ -51,6 +53,10 @@ package quantum
 		private var $prcEng:ProcessingEngine;
 		private var $bgProcessor:BgProcessor;
 		private var $formatMgr:FormatMgr;
+		
+		// · Ebay
+		private var $ebayHub:EbayHubController;
+		private var $ebayOrders:EbayOrdersRegistry;
 		
 		// · UI
 		private var $graphicsLibMgr:GraphicsLibMgr;
@@ -175,6 +181,13 @@ package quantum
 			{
 				$bgProcessor.on();
 			}
+			
+			// Ebay Hub Controller
+			$ebayHub = new EbayHubController();
+			$ebayHub.init();
+			
+			// Ebay Orders Registry
+			$ebayOrders = new EbayOrdersRegistry();
 			
 			// Ebay Config (UI module) [with Window]
 			$ebayGim = new EbayGim();

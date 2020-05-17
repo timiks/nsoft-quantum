@@ -13,6 +13,7 @@ package quantum.adr {
 	import flash.media.Sound;
 	import flash.system.Capabilities;
 	import flash.utils.Timer;
+	import quantum.core.AppVars;
 	import quantum.events.SettingEvent;
 	import quantum.Settings;
 	import quantum.SoundMgr;
@@ -98,7 +99,7 @@ package quantum.adr {
 
 			var processArgs:Vector.<String> = new Vector.<String>();
 			processArgs[0] = "/run";
-			processArgs[1] = Capabilities.isDebugger ? "adl" : "Quantum";
+			processArgs[1] = Capabilities.isDebugger ? "adl" : AppVars.AppMainFileName;
 			processStartupInfo.arguments = processArgs;
 
 			serviceProcess = new NativeProcess();
