@@ -21,32 +21,32 @@ namespace Quantum.EbayHub
         static void Main(string[] args)
         {
             // Invalid launch protection
-            if (args.Length < 1)
-                Exit();
+            //if (args.Length < 1)
+            //    Exit();
 
-            if (args[0] != "run")
-                Exit();
+            //if (args[0] != "run")
+            //    Exit();
 
-            if (args.Length == 2)
-            {
-                string parentProcessName = args[1];
+            //if (args.Length == 2)
+            //{
+            //    string parentProcessName = args[1];
 
-                Process[] processQuery = Process.GetProcessesByName(parentProcessName);
-                if (processQuery.Length == 0)
-                    // No parent process found
-                    Exit();
+            //    Process[] processQuery = Process.GetProcessesByName(parentProcessName);
+            //    if (processQuery.Length == 0)
+            //        // No parent process found
+            //        Exit();
 
-                foreach (Process prc in processQuery)
-                {
-                    if (prc.ProcessName == parentProcessName)
-                    {
-                        parentProcess = prc;
-                        parentProcess.EnableRaisingEvents = true;
-                        parentProcess.Exited += ParentProcessExitedHandler;
-                        break;
-                    }
-                }
-            }
+            //    foreach (Process prc in processQuery)
+            //    {
+            //        if (prc.ProcessName == parentProcessName)
+            //        {
+            //            parentProcess = prc;
+            //            parentProcess.EnableRaisingEvents = true;
+            //            parentProcess.Exited += ParentProcessExitedHandler;
+            //            break;
+            //        }
+            //    }
+            //}
 
             ApplicationContext ctx = new ApplicationContext();
             _ = new HiddenForm();
@@ -73,13 +73,26 @@ namespace Quantum.EbayHub
     class HiddenForm : Form
     {
         private Socket comClientListener;
+
+        private EbayApiMgr ebayApi;
+        private EbayOrdersFileStore ebayOrdersStore;
         
+        /// <summary>
+        /// Constructor + init
+        /// </summary>
         public HiddenForm()
         {
+            ebayApi = new EbayApiMgr();
+            ebayApi.Init();
+
+            ebayOrdersStore = new EbayOrdersFileStore(ebayApi);
+            ebayOrdersStore.Init();
+            
             Console.OutputEncoding = Encoding.UTF8;
 
             //string tst = "1" + ProcessComProtocol.DataSeparator + "2" + ProcessComProtocol.DataSeparator + "{\"Hola\": \"Amigo\"}" + ProcessComProtocol.EndOfMessageSign;
             //ParseComProtocolMessage(tst);
+            Task.Run(() => ebayOrdersStore.CheckAsync());
 
             IPHostEntry host = Dns.GetHostEntry("localhost");
             IPAddress ipAddress = host.AddressList[0];
@@ -114,7 +127,7 @@ namespace Quantum.EbayHub
                 byte[] bytesBuffer = null;
 
                 // Listen for messages from the client in a loop
-                while (true)
+                while (true) // Better: 'while socket connected'
                 {
                     // Reset buffers
                     sourceMsg = null;

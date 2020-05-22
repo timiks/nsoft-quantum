@@ -36,6 +36,9 @@
     <StartupObject>Quantum.EbayHub.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="eBay.Service">
+      <HintPath>..\..\..\..\Hub\Code\DotNet\Assemblies\eBay.API\v1131.dotnet4\eBay.Service.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\Hub\Code\DotNet\Assemblies\JSON\9.0.1\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -50,6 +53,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EbayApiMgr.cs" />
+    <Compile Include="EbayOrdersFileStore.cs" />
     <Compile Include="QnProcessComProtocol.cs" />
     <Compile Include="ProcessComProtocol.cs" />
     <Compile Include="ProcessComProtocolMessage.cs" />
