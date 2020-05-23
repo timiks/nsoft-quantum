@@ -237,7 +237,7 @@ namespace Quantum.EbayHub
         {
             //SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Got plain message!");
 
-            if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteOrdersCheck)
+            if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck)
             {
                 if (ebayOrdersStoreCheckTask?.Status != TaskStatus.Running)
                 {

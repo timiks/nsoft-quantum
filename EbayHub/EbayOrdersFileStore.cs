@@ -137,7 +137,7 @@ namespace Quantum.EbayHub
         public async Task CheckAsync()
         {
             // [Algo] Call api here. See current state of the base
-            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_OrdersCheckStarted);
+            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckStarted);
 
             //DateTime lastCheckTime = default;
             DateTime lastSavedOrderCreatedTime = default;
