@@ -404,6 +404,7 @@ package quantum.adr.processing
 			var city:String;
 			var region:String;
 			var postCode:String;
+			var phone:String;
 			
 			// COUNTRY (Last Line)
 			// ================================================================================
@@ -664,6 +665,9 @@ package quantum.adr.processing
 			// Process postal code
 			postCode = processPostalCode(postCode, country);
 			
+			// Process phone
+			phone = getPhone(name, addr1);
+			
 			// ================================================================================
 			//
 			// PROCESSING FINAL
@@ -678,6 +682,9 @@ package quantum.adr.processing
 			$resultObj.address1 = addr1;
 			$resultObj.address2 = addr2;
 			$resultObj.sourceAdr = tx;
+			
+			if (phone != null)
+				$resultObj.phone = phone;
 			
 			// Успешный финал обработки
 			processingEnd(ProcessingResult.STATUS_OK);
@@ -1136,6 +1143,11 @@ package quantum.adr.processing
 				postCode = postCode.slice(0, 4) + " " + postCode.slice(4);
 			
 			return postCode;
+		}
+		
+		private function getPhone(adrName:String, adrLine1:String):String 
+		{
+			return main.ebayOrders.getAdrPhone(adrName, adrLine1); // [!] May return null
 		}
 		
 		private function resetResultObject():void

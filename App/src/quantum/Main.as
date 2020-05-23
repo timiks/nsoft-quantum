@@ -188,6 +188,7 @@ package quantum
 			
 			// Ebay Orders Registry
 			$ebayOrders = new EbayOrdersRegistry();
+			$ebayOrders.init();
 			
 			// Ebay Config (UI module) [with Window]
 			$ebayGim = new EbayGim();
@@ -352,6 +353,16 @@ package quantum
 		public function get ebayGim():EbayGim 
 		{
 			return $ebayGim;
+		}
+		
+		public function get ebayHub():EbayHubController
+		{
+			return $ebayHub;
+		}
+		
+		public function get ebayOrders():EbayOrdersRegistry
+		{
+			return $ebayOrders;
 		}
 		
 		public function get uiCmpMgr():UIComponentsMgr
