@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.elements
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -21,6 +21,8 @@ package quantum.gui
 	import quantum.events.DataEvent;
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
+	import quantum.gui.Colors;
+	import quantum.gui.elements.ItemsGroup;
 	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;

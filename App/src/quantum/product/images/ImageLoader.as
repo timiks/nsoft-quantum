@@ -13,7 +13,7 @@ package quantum.product.images
 	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	import quantum.data.DataMgr;
-	import quantum.gui.GroupItem;
+	import quantum.gui.elements.GroupItem;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import sk.yoz.image.ImageResizer;

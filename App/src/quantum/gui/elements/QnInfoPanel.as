@@ -1,4 +1,4 @@
-package quantum.gui 
+package quantum.gui.elements 
 {
 	import flash.display.MovieClip;
 	import flash.display.Shape;
@@ -10,6 +10,7 @@ package quantum.gui
 	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.SoundMgr;
+	import quantum.gui.Colors;
 		
 	/**
 	 * ...

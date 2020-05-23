@@ -10,8 +10,8 @@ package quantum.data
 	import quantum.Main;
 	import quantum.dev.DevSettings;
 	import quantum.events.DataEvent;
-	import quantum.gui.ItemsGroup;
-	import quantum.gui.GroupItem;
+	import quantum.gui.elements.ItemsGroup;
+	import quantum.gui.elements.GroupItem;
 	import quantum.product.Product;
 	import quantum.warehouse.Warehouse;
 	

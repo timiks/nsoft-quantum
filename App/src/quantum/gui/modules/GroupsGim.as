@@ -28,8 +28,8 @@ package quantum.gui.modules
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
 	import quantum.gui.Colors;
-	import quantum.gui.ItemsGroup;
-	import quantum.gui.GroupItem;
+	import quantum.gui.elements.ItemsGroup;
+	import quantum.gui.elements.GroupItem;
 	import quantum.gui.modules.QnManagerGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;

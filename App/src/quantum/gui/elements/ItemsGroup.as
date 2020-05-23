@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.elements
 {
 	import flash.desktop.NativeApplication;
 	import flash.desktop.NativeProcess;
@@ -28,7 +28,9 @@ package quantum.gui
 	import quantum.data.DataMgr;
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
+	import quantum.gui.Colors;
 	import quantum.gui.buttons.BtnGroupControl;
+	import quantum.gui.elements.GroupItem;
 	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;

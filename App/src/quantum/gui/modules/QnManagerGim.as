@@ -17,10 +17,10 @@ package quantum.gui.modules
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.TableDataComposer;
-	import quantum.gui.BigTextInput;
+	import quantum.gui.elements.BigTextInput;
 	import quantum.gui.Colors;
 	import quantum.gui.HintMgr;
-	import quantum.gui.QnInfoPanel;
+	import quantum.gui.elements.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.GroupsGim;
 	import quantum.product.ProductsMgr;

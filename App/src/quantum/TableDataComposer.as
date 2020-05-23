@@ -14,7 +14,7 @@ package quantum
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
-	import quantum.gui.ItemsGroup;
+	import quantum.gui.elements.ItemsGroup;
 	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;

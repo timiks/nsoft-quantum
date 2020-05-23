@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.elements
 {
 	import flash.display.MovieClip;
 	import flash.events.Event;
