@@ -14,42 +14,48 @@ namespace Quantum.EbayHub
 {
     class Program
     {
-        private static Process parentProcess;
+        static Process parentProcess;
+        static HiddenForm activeHiddenForm;
 
         // Entry point
         [STAThread]
         static void Main(string[] args)
         {
             // Invalid launch protection
-            //if (args.Length < 1)
-            //    Exit();
+#if (!DEBUG)
+            if (args.Length < 1)
+                Exit();
 
-            //if (args[0] != "run")
-            //    Exit();
+            if (args[0] != "run")
+                Exit();
 
-            //if (args.Length == 2)
-            //{
-            //    string parentProcessName = args[1];
+            Process[] processQuery;
 
-            //    Process[] processQuery = Process.GetProcessesByName(parentProcessName);
-            //    if (processQuery.Length == 0)
-            //        // No parent process found
-            //        Exit();
+            // Check whether same active processes exist > and kill 'em if they do
+            processQuery = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+            if (processQuery.Length > 0)
+                foreach (Process p in processQuery)
+                    p.Kill();
 
-            //    foreach (Process prc in processQuery)
-            //    {
-            //        if (prc.ProcessName == parentProcessName)
-            //        {
-            //            parentProcess = prc;
-            //            parentProcess.EnableRaisingEvents = true;
-            //            parentProcess.Exited += ParentProcessExitedHandler;
-            //            break;
-            //        }
-            //    }
-            //}
+            if (args.Length == 2)
+            {
+                string parentProcessName = args[1];
+
+                processQuery = Process.GetProcessesByName(parentProcessName);
+                if (processQuery.Length == 0)
+                    // No parent process found
+                    Exit();
+                else
+                {
+                    parentProcess = processQuery[0];
+                    parentProcess.EnableRaisingEvents = true;
+                    parentProcess.Exited += ParentProcessExitedHandler;
+                }
+            }
+#endif
 
             ApplicationContext ctx = new ApplicationContext();
-            _ = new HiddenForm();
+            activeHiddenForm = new HiddenForm();
             Application.Run(ctx);
         }
 
@@ -72,7 +78,11 @@ namespace Quantum.EbayHub
 
     class HiddenForm : Form
     {
+        const int comSocketPort = 9999;
+
         private Socket comClientListener;
+        private Task ebayOrdersStoreCheckTask;
+        private Action ebayOrdersStoreCheckFunc;
 
         private EbayApiMgr ebayApi;
         private EbayOrdersFileStore ebayOrdersStore;
@@ -85,18 +95,22 @@ namespace Quantum.EbayHub
             ebayApi = new EbayApiMgr();
             ebayApi.Init();
 
-            ebayOrdersStore = new EbayOrdersFileStore(ebayApi);
+            ebayOrdersStore = new EbayOrdersFileStore(this, ebayApi);
             ebayOrdersStore.Init();
             
             Console.OutputEncoding = Encoding.UTF8;
 
+            ebayOrdersStoreCheckFunc = async () => await ebayOrdersStore.CheckAsync();
+
+            #if DEBUG
             //string tst = "1" + ProcessComProtocol.DataSeparator + "2" + ProcessComProtocol.DataSeparator + "{\"Hola\": \"Amigo\"}" + ProcessComProtocol.EndOfMessageSign;
             //ParseComProtocolMessage(tst);
-            Task.Run(() => ebayOrdersStore.CheckAsync());
+            Task.Run(ebayOrdersStoreCheckFunc);
+#endif
 
             IPHostEntry host = Dns.GetHostEntry("localhost");
             IPAddress ipAddress = host.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 9999);
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, comSocketPort);
 
             try
             {
@@ -107,7 +121,7 @@ namespace Quantum.EbayHub
                 // How many requests a Socket can listen before it gives Server busy response.  
                 comClientListener.Listen(1);
 
-                object msgData = new { socketServerPort = 9999 };
+                object msgData = new { socketServerPort = comSocketPort };
                 SendComMessage(ProcessComProtocol.MsgCode_ComSocketReady, msgData);
             }
             catch (Exception e)
@@ -181,17 +195,17 @@ namespace Quantum.EbayHub
             return new ProcessComProtocolMessage(msgCode, msgTypeCode, msgData);
         }
 
-        private void SendComMessage(int msgCode)
+        public void SendComMessage(int msgCode)
         {
             SendComMessage(msgCode, ProcessComProtocol.MsgType_Signal);
         }
 
-        private void SendComMessage(int msgCode, string dataPlainString)
+        public void SendComMessage(int msgCode, string dataPlainString)
         {
             SendComMessage(msgCode, ProcessComProtocol.MsgType_Plain, dataPlainString);
         }
 
-        private void SendComMessage(int msgCode, object dataObject)
+        public void SendComMessage(int msgCode, object dataObject)
         {
             SendComMessage(msgCode, ProcessComProtocol.MsgType_JSON, dataObject);
         }
@@ -221,7 +235,15 @@ namespace Quantum.EbayHub
 
         private void ProcessReceivedMessage(ProcessComProtocolMessage msg)
         {
-            SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Got plain message!");
+            //SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Got plain message!");
+
+            if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteOrdersCheck)
+            {
+                if (ebayOrdersStoreCheckTask?.Status != TaskStatus.Running)
+                {
+                    ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
+                }
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Quantum.EbayHub
         const string StoreFormatVersion = "1.0";
         const string StoreFileName = "ebay-orders.xml";
         const string PhoneCountryCodesFileName = "PhoneCountryCodes.json";
-        const int RequestOrdersBackInDays = 10; // 60
+        const int FullRequestOrdersBackInDays = 10; // 60
         const int StoreOrdersBackInDaysMax = 10; // 90
         const string dateStrFormat = "o";
 
@@ -55,6 +55,7 @@ namespace Quantum.EbayHub
         const string JsonStorePropName_CountryCode = "countryCode";
         const string JsonStorePropName_PhoneCode = "phoneCode";
 
+        private HiddenForm msgLoopForm;
         private EbayApiMgr apiMgr;
 
         private string storeFilePath;
@@ -63,21 +64,17 @@ namespace Quantum.EbayHub
         private XmlWriter xmlWriter;
         private Dictionary<string, PhoneCountryCode> phoneCodesBase;
 
-        private XElement RootEl => storeXmlDom
-                .Element(XmlStoreElementName_Root);
+        private XElement RootEl => storeXmlDom.Element(XmlStoreElementName_Root);
 
-        private XElement MetaInfoEl => storeXmlDom
-                .Element(XmlStoreElementName_Root)
-                .Element(XmlStoreElementName_MetaInfo);
+        private XElement MetaInfoEl => RootEl.Element(XmlStoreElementName_MetaInfo);
 
-        private XElement StoreEl => storeXmlDom
-                .Element(XmlStoreElementName_Root)
-                .Element(XmlStoreElementName_Store);
+        private XElement StoreEl => RootEl.Element(XmlStoreElementName_Store);
 
         private int StoreOrdersCount => StoreEl.Elements(XmlStoreElementName_Order).Count();
 
-        public EbayOrdersFileStore(EbayApiMgr ebayApiMgr)
+        public EbayOrdersFileStore(HiddenForm messageLoopForm, EbayApiMgr ebayApiMgr)
         {
+            msgLoopForm = messageLoopForm;
             apiMgr = ebayApiMgr;
         }
 
@@ -140,6 +137,7 @@ namespace Quantum.EbayHub
         public async Task CheckAsync()
         {
             // [Algo] Call api here. See current state of the base
+            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_OrdersCheckStarted);
 
             //DateTime lastCheckTime = default;
             DateTime lastSavedOrderCreatedTime = default;
@@ -177,7 +175,7 @@ namespace Quantum.EbayHub
             Action getEbayOrdersFull = () => 
             {
                 DateTime ctimeTo = DateTime.UtcNow;
-                DateTime ctimeFrom = ctimeTo.AddDays(-RequestOrdersBackInDays);
+                DateTime ctimeFrom = ctimeTo.AddDays(-FullRequestOrdersBackInDays);
                 ordersRequestResult = apiMgr.GetOrders(ctimeFrom, ctimeTo, ResultSortOrder.Descending); // Recent first
             };
 
@@ -203,16 +201,14 @@ namespace Quantum.EbayHub
                 ProcessOrdersRequestResult(ordersRequestResult, !fullRequestNeeded);
 
             // Save current check time
-            storeXmlDom
-                .Element(XmlStoreElementName_Root)
-                .Element(XmlStoreElementName_MetaInfo)
+            MetaInfoEl
                 .Element(XmlStoreElementName_LastCheckTime)
                 .Attribute(XmlStoreAttributeName_Value).Value
                     = DateTime.UtcNow.ToString(dateStrFormat);
 
-            CheckProcessDatabaseOverflow();
+            CheckStoreOverflow();
 
-            //SaveFile();
+            SaveFile();
         }
 
         private DateTime ParseUtcDateTime(string dateTimeString)
@@ -220,7 +216,7 @@ namespace Quantum.EbayHub
             return DateTime.Parse(dateTimeString, null, System.Globalization.DateTimeStyles.RoundtripKind);
         }
 
-        private void CheckProcessDatabaseOverflow()
+        private void CheckStoreOverflow()
         {
             if (StoreOrdersCount < 2)
                 return;
@@ -382,14 +378,10 @@ namespace Quantum.EbayHub
                 if (adrPhoneCountryCodeEl != null)
                     shippingAdrEl.Add(adrPhoneCountryCodeEl);
 
-                XElement storeEl = storeXmlDom
-                    .Element(XmlStoreElementName_Root)
-                    .Element(XmlStoreElementName_Store);
-
                 if (updateMode)
-                    storeEl.AddFirst(orderEl);
+                    StoreEl.AddFirst(orderEl);
                 else
-                    storeEl.Add(orderEl);
+                    StoreEl.Add(orderEl);
             }
         }
 
