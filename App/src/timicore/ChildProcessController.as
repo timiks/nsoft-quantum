@@ -4,6 +4,7 @@ package timicore
 	import flash.desktop.NativeProcess;
 	import flash.desktop.NativeProcessStartupInfo;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
 	import flash.events.NativeProcessExitEvent;
 	import flash.events.ProgressEvent;
@@ -11,7 +12,9 @@ package timicore
 	import flash.net.Socket;
 	import flash.utils.IDataInput;
 	import timicore.communication.ProcessComProtocol;
+	import timicore.communication.ProcessComProtocolEvent;
 	import timicore.communication.ProcessComProtocolMessage;
+	import timicore.communication.ProcessEvent;
 		
 	/**
 	 * ...
@@ -19,7 +22,9 @@ package timicore
 	 */
 	public class ChildProcessController 
 	{
-		private static const processRestartTries:int = 3;
+		private static const processRestartTries:int = 5;
+		
+		private var $events:EventDispatcher;
 		
 		private var process:NativeProcess;
 		private var processFile:File;
@@ -58,6 +63,8 @@ package timicore
 		{
 			if (processFileNotFound)
 				return;
+			
+			$events = new EventDispatcher();
 				
 			process = new NativeProcess();
 			
@@ -89,6 +96,7 @@ package timicore
 			var processStartupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
 			
 			processStartupInfo.executable = processFile;
+			processStartupInfo.workingDirectory = File.applicationDirectory;
 			
 			// Possible arguments for process
 			if (args != null)
@@ -96,19 +104,16 @@ package timicore
 				processArguments = args; // Update if new
 				processStartupInfo.arguments = args;
 			}
-
-			process.addEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
-			process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
 			
 			if (processOutputHandler != null)
 				process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, processOutputHandler);
+					
+			process.addEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
+			process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
 			
-			//process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, onErrorData);
-			//process.addEventListener(IOErrorEvent.STANDARD_OUTPUT_IO_ERROR, onIOError);
 			//process.addEventListener(IOErrorEvent.STANDARD_ERROR_IO_ERROR, onIOError);
-			//process.addEventListener(ProgressEvent.STANDARD_INPUT_PROGRESS, onInputProgress);
-			//process.addEventListener(Event.STANDARD_INPUT_CLOSE, onInputClose);
-			//process.addEventListener(IOErrorEvent.STANDARD_INPUT_IO_ERROR, onIOError);
+			//process.addEventListener(IOErrorEvent.STANDARD_OUTPUT_IO_ERROR, onOutputError);
+			//process.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, onErrorData);
 			
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING, onAppExit);
 			
@@ -140,22 +145,14 @@ package timicore
 			sendMessage(msgCode, ProcessComProtocol.MsgType_JSON, msgDataOb);
 		}
 		
-		// TEST
-		public function testSendMessages():void 
-		{
-			// TEST
-			comSocket.writeUTFBytes("Hola from AIR<EOF>");
-			comSocket.flush();
-			
-			// TEST
-			comSocket.writeUTFBytes("Привет, сообщение номер два<EOF>");
-			comSocket.flush();
-		}
-		
 		public function parseComProtocolMessage(rawSource:String):ProcessComProtocolMessage 
 		{
+			if (rawSource.length == 0)
+				return null;
+			
 			// Remove 'end of message' sign in the end of the raw message
-			rawSource = rawSource.slice(0, rawSource.indexOf(ProcessComProtocol.EndOfMessageSign));
+			if (rawSource.charAt(rawSource.length) == ProcessComProtocol.EndOfMessageSign)
+				rawSource = rawSource.slice(0, rawSource.indexOf(ProcessComProtocol.EndOfMessageSign));
 			
 			var msgComponents:Array = rawSource.split(ProcessComProtocol.DataSeparator);
 			
@@ -199,7 +196,7 @@ package timicore
 		
 		private function onComSocketError(e:IOErrorEvent):void 
 		{
-			
+			events.dispatchEvent(new ProcessEvent(ProcessEvent.COMMUNICATION_ERROR));
 		}
 		
 		private function onComSocketConnected(e:Event):void 
@@ -236,11 +233,8 @@ package timicore
 			comSocket.flush();
 		}
 		
-		private function onProcessOutput(e:ProgressEvent):void 
+		private function onComMessageReceived(msg:ProcessComProtocolMessage):void 
 		{
-			var msg:ProcessComProtocolMessage =
-				parseComProtocolMessage(outputStream.readUTFBytes(outputStream.bytesAvailable));
-			
 			// Invalid message
 			if (msg == null)
 				return;
@@ -248,7 +242,33 @@ package timicore
 			if (msg.code == ProcessComProtocol.MsgCode_ComSocketReady)
 			{
 				connectComSocket(msg.data.socketServerPort);
-				process.removeEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
+			}
+		}
+		
+		private function onProcessOutput(e:ProgressEvent):void 
+		{
+			var rawOutput:String = outputStream.readUTFBytes(outputStream.bytesAvailable);
+			var rawMessages:Vector.<String> = new Vector.<String>();
+			
+			while (rawOutput.indexOf(ProcessComProtocol.EndOfMessageSign) != -1) 
+			{
+				rawMessages.push(rawOutput.slice(0, rawOutput.indexOf(ProcessComProtocol.EndOfMessageSign)));
+				rawOutput = rawOutput.slice(rawOutput.indexOf(ProcessComProtocol.EndOfMessageSign)+1, rawOutput.length);
+			}
+			
+			if (rawMessages.length > 0) 
+			{
+				var msg:ProcessComProtocolMessage;
+				for each (var rawMsg:String in rawMessages) 
+				{
+					msg = parseComProtocolMessage(rawMsg);
+					
+					if (msg != null)
+					{
+						onComMessageReceived(msg);
+						events.dispatchEvent(new ProcessComProtocolEvent(ProcessComProtocolEvent.COM_MESSAGE_RECEIVED, msg));
+					}
+				}
 			}
 		}
 		
@@ -262,6 +282,11 @@ package timicore
 				{ 
 					startProcess(processArguments); // Restart with any saved arguments
 					processRestartTriesCount++;
+					trace("Process restart " + processRestartTriesCount);
+				}
+				else 
+				{
+					events.dispatchEvent(new ProcessEvent(ProcessEvent.RESTART_OVERFLOW));
 				}
 			}
 		}
@@ -274,6 +299,11 @@ package timicore
 		// ================================================================================
 		// PROPERTIES
 		// ================================================================================
+		
+		public function get events():EventDispatcher 
+		{
+			return $events;
+		}
 		
 		public function get outputStream():IDataInput
 		{

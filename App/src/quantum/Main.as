@@ -146,6 +146,14 @@ package quantum
 			// Backup Master
 			$backupMst = new BackupMaster();
 			
+			// Ebay Hub Controller
+			$ebayHub = new EbayHubController();
+			$ebayHub.init();
+			
+			// Ebay Orders Registry
+			$ebayOrders = new EbayOrdersRegistry();
+			$ebayOrders.init();
+			
 			// Tray
 			$trayMgr = new TrayMgr();
 			$trayMgr.initTray();
@@ -158,6 +166,11 @@ package quantum
 			
 			// Addressy's Format Manager
 			$formatMgr = new FormatMgr();
+			
+			// Addressy's Background Processing Service
+			$bgProcessor = new BgProcessor();
+			if (settings.getKey(Settings.bgClipboardProcessing))
+				$bgProcessor.on();
 			
 			// UI Components Manager
 			$uiCmpMgr = new UIComponentsMgr();
@@ -174,21 +187,6 @@ package quantum
 			
 			// Settings State (UI module) [with Window]
 			$settingsGim = new SettingsGim();
-			
-			// Addressy's Background Processing Service
-			$bgProcessor = new BgProcessor();
-			if (settings.getKey(Settings.bgClipboardProcessing))
-			{
-				$bgProcessor.on();
-			}
-			
-			// Ebay Hub Controller
-			$ebayHub = new EbayHubController();
-			$ebayHub.init();
-			
-			// Ebay Orders Registry
-			$ebayOrders = new EbayOrdersRegistry();
-			$ebayOrders.init();
 			
 			// Ebay Config (UI module) [with Window]
 			$ebayGim = new EbayGim();

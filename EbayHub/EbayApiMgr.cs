@@ -3,6 +3,7 @@ using eBay.Service.Core.Sdk;
 using eBay.Service.Core.Soap;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,21 +25,38 @@ namespace Quantum.EbayHub
     class EbayApiMgr
     {
         private const string ApiServerUrl = "https://api.ebay.com/wsapi"; // Production server
+        private const string UserAuthTokenFileName = "EbayUserAuthToken.txt"; // Relative to the app's root dir
 
-        private const string UserAuthTokenTemp = "AgAAAA**AQAAAA**aAAAAA**MpG5Xg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6MFkYqhC5OBpwmdj6x9nY+seQ**Ak0GAA**AAMAAA**NTqDYBZBI36bP+Ygr4tD+P6wmsMFJi9NUDx6lrRnesFmaX+foxARVSwHTG3dBd1EnKo5+igiy8RRcv3s5joClaDklsOrWKSLJ3attcRQeyt9uLhVekrKbzulhDoaLS4Nbyu7as+yYPuh2vGrvNucaH364v0ICOg/yuCbfLRZHKR7ALjDdcolkCiVu7r+rPxEt9tLRhQO2d8JB3adYwu1PwOaYPQ7OBSv/DO84AhG2vIaS5/5WexJox2W/OLAux6zT4V/u6cQ7bgeRnUCvFAeaffl4OzGBaMV5nV+dI81plpCpbTTPkxW1by4RyIc4rZRnBFnmWKiiQF0Sr2nQUUsqLSOWlIcwBtve/s3VRzxomlwXhdo1zyrYrW6AGkTwO1LGr0AmTByyDiplqyinc8MynwWXkDDIpLqGYx/y4f2FWK28XqD9R+EJr94DYw5TPQzV9f+KAmGeQkKUr5r6D8opYcRpoOJ+fIvAdUVbVvThuqp5PC0LSGh0VO+9XAJBdjoEJu5hl/81XphGUQ2u3cXb5o+6PFo8p9Pb70OmrPfbv46GK4leuD27zcmUn91P+qhjDoQFuRkEuWPqOC1Uk0eBNvTbXEsTD/tUgMcFJO/VqGYUYIfcJMklT40PYCEMJcNY/25i5itV9GmnGeFuMAHs6Yr2gY1s3RAbAaX53Mpf3OTjgO3CM+hkKGaNsbrATALzLCKfUD9q5hZg7bLdX6hHt/kN6aSa/qFwkMzRnWcX+hLbCAGpegMDIkFTcp6ZM2m";
+        private HiddenForm msgLoopForm;
 
         private ApiContext apiCtx;
+        private string userAuthToken;
 
         private GetOrdersCall getOrdersCall;
-        
-        public EbayApiMgr()
-        {
 
+        private bool unableState = false;
+        
+        public EbayApiMgr(HiddenForm messageLoopForm)
+        {
+            msgLoopForm = messageLoopForm;
         }
 
         public void Init()
         {
+            SetupAuthorization();
             SetupApiContext();
+        }
+
+        private void SetupAuthorization()
+        {
+            if (!File.Exists(UserAuthTokenFileName))
+            {
+                unableState = true;
+                msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayAuthTokenError);
+                return;
+            }
+
+            userAuthToken = File.ReadAllText(UserAuthTokenFileName);
         }
 
         private void SetupApiContext()
@@ -49,7 +67,7 @@ namespace Quantum.EbayHub
             apiCtx.Site = SiteCodeType.US;
 
             ApiCredential creds = new ApiCredential();
-            creds.eBayToken = UserAuthTokenTemp; // [!] Get it from config
+            creds.eBayToken = userAuthToken;
             apiCtx.ApiCredential = creds;
         }
 
@@ -62,6 +80,9 @@ namespace Quantum.EbayHub
 
         public List<OrderType> GetOrders(DateTime createTimeFrom, DateTime createTimeTo, ResultSortOrder resultSetSortOrder)
         {
+            if (unableState)
+                return null;
+            
             getOrdersCall = new GetOrdersCall(apiCtx);
             SetupGetOrdersCallCommon(ref getOrdersCall);
 

@@ -20,6 +20,7 @@ package quantum.gui.modules
 	import quantum.gui.elements.BigTextInput;
 	import quantum.gui.Colors;
 	import quantum.gui.HintMgr;
+	import quantum.gui.elements.EbayOrdersCheckButton;
 	import quantum.gui.elements.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.GroupsGim;
@@ -41,6 +42,7 @@ package quantum.gui.modules
 		private var $grpCnt:GroupsGim;
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
+		private var $ebayOrdersCheckButton:EbayOrdersCheckButton;
 		private var $hintMgr:HintMgr;
 		private var $infoPanel:QnInfoPanel;
 		private var $productsMgr:ProductsMgr;
@@ -62,7 +64,6 @@ package quantum.gui.modules
 			
 			// State visual composition
 			ui = new QnManagerComposition();
-			//addChild(ui);
 			
 			// Window and Tray functionality
 			initWindowAndTray();
@@ -147,7 +148,7 @@ package quantum.gui.modules
 			{
 				grpCnt.updateUiElementData("selItemProductSKU", TimUtils.trimSpaces(ui.tiSku.text));
 			});
-						
+			
 			// Styles
 			var uicm:UIComponentsMgr = main.uiCmpMgr;
 			uicm.setStyle(ui.taAdr);
@@ -157,6 +158,7 @@ package quantum.gui.modules
 			uicm.setStyle(ui.tiSku);
 			uicm.setStyle(ui.tiPrice);
 			uicm.setStyle(ui.tiWeight);
+			uicm.setStyle(ui.btnEbayOrdersCheck);
 			
 			// Show whole composition after everything looks well
 			addChild(ui);
@@ -194,6 +196,10 @@ package quantum.gui.modules
 			$grpTitleTextInput = new BigTextInput();
 			$grpTitleTextInput.tf = ui.tiGrpTitle;
 			$grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
+			
+			// Ebay orders check button
+			$ebayOrdersCheckButton = new EbayOrdersCheckButton(ui.btnEbayOrdersCheck);
+			$ebayOrdersCheckButton.init();
 			
 			// Layers display order
 			ui.addChildAt(grpCnt, 0);
@@ -397,6 +403,11 @@ package quantum.gui.modules
 		public function get grpTitleTextInput():BigTextInput
 		{
 			return $grpTitleTextInput;
+		}
+		
+		public function get ebayOrdersCheckButton():EbayOrdersCheckButton
+		{
+			return $ebayOrdersCheckButton;
 		}
 		
 		public function get tableDataComposer():TableDataComposer

@@ -1,9 +1,11 @@
 package quantum.ebay 
 {
+	import flash.events.EventDispatcher;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import quantum.Main;
+	import quantum.events.EbayHubEvent;
 		
 	/**
 	 * ...
@@ -19,6 +21,8 @@ package quantum.ebay
 		private var storeFile:File;
 		private var fstream:FileStream;
 		
+		private var $events:EventDispatcher;
+		
 		private function get storeEl():XML
 		{
 			return xmlDoc == null ? null : xmlDoc.Store[0];
@@ -33,9 +37,22 @@ package quantum.ebay
 		{
 			main = Main.ins;
 			
+			$events = new EventDispatcher();
+			
+			storeFile = File.applicationStorageDirectory.resolvePath(storeFileName);
 			fstream = new FileStream();
+			
 			checkStoreFile();
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onCheckSuccess);
 			//getAdrPhone("Richard Altman", "32 E Princeton Rd"); // TEST
+		}
+		
+		private function onCheckSuccess(e:EbayHubEvent):void 
+		{
+			if (e.storeNewEntries == 0) 
+				return;
+			
+			checkStoreFile();
 		}
 		
 		public function getAdrPhone(adrClientName:String, adrLine1:String):String 
@@ -63,8 +80,6 @@ package quantum.ebay
 		
 		private function checkStoreFile():void 
 		{
-			storeFile = File.applicationStorageDirectory.resolvePath(storeFileName);
-			
 			if (!storeFile.exists) 
 			{
 				return;
@@ -77,6 +92,7 @@ package quantum.ebay
 					return;
 					
 				xmlDoc = new XML(storeFileStr);
+				events.dispatchEvent(new EbayHubEvent(EbayHubEvent.ORDERS_REGISTRY_UPDATED));
 			}
 		}
 		
@@ -92,6 +108,11 @@ package quantum.ebay
 			fstream.close();
 			
 			return xmlString;
+		}
+		
+		public function get events():EventDispatcher
+		{
+			return $events;
 		}
 	}
 }

@@ -32,10 +32,10 @@ namespace Quantum.EbayHub
             Process[] processQuery;
 
             // Check whether same active processes exist > and kill 'em if they do
-            processQuery = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
-            if (processQuery.Length > 0)
-                foreach (Process p in processQuery)
-                    p.Kill();
+            //processQuery = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+            //if (processQuery.Length > 1)
+            //    foreach (Process p in processQuery)
+            //        p.Kill();
 
             if (args.Length == 2)
             {
@@ -54,9 +54,21 @@ namespace Quantum.EbayHub
             }
 #endif
 
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+
             ApplicationContext ctx = new ApplicationContext();
             activeHiddenForm = new HiddenForm();
             Application.Run(ctx);
+        }
+
+        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception e = (Exception)args.ExceptionObject;
+            activeHiddenForm.SendComMessage(ProcessComProtocol.MsgCode_SysError, e.Message);
+            using (StreamWriter sw = File.AppendText("error-log.txt")) // UTF-8
+            {
+                sw.WriteLine(e.Message);
+            }
         }
 
         static void ParentProcessExitedHandler(object sender, EventArgs e)
@@ -92,21 +104,15 @@ namespace Quantum.EbayHub
         /// </summary>
         public HiddenForm()
         {
-            ebayApi = new EbayApiMgr();
+            Console.OutputEncoding = Encoding.UTF8;
+
+            ebayApi = new EbayApiMgr(this);
             ebayApi.Init();
 
             ebayOrdersStore = new EbayOrdersFileStore(this, ebayApi);
             ebayOrdersStore.Init();
-            
-            Console.OutputEncoding = Encoding.UTF8;
 
             ebayOrdersStoreCheckFunc = async () => await ebayOrdersStore.CheckAsync();
-
-            #if DEBUG
-            //string tst = "1" + ProcessComProtocol.DataSeparator + "2" + ProcessComProtocol.DataSeparator + "{\"Hola\": \"Amigo\"}" + ProcessComProtocol.EndOfMessageSign;
-            //ParseComProtocolMessage(tst);
-            Task.Run(ebayOrdersStoreCheckFunc);
-#endif
 
             IPHostEntry host = Dns.GetHostEntry("localhost");
             IPAddress ipAddress = host.AddressList[0];
@@ -126,7 +132,7 @@ namespace Quantum.EbayHub
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                SendComMessage(ProcessComProtocol.MsgCode_ComSocketError);
             }
 
             // Wait for client connected
@@ -141,7 +147,7 @@ namespace Quantum.EbayHub
                 byte[] bytesBuffer = null;
 
                 // Listen for messages from the client in a loop
-                while (true) // Better: 'while socket connected'
+                while (comChannel.Connected)
                 {
                     // Reset buffers
                     sourceMsg = null;
@@ -163,13 +169,22 @@ namespace Quantum.EbayHub
                     }
 
                     ProcessReceivedMessage(ParseComProtocolMessage(sourceMsg));
-
-                    //Console.Out.WriteLine("Echo: " + sourceMsg);
                 }
 
-                //comChannel.Shutdown(SocketShutdown.Both);
-                //comChannel.Close();
+                comChannel.Shutdown(SocketShutdown.Both);
+                comChannel.Close();
+                SendComMessage(ProcessComProtocol.MsgCode_ComSocketError);
             });
+
+            #if DEBUG
+            while (true)
+            {
+                Console.ReadLine();
+                //ebayOrdersStore.ReloadFile();
+                ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
+                //ebayOrdersStoreCheckTask.Wait();
+            }
+#endif
         }
 
         private ProcessComProtocolMessage ParseComProtocolMessage(string rawSource)
@@ -235,12 +250,11 @@ namespace Quantum.EbayHub
 
         private void ProcessReceivedMessage(ProcessComProtocolMessage msg)
         {
-            //SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Got plain message!");
-
             if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck)
             {
                 if (ebayOrdersStoreCheckTask?.Status != TaskStatus.Running)
                 {
+                    ebayOrdersStore.ReloadFile(); // TEST
                     ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
                 }
             }

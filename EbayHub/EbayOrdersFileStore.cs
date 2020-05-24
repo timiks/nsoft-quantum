@@ -1,4 +1,5 @@
-﻿using eBay.Service.Core.Soap;
+﻿using eBay.Service.Core.Sdk;
+using eBay.Service.Core.Soap;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,8 +19,8 @@ namespace Quantum.EbayHub
         const string StoreFormatVersion = "1.0";
         const string StoreFileName = "ebay-orders.xml";
         const string PhoneCountryCodesFileName = "PhoneCountryCodes.json";
-        const int FullRequestOrdersBackInDays = 10; // 60
-        const int StoreOrdersBackInDaysMax = 10; // 90
+        const int FullRequestOrdersBackInDays = 60; // 60
+        const int StoreOrdersBackInDaysMax = 90; // 90
         const string dateStrFormat = "o";
 
         const string XmlStoreElementName_Root = "QuantumEbayOrdersStore";
@@ -115,40 +116,51 @@ namespace Quantum.EbayHub
             }
 
             // Phone country codes database
-            // TODO Check for file absence
-            JArray phoneCodesJsonBase = JArray.Parse(File.ReadAllText(PhoneCountryCodesFileName));
-
-            phoneCodesBase = new Dictionary<string, PhoneCountryCode>(phoneCodesJsonBase.Count);
-            PhoneCountryCode dbEntry;
-
-            foreach (JObject jsonEntry in phoneCodesJsonBase)
+            if (!File.Exists(PhoneCountryCodesFileName))
             {
-                dbEntry = new PhoneCountryCode
-                {
-                    CountryName = jsonEntry[JsonStorePropName_CountryName].Value<string>(),
-                    CountryCode = jsonEntry[JsonStorePropName_CountryCode].Value<string>(),
-                    PhoneCode = jsonEntry[JsonStorePropName_PhoneCode].Value<string>()
-                };
+                msgLoopForm.SendComMessage(ProcessComProtocol.MsgCode_SysError);
+            }
+            else
+            {
+                JArray phoneCodesJsonBase;
 
-                phoneCodesBase[dbEntry.CountryCode] = dbEntry;
+                try
+                {
+                    phoneCodesJsonBase = JArray.Parse(File.ReadAllText(PhoneCountryCodesFileName));
+                }
+                catch (Exception)
+                {
+                    msgLoopForm.SendComMessage(ProcessComProtocol.MsgCode_SysError);
+                    return;
+                }
+                
+                phoneCodesBase = new Dictionary<string, PhoneCountryCode>(phoneCodesJsonBase.Count);
+                PhoneCountryCode dbEntry;
+
+                foreach (JObject jsonEntry in phoneCodesJsonBase)
+                {
+                    dbEntry = new PhoneCountryCode
+                    {
+                        CountryName = jsonEntry[JsonStorePropName_CountryName].Value<string>(),
+                        CountryCode = jsonEntry[JsonStorePropName_CountryCode].Value<string>(),
+                        PhoneCode = jsonEntry[JsonStorePropName_PhoneCode].Value<string>()
+                    };
+
+                    phoneCodesBase[dbEntry.CountryCode] = dbEntry;
+                }
             }
         }
 
         public async Task CheckAsync()
         {
-            // [Algo] Call api here. See current state of the base
             msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckStarted);
 
-            //DateTime lastCheckTime = default;
             DateTime lastSavedOrderCreatedTime = default;
-
             bool fullRequestNeeded = false;
 
-            string lastCheckTimeValue = storeXmlDom
-                    .Element(XmlStoreElementName_Root)
-                    .Element(XmlStoreElementName_MetaInfo)
-                    .Element(XmlStoreElementName_LastCheckTime)
-                    .Attribute(XmlStoreAttributeName_Value).Value;
+            string lastCheckTimeValue = MetaInfoEl
+                .Element(XmlStoreElementName_LastCheckTime)
+                .Attribute(XmlStoreAttributeName_Value).Value;
 
             if (lastCheckTimeValue == string.Empty || StoreOrdersCount == 0)
             {
@@ -157,16 +169,11 @@ namespace Quantum.EbayHub
             
             if (StoreOrdersCount > 0)
             {
-                //lastCheckTime = DateTime.Parse(lastCheckTimeValue);
-                lastSavedOrderCreatedTime = DateTime.Parse(
-                    storeXmlDom
-                    .Element(XmlStoreElementName_Root)
-                    .Element(XmlStoreElementName_Store)
-                    .Elements(XmlStoreElementName_Order)
-                    .First()
-                    .Element(XmlStoreElementName_CreatedTime)
-                    .Attribute(XmlStoreAttributeName_Value).Value,
-                null, System.Globalization.DateTimeStyles.RoundtripKind);
+                lastSavedOrderCreatedTime = ParseUtcDateTime(
+                    StoreEl.Elements(XmlStoreElementName_Order).First()
+                        .Element(XmlStoreElementName_CreatedTime)
+                        .Attribute(XmlStoreAttributeName_Value).Value
+                );
             }
 
             List<OrderType> ordersRequestResult = null;
@@ -195,12 +202,25 @@ namespace Quantum.EbayHub
                 apiRequestTask = Task.Run(getEbayOrdersUpdateOnly);
             }
 
-            await apiRequestTask;
+            try
+            {
+                await apiRequestTask;
+            }
+            catch (ApiException e)
+            {
+                msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckError);
+                return;
+            }
+            catch (Exception e)
+            {
+                msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckError);
+                return;
+            }
 
             if (ordersRequestResult != null)
                 ProcessOrdersRequestResult(ordersRequestResult, !fullRequestNeeded);
 
-            // Save current check time
+            // Save current successful check time
             MetaInfoEl
                 .Element(XmlStoreElementName_LastCheckTime)
                 .Attribute(XmlStoreAttributeName_Value).Value
@@ -209,6 +229,15 @@ namespace Quantum.EbayHub
             CheckStoreOverflow();
 
             SaveFile();
+
+            string newEntriesCount = ordersRequestResult == null ? "0" : ordersRequestResult.Count.ToString();
+            object msgData = new { newEntriesCount = newEntriesCount };
+            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckSuccess, msgData);
+        }
+
+        public void ReloadFile()
+        {
+            storeXmlDom = XDocument.Load(storeFilePath);
         }
 
         private DateTime ParseUtcDateTime(string dateTimeString)
@@ -218,7 +247,7 @@ namespace Quantum.EbayHub
 
         private void CheckStoreOverflow()
         {
-            if (StoreOrdersCount < 2)
+            if (StoreOrdersCount < 10)
                 return;
 
             XElement theMostRecentOrder;

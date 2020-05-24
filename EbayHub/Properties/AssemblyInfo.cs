@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Quantum.EbayHub")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Quantum Ebay Service")]
+[assembly: AssemblyDescription("Quantum Ebay Service")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Tim Yusupov")]
 [assembly: AssemblyProduct("Quantum.EbayHub")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("©2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

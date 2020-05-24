@@ -11,12 +11,13 @@ namespace Quantum.EbayHub
 		public static char DataSeparator = '\u001E';
 		public static char EndOfMessageSign = '\u0004';
 		
-		public static byte MsgType_Plain = 0x1;
-		public static byte MsgType_JSON = 0x2;
-		public static byte MsgType_Signal = 0x3;
+		public static byte MsgType_Plain	= 1;
+		public static byte MsgType_JSON		= 2;
+		public static byte MsgType_Signal	= 3;
 		
-		public static int MsgCode_ComSocketReady = 0x1;
-		public static int MsgCode_ComSocketError = 0x2;
-		public static int MsgCode_PlainMessage = 0x3;
+		public static int MsgCode_ComSocketReady	= 1;
+		public static int MsgCode_ComSocketError	= 2;
+		public static int MsgCode_PlainMessage		= 3;
+		public static int MsgCode_SysError			= 4; // With data
     }
 }
