@@ -10,13 +10,16 @@ package quantum.gui.modules
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
 	import flash.events.TextEvent;
+	import flash.events.TimerEvent;
 	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.ui.Keyboard;
+	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.TableDataComposer;
+	import quantum.events.EbayHubEvent;
 	import quantum.gui.elements.BigTextInput;
 	import quantum.gui.Colors;
 	import quantum.gui.HintMgr;
@@ -37,6 +40,8 @@ package quantum.gui.modules
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
 		private var hintsCnt:Sprite;
+		
+		private var delayedTasksTimer:Timer;
 		
 		// Public modules
 		private var $grpCnt:GroupsGim;
@@ -213,6 +218,41 @@ package quantum.gui.modules
 			hintMgr.registerHintWithHandler(ui.tiWeight, grpCnt.selItemWeightEditHintTextHandler);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+			
+			// Task in the callback will be executed with specified delay after UI has shown up
+			delayedTasksTimer = new Timer(500, 1);
+			delayedTasksTimer.addEventListener(TimerEvent.TIMER_COMPLETE, executeAfterDelay);
+			delayedTasksTimer.start();
+		}
+		
+		private function executeAfterDelay(e:TimerEvent):void 
+		{
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onEbayHubEvent);
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_ERROR, onEbayHubEvent);
+			main.ebayHub.SendCheckSignal();
+		}
+		
+		private function onEbayHubEvent(e:EbayHubEvent):void 
+		{
+			main.ebayHub.events.removeEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onEbayHubEvent);
+			main.ebayHub.events.removeEventListener(EbayHubEvent.ORDERS_CHECK_ERROR, onEbayHubEvent);
+			
+			if (e.type == EbayHubEvent.ORDERS_CHECK_SUCCESS) 
+			{
+				
+				var resultMessage:String;
+				
+				if (e.storeNewEntries == 0)
+					resultMessage = "Информация о заказах с Ибея в актуальном состоянии. Можно работать";
+				else
+					resultMessage = "Информация о заказах с Ибея обновлена: +" + e.storeNewEntries + ". Можно работать";
+				
+				infoPanel.showMessage(resultMessage, Colors.MESSAGE);
+			}
+			else if (e.type == EbayHubEvent.ORDERS_CHECK_ERROR) 
+			{
+				infoPanel.showMessage("Ошибка обновления информации о заказах с Ибея", Colors.WARN);
+			}
 		}
 		
 		private function validateDecimalInput(e:TextEvent):void 

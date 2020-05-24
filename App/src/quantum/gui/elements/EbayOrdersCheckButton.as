@@ -14,11 +14,11 @@ package quantum.gui.elements
 	 */
 	public class EbayOrdersCheckButton 
 	{
-		private static const buttonStandbyUiTitle:String = "Обновить базу заказов eBay";
-		private static const buttonCheckInProgressUiTitle:String = "Идёт обновление...";
-		private static const buttonUnableUiTitle:String = "Обновление недоступно из-за проблем";
+		private static const buttonStandbyUiTitle:String = "Запросить инфу о заказах у Ибея";
+		private static const buttonCheckInProgressUiTitle:String = "Запрос заказов выполняется...";
+		private static const buttonUnableUiTitle:String = "Операция недоступна из-за проблем";
 		private static const buttonNoCheckStartConfirmationUiTitle:String = "Внутренняя ошибка";
-		private static const buttonCheckErrorUiTitle:String = "Ошибка!";
+		private static const buttonCheckErrorUiTitle:String = "Операция не выполнена. Имеются проблемы";
 		
 		private static const state_unable:int = 1;
 		private static const state_standby:int = 2;
@@ -72,7 +72,7 @@ package quantum.gui.elements
 			setState(state_unable);
 			
 			if (e.type == EbayHubEvent.PROCESS_FILE_NOT_FOUND)
-				main.qnMgrGim.infoPanel.showMessage("Не найден дочерний файл программы для работы с eBay", Colors.BAD);
+				main.qnMgrGim.infoPanel.showMessage("Не найден дочерний файл программы для работы с Ибеем", Colors.BAD);
 		}
 		
 		private function buttonClick(e:MouseEvent):void 
@@ -80,7 +80,7 @@ package quantum.gui.elements
 			if (main.ebayHub.processFileNotFound)
 			{ 
 				setState(state_unable);
-				main.qnMgrGim.infoPanel.showMessage("Не найден дочерний файл программы для работы с eBay", Colors.BAD);
+				main.qnMgrGim.infoPanel.showMessage("Не найден дочерний файл программы для работы с Ибеем", Colors.BAD);
 				return;
 			}
 			
@@ -97,6 +97,9 @@ package quantum.gui.elements
 		{
 			tmrCheckExecutionStartConfirmationWaitTimeout.reset(); // Stop timeout
 			tmrCheckProcessFinishWaitTimeout.start();
+			
+			if (currentState != state_inProgress)
+				setState(state_inProgress);
 		}
 		
 		// Confirmation wait timeout — no confirmation
@@ -110,14 +113,14 @@ package quantum.gui.elements
 		{
 			tmrCheckProcessFinishWaitTimeout.reset(); // stop timeout
 			
-			var resultMesage:String;
+			var resultMessage:String;
 			
 			if (e.storeNewEntries == 0)
-				resultMesage = "Актуально!";
+				resultMessage = "Всё актуально!";
 			else
-				resultMesage = "База обновлена: +" + e.storeNewEntries;
+				resultMessage = "Успешно. Пополнение: +" + e.storeNewEntries;
 			
-			showMessage(resultMesage);
+			showMessage(resultMessage);
 		}
 		
 		// Check error
