@@ -590,7 +590,7 @@ package quantum.adr.processing
 				tplType = 2;
 			}
 			
-			trace("Template type is " + tplType);
+			//trace("Template type is " + tplType);
 			
 			// NAME (Line 1 — Index 0) and ADDRESS #1 (Line 2 — Index 1)
 			// ================================================================================
@@ -674,6 +674,7 @@ package quantum.adr.processing
 			//
 			// ================================================================================
 			
+			resetResultObject();
 			$resultObj.name = name;
 			$resultObj.country = country;
 			$resultObj.city = city;
@@ -690,7 +691,7 @@ package quantum.adr.processing
 			processingEnd(ProcessingResult.STATUS_OK);
 			return new ProcessingResult(
 				ProcessingResult.STATUS_OK,
-				new ProcessingDetails("Обработано", tplType),
+				new ProcessingDetails("Обработано", tplType, 0, phone == null ? true : false),
 				$resultObj
 			);
 		}

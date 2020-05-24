@@ -120,6 +120,9 @@ package quantum
 			{
 				composeAndPack(prcResult);
 				
+				if (prcResult.details.phoneNotFound) 
+					main.qnMgrGim.infoPanel.showMessage("Номер телефона не найден для этого адреса. Выставлена заглушка", Colors.WARN);
+				
 				// Clear text area (success)
 				adrInputTextArea.text = "";
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x000000));
