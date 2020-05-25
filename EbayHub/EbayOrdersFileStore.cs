@@ -307,6 +307,7 @@ namespace Quantum.EbayHub
             XElement adrRegionEl;
             XElement adrCityEl;
             XElement adrStreet1El;
+            XElement adrStreet2El;
             XElement adrPostCodeEl;
             XElement adrPhoneEl;
             XElement adrPhoneCountryCodeEl;
@@ -329,6 +330,7 @@ namespace Quantum.EbayHub
                 adrRegionEl = new XElement(XmlStoreElementName_Region);
                 adrCityEl = new XElement(XmlStoreElementName_City);
                 adrStreet1El = new XElement(XmlStoreElementName_Street1);
+                adrStreet2El = null;
                 adrPostCodeEl = new XElement(XmlStoreElementName_PostCode);
                 adrPhoneEl = new XElement(XmlStoreElementName_Phone);
                 adrPhoneCountryCodeEl = null;
@@ -367,6 +369,15 @@ namespace Quantum.EbayHub
                 adrStreet1El.Attribute(XmlStoreAttributeName_Value).Value =
                     ebayOrderEntry.ShippingAddress.Street1;
 
+                if (ebayOrderEntry.ShippingAddress.Street2 != null && ebayOrderEntry.ShippingAddress.Street2 != string.Empty)
+                {
+                    adrStreet2El = new XElement(XmlStoreElementName_Street2);
+
+                    adrStreet2El.Add(new XAttribute(XmlStoreAttributeName_Value, ""));
+                    adrStreet2El.Attribute(XmlStoreAttributeName_Value).Value =
+                        ebayOrderEntry.ShippingAddress.Street2;
+                }
+
                 adrPostCodeEl.Add(new XAttribute(XmlStoreAttributeName_Value, ""));
                 adrPostCodeEl.Attribute(XmlStoreAttributeName_Value).Value =
                     ebayOrderEntry.ShippingAddress.PostalCode;
@@ -401,6 +412,10 @@ namespace Quantum.EbayHub
                 shippingAdrEl.Add(adrRegionEl);
                 shippingAdrEl.Add(adrCityEl);
                 shippingAdrEl.Add(adrStreet1El);
+
+                if (adrStreet2El != null)
+                    shippingAdrEl.Add(adrStreet2El);
+
                 shippingAdrEl.Add(adrPostCodeEl);
                 shippingAdrEl.Add(adrPhoneEl);
 

@@ -5,6 +5,7 @@ package quantum.ebay
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import quantum.Main;
+	import quantum.ebay.EbayAddress;
 	import quantum.events.EbayHubEvent;
 		
 	/**
@@ -42,9 +43,10 @@ package quantum.ebay
 			storeFile = File.applicationStorageDirectory.resolvePath(storeFileName);
 			fstream = new FileStream();
 			
+			// Load file at start
 			checkStoreFile();
+			
 			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onCheckSuccess);
-			//getAdrPhone("Richard Altman", "32 E Princeton Rd"); // TEST
 		}
 		
 		private function onCheckSuccess(e:EbayHubEvent):void 
@@ -61,7 +63,7 @@ package quantum.ebay
 				return null;
 				
 			var ordersQuery:XMLList = storeEl.Order
-				.(ShippingAddress.ClientName.@Val == adrClientName && ShippingAddress.Street1.@Val == adrLine1);
+				.(ShippingAddress.Street1.@Val == adrLine1);
 			
 			var adrClientPhone:String = null;
 			var theOrder:XML;
@@ -76,6 +78,33 @@ package quantum.ebay
 			}
 			
 			return adrClientPhone;
+		}
+		
+		public function getEbayAddress(adrLine1:String):EbayAddress 
+		{
+			if (xmlDoc == null)
+				return null;
+				
+			var query:XMLList = storeEl.Order.ShippingAddress.(Street1.@Val == adrLine1);
+			var shipAdrEl:XML;
+			var ebayAdr:EbayAddress = null;
+			
+			if (query.length() > 0) 
+			{
+				shipAdrEl = query[0] as XML;
+				
+				ebayAdr = new EbayAddress();
+				ebayAdr.clientName = shipAdrEl.ClientName.@Val;
+				ebayAdr.country = shipAdrEl.CountryName.@Val;
+				ebayAdr.region = shipAdrEl.Region.@Val;
+				ebayAdr.city = shipAdrEl.City.@Val;
+				ebayAdr.street1 = shipAdrEl.Street1.@Val;
+				ebayAdr.street2 = shipAdrEl.Street2.@Val;
+				ebayAdr.postCode = shipAdrEl.PostCode.@Val;
+				ebayAdr.phone = shipAdrEl.Phone.@Val;
+			}
+			
+			return ebayAdr;
 		}
 		
 		private function checkStoreFile():void 

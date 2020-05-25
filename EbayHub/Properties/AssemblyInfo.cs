@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Quantum Ebay Service")]
 [assembly: AssemblyDescription("Quantum Ebay Service")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Tim Yusupov")]
+[assembly: AssemblyCompany("Timisoft")]
 [assembly: AssemblyProduct("Quantum.EbayHub")]
 [assembly: AssemblyCopyright("©2020")]
 [assembly: AssemblyTrademark("")]

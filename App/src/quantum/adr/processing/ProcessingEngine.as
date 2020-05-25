@@ -2,6 +2,7 @@ package quantum.adr.processing
 {
 	import quantum.Main;
 	import quantum.adr.processing.ResultObject;
+	import quantum.ebay.EbayAddress;
 	
 	/**
 	 * Движок обработки адресов “Addressy” · C 2016 — модуль Квантума
@@ -16,6 +17,8 @@ package quantum.adr.processing
 		// Special modes of processing
 		/* 1: Process just name and leave source lines as they are */
 		public static const PrcSpecialMode1:int = 1;
+		/* 2: Get fields from Ebay-processed address */
+		public static const PrcSpecialMode2:int = 2;
 		
 		private var main:Main;
 		
@@ -598,6 +601,20 @@ package quantum.adr.processing
 			name = processName(lines[0]);
 			addr1 = lines[1];
 			
+			// #SPECIAL: Processing based on Ebay address info (if info is found, else › regular processing)
+			var ebayAddress:EbayAddress = getEbayAddress(addr1);
+			if (ebayAddress != null) 
+			{
+				processFromEbayAddress(ebayAddress, tx);
+				
+				processingEnd(ProcessingResult.STATUS_OK);
+				return new ProcessingResult(
+					ProcessingResult.STATUS_OK,
+					new ProcessingDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+					$resultObj
+				);
+			}
+			
 			// === HARD POINT ===
 			
 			// ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
@@ -694,6 +711,32 @@ package quantum.adr.processing
 				new ProcessingDetails("Обработано", tplType, 0, phone == null ? true : false),
 				$resultObj
 			);
+		}
+		
+		private function processFromEbayAddress(ebayAddress:EbayAddress, sourceTextAddress:String):void 
+		{
+			var name:String = processName(ebayAddress.clientName);
+			var country:String = ebayAddress.country;
+			var region:String = (ebayAddress.region != null && ebayAddress.region != "") ? processRegion(ebayAddress.region, country) : null;
+			var city:String = ebayAddress.city;
+			var addr1:String = ebayAddress.street1;
+			var addr2:String = (ebayAddress.street2 != null && ebayAddress.street2 != "") ? ebayAddress.street2 : null;
+			var postCode:String = processPostalCode(ebayAddress.postCode, country);
+			var phone:String = (ebayAddress.phone != null && ebayAddress.phone != "") ? ebayAddress.phone : null;
+			
+			resetResultObject();
+			
+			$resultObj.name = name;
+			$resultObj.country = country;
+			$resultObj.region = region != null ? region : country;
+			$resultObj.city = city;
+			$resultObj.address1 = addr1;
+			$resultObj.address2 = addr2;
+			$resultObj.postCode = postCode;
+			$resultObj.sourceAdr = sourceTextAddress;
+			
+			if (phone != null)
+				$resultObj.phone = phone;
 		}
 
 		/**
@@ -1149,6 +1192,11 @@ package quantum.adr.processing
 		private function getPhone(adrName:String, adrLine1:String):String 
 		{
 			return main.ebayOrders.getAdrPhone(adrName, adrLine1); // [!] May return null
+		}
+		
+		private function getEbayAddress(adrLine1:String):EbayAddress 
+		{
+			return main.ebayOrders.getEbayAddress(adrLine1); // [!] May return null
 		}
 		
 		private function resetResultObject():void
