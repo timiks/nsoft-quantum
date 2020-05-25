@@ -252,7 +252,7 @@ namespace Quantum.EbayHub
         {
             if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck)
             {
-                if (ebayOrdersStoreCheckTask?.Status != TaskStatus.Running)
+                if (ebayOrdersStoreCheckTask == null || ebayOrdersStoreCheckTask.Status != TaskStatus.Running)
                 {
                     ebayOrdersStore.ReloadFile(); // TEST
                     ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);

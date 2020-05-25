@@ -243,15 +243,15 @@ package quantum.gui.modules
 				var resultMessage:String;
 				
 				if (e.storeNewEntries == 0)
-					resultMessage = "Информация о заказах с Ибея в актуальном состоянии. Можно работать";
+					resultMessage = "Информация о заказах с Ибея в актуальном состоянии";
 				else
-					resultMessage = "Информация о заказах с Ибея обновлена: +" + e.storeNewEntries + ". Можно работать";
+					resultMessage = "Информация о заказах с Ибея обновлена: +" + e.storeNewEntries;
 				
 				infoPanel.showMessage(resultMessage, Colors.MESSAGE);
 			}
 			else if (e.type == EbayHubEvent.ORDERS_CHECK_ERROR) 
 			{
-				infoPanel.showMessage("Ошибка обновления информации о заказах с Ибея", Colors.WARN);
+				infoPanel.showMessage("Не вышло обновить информацию о заказах с Ибея", Colors.WARN);
 			}
 		}
 		

@@ -16,9 +16,9 @@ package quantum.gui.elements
 	{
 		private static const buttonStandbyUiTitle:String = "Запросить инфу о заказах у Ибея";
 		private static const buttonCheckInProgressUiTitle:String = "Запрос заказов выполняется...";
-		private static const buttonUnableUiTitle:String = "Операция недоступна из-за проблем";
+		private static const buttonUnableUiTitle:String = "Операция недоступна";
 		private static const buttonNoCheckStartConfirmationUiTitle:String = "Внутренняя ошибка";
-		private static const buttonCheckErrorUiTitle:String = "Операция не выполнена. Имеются проблемы";
+		private static const buttonCheckErrorUiTitle:String = "Не вышло";
 		
 		private static const state_unable:int = 1;
 		private static const state_standby:int = 2;
@@ -129,6 +129,7 @@ package quantum.gui.elements
 			tmrCheckProcessFinishWaitTimeout.reset(); // stop timeout
 			
 			showMessage(buttonCheckErrorUiTitle);
+			main.qnMgrGim.infoPanel.showMessage("Не вышло обновить информацию о заказах с Ибея", Colors.WARN);
 		}
 		
 		// Check process wait timeout

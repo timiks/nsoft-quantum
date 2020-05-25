@@ -32,11 +32,11 @@ package quantum
 		private static var $ins:Main;
 		
 		// App Version
-		private const $version:int 					= 5;
-		private const $versionService:int 			= 11;
-		private const $betaVersionNumber:int        = 0;
+		private const $version:int 					= 6;
+		private const $versionService:int 			= 0;
+		private const $betaVersionNumber:int        = 1;
 		
-		private const $betaVersion:Boolean 			= Boolean(0);
+		private const $betaVersion:Boolean 			= Boolean(1);
 		private const $futureVersion:Boolean 		= Boolean(0);
 		private const bugs:Boolean 					= Boolean(0);
 		
@@ -253,7 +253,7 @@ package quantum
 			/* Minor (service) version */
 			vr += "." + String($versionService);
 			/* Beta version */
-			if ($betaVersion) vr += " β" + String($betaVersionNumber);
+			if ($betaVersion) vr += " β" + ($betaVersionNumber == 0 || $betaVersionNumber == 1 ? "" : String($betaVersionNumber));
 			/* Future version mark */
 			if (Capabilities.isDebugger && $futureVersion) vr += " F";
 			return vr;
