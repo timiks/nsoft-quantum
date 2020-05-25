@@ -14,8 +14,8 @@ package quantum
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
-	import quantum.gui.ItemsGroup;
-	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.elements.ItemsGroup;
+	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
@@ -42,16 +42,16 @@ package quantum
 		private var shippingFileLoadingTS:Number;
 		
 		private var main:Main;
-		private var grpCnt:GroupsContainer;
+		private var grpCnt:GroupsGim;
 		private var pm:ProductsMgr;
 		
-		public function TableDataComposer(groupsContainer:GroupsContainer, inputTextArea:TextArea):void
+		public function TableDataComposer(groupsContainer:GroupsGim, inputTextArea:TextArea):void
 		{
 			grpCnt = groupsContainer;
 			$adrInputTextArea = inputTextArea;
 			
 			main = Main.ins;
-			pm = main.stQuantumMgr.productsMgr;
+			pm = main.qnMgrGim.productsMgr;
 		}
 		
 		public function init():void
@@ -70,7 +70,7 @@ package quantum
 			
 			adrMiniLogo.x = adrInputTextArea.width - adrMiniLogo.width - 6;
 			adrMiniLogo.y = adrInputTextArea.height - adrMiniLogo.height - 6;
-			main.stQuantumMgr.hintMgr.registerHint(adrMiniLogo, "Powered by Addressy™");
+			main.qnMgrGim.hintMgr.registerHint(adrMiniLogo, "Powered by Addressy™");
 			
 			var cb:CheckBox = new CheckBox();
 			cb.label = "";
@@ -78,7 +78,7 @@ package quantum
 			cb.x = adrInputTextArea.width - cb.width - 2;
 			cb.y = 2;
 			adrInputTextArea.addChild(cb);
-			main.stQuantumMgr.hintMgr.registerHint(cb, "Активировать обработку");
+			main.qnMgrGim.hintMgr.registerHint(cb, "Активировать обработку");
 			
 			cb.selected = main.settings.getKey(Settings.composerAdrProcessingActive);
 			cb.addEventListener("change", function(e:Event):void
@@ -105,7 +105,7 @@ package quantum
 			
 			if (grpCnt.selectedItem.parentItemsGroup.title == ItemsGroup.UNTITLED_GROUP_SIGN)
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
+				main.qnMgrGim.infoPanel.showMessage("Нельзя оформлять товар из безымянной группы", Colors.BAD);
 				return;
 			}
 			
@@ -119,6 +119,9 @@ package quantum
 			if (prcResult.status == ProcessingResult.STATUS_OK)
 			{
 				composeAndPack(prcResult);
+				
+				if (prcResult.details.phoneNotFound) 
+					main.qnMgrGim.infoPanel.showMessage("Номер телефона не найден для этого адреса. Выставлена заглушка", Colors.WARN);
 				
 				// Clear text area (success)
 				adrInputTextArea.text = "";
@@ -175,7 +178,7 @@ package quantum
 			
 			if (groupWarehouse == Warehouse.NONE) 
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Товар находится в группе без склада. Оформление невозможно", Colors.WARN);
+				main.qnMgrGim.infoPanel.showMessage("Товар находится в группе без склада. Оформление невозможно", Colors.WARN);
 				return;
 			}
 			
@@ -186,7 +189,7 @@ package quantum
 				
 				if (itemProductSKU == "")
 				{
-					main.stQuantumMgr.infoPanel.showMessage("У товара не указан SKU. Оформление отменено", Colors.BAD);
+					main.qnMgrGim.infoPanel.showMessage("У товара не указан SKU. Оформление отменено", Colors.BAD);
 					return;
 				}
 			}
@@ -345,7 +348,7 @@ package quantum
 			}
 			
 			// Success message
-			main.stQuantumMgr.infoPanel.showMessage
+			main.qnMgrGim.infoPanel.showMessage
 			(
 				(itemTitle != null ? itemTitle + " • " : "") + adrPrcResult.resultObj.name +
 				(adrPrcResult.resultObj.country != null ? " (" + adrPrcResult.resultObj.country + ") • " : " • ") +

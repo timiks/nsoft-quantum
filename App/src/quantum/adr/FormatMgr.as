@@ -66,7 +66,8 @@ package quantum.adr
 					output += "Страна: " + country + "\n";
 					output += "Регион: " + region + "\n";
 					output += "Город: " + city + "\n";
-					output += "Индекс: " + postCode;
+					output += "Индекс: " + postCode + "\n";
+					output += "Телефон: " + phone;
 					break;
 				
 				case FRM_BJN_TITLES:

@@ -40,7 +40,7 @@ package quantum.gui.modules {
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class StAddressyUI extends Sprite {
+	public class AddressyUiGim extends Sprite {
 
 		private var main:Main;
 		private var ui:AddressyUI;
@@ -54,7 +54,7 @@ package quantum.gui.modules {
 
 		// ================================================================================
 
-		public function StAddressyUI():void {
+		public function AddressyUiGim():void {
 			//stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 
@@ -652,7 +652,7 @@ package quantum.gui.modules {
 
 				win.visible = false;
 
-				if (main.stQuantumMgr.stage.nativeWindow.visible) main.stQuantumMgr.stage.nativeWindow.activate();
+				if (main.qnMgrGim.stage.nativeWindow.visible) main.qnMgrGim.stage.nativeWindow.activate();
 
 			}
 

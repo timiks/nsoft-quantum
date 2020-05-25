@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.elements
 {
 	import flash.desktop.NativeApplication;
 	import flash.desktop.NativeProcess;
@@ -28,8 +28,10 @@ package quantum.gui
 	import quantum.data.DataMgr;
 	import quantum.events.PropertyEvent;
 	import quantum.events.SettingEvent;
+	import quantum.gui.Colors;
 	import quantum.gui.buttons.BtnGroupControl;
-	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.elements.GroupItem;
+	import quantum.gui.modules.GroupsGim;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import quantum.warehouse.Warehouse;
@@ -65,7 +67,7 @@ package quantum.gui
 		private var $id:int;
 		private var $selected:Boolean;
 		private var $dataXml:XML;
-		private var $grpCnt:GroupsContainer;
+		private var $grpCnt:GroupsGim;
 		private var $brandNew:Boolean;
 		private var $empty:Boolean;
 		private var $isUntitled:Boolean;
@@ -80,7 +82,7 @@ package quantum.gui
 		
 		private var totalItems:int;
 		private var totalColumns:int;
-		private var items:Vector.<SquareItem>;
+		private var items:Vector.<GroupItem>;
 		private var nextPlace:Point;
 		private var imgFile:File;
 			
@@ -100,7 +102,7 @@ package quantum.gui
 			this.isTransparent = isTransparentFlag;
 			
 			main = Main.ins;
-			pm = main.stQuantumMgr.productsMgr;
+			pm = main.qnMgrGim.productsMgr;
 		}
 		
 		public function init():void
@@ -117,7 +119,7 @@ package quantum.gui
 			
 			// ================================================================================
 			
-			items = new Vector.<SquareItem>();
+			items = new Vector.<GroupItem>();
 			nextPlace = new Point();
 			imgFile = new File();
 			constructGrid();
@@ -227,13 +229,13 @@ package quantum.gui
 		{
 			if (empty)
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Группа пустая", Colors.WARN);
+				main.qnMgrGim.infoPanel.showMessage("Группа пустая", Colors.WARN);
 				return;
 			}
 			
 			if (isUntitled)
 			{
-				main.stQuantumMgr.infoPanel.showMessage("Для безымянной группы данная функция не доступна", Colors.WARN);
+				main.qnMgrGim.infoPanel.showMessage("Для безымянной группы данная функция не доступна", Colors.WARN);
 				return;
 			}
 			
@@ -258,7 +260,7 @@ package quantum.gui
 					{
 						if (pm.opProduct(PID, DataMgr.OP_READ, idBadge) == "")
 						{
-							main.stQuantumMgr.infoPanel.showMessage("Не у всех товаров в этой группе указан SKU", Colors.WARN);
+							main.qnMgrGim.infoPanel.showMessage("Не у всех товаров в этой группе указан SKU", Colors.WARN);
 							return;
 						}
 					}
@@ -289,7 +291,7 @@ package quantum.gui
 			fst.writeUTFBytes(fileStr);
 			fst.close();
 			
-			main.stQuantumMgr.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name, Colors.SUCCESS);
+			main.qnMgrGim.infoPanel.showMessage("Содержимое группы экспортировано в файл " + exportFile.name, Colors.SUCCESS);
 			main.soundMgr.play(SoundMgr.sndSuccess);
 			
 			// Open file with exported content
@@ -369,7 +371,7 @@ package quantum.gui
 			
 			var i:int;
 			var j:int;
-			var item:SquareItem;
+			var item:GroupItem;
 			var tmpTotalItems:int = items.length;
 			var orderNum:int = 1;
 			var idx:int = 0;
@@ -424,7 +426,7 @@ package quantum.gui
 					
 					if (tmpTotalItems == 0)
 					{
-						var lastAddedItem:SquareItem = items[items.length-1];
+						var lastAddedItem:GroupItem = items[items.length-1];
 						nextPlace = calculatePlace(i, j, lastAddedItem.frame.width, lastAddedItem.frame.height);
 						break;
 					}
@@ -436,7 +438,7 @@ package quantum.gui
 		{
 			totalColumns = Math.ceil(items.length / MAX_ITEMS_NUMBER_VERTICALLY);
 			
-			var item:SquareItem;
+			var item:GroupItem;
 			var i:int;
 			var j:int;
 			var tmpTotalItems:int = items.length;
@@ -493,9 +495,9 @@ package quantum.gui
 		 * ================================================================================
 		 */
 		
-		public function addItem(productID:int, countValue:int = 0):SquareItem
+		public function addItem(productID:int, countValue:int = 0):GroupItem
 		{
-			var newItem:SquareItem = new SquareItem(
+			var newItem:GroupItem = new GroupItem(
 				productID,
 				countValue
 			);
@@ -514,7 +516,7 @@ package quantum.gui
 			return newItem;
 		}
 		
-		public function removeItem(removingItem:SquareItem):void
+		public function removeItem(removingItem:GroupItem):void
 		{
 			items.splice(items.indexOf(removingItem), 1);
 			main.dataMgr.opItem(removingItem, DataMgr.OP_REMOVE);
@@ -545,15 +547,15 @@ package quantum.gui
 			}
 			
 			return (title == UNTITLED_GROUP_SIGN ? 
-						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) + "\n" + 
+						main.qnMgrGim.colorText(Colors.TXLB_LIGHT_GREY, "[Безымянная]") : title) + "\n" + 
 					(warehouseID == Warehouse.NONE ?
-						main.stQuantumMgr.colorText(Colors.TXLB_LIGHT_GREY, Warehouse.getByID(warehouseID).russianTitle) :
+						main.qnMgrGim.colorText(Colors.TXLB_LIGHT_GREY, Warehouse.getByID(warehouseID).russianTitle) :
 						"<b>Склад:</b> " + Warehouse.getByID(warehouseID).russianTitle);
 		}
 		
 		public function checkItemExistenceByProductID(itemProductID:int):Boolean
 		{
-			for each (var i:SquareItem in items)
+			for each (var i:GroupItem in items)
 			{
 				if (i.productID == itemProductID) return true;
 			}
@@ -568,7 +570,7 @@ package quantum.gui
 				
 			var fullCount:int = 0;
 			
-			for each (var i:SquareItem in items) 
+			for each (var i:GroupItem in items) 
 			{
 				if (i.productID == productID)
 					fullCount += i.count;
@@ -585,7 +587,7 @@ package quantum.gui
 			var tmp:Object = {};
 			var idList:Vector.<int> = new Vector.<int>();
 			
-			for each (var i:SquareItem in items) 
+			for each (var i:GroupItem in items) 
 			{
 				if (!tmp[i.productID])
 					idList.push(i.productID);
@@ -721,7 +723,7 @@ package quantum.gui
 		public function get realWidth():Number
 		{
 			return items.length > 0 ?
-				((items[0] as SquareItem).frame.width + ITEMS_SPACING) * totalColumns - ITEMS_SPACING :
+				((items[0] as GroupItem).frame.width + ITEMS_SPACING) * totalColumns - ITEMS_SPACING :
 				displayObject.width;
 		}
 		
@@ -735,12 +737,12 @@ package quantum.gui
 			$dataXml = value;
 		}
 		
-		public function get grpCnt():GroupsContainer
+		public function get grpCnt():GroupsGim
 		{
 			return $grpCnt;
 		}
 		
-		public function set grpCnt(value:GroupsContainer):void
+		public function set grpCnt(value:GroupsGim):void
 		{
 			$grpCnt = value;
 		}

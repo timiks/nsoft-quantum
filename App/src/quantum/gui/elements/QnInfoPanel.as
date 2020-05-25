@@ -1,4 +1,4 @@
-package quantum.gui 
+package quantum.gui.elements 
 {
 	import flash.display.MovieClip;
 	import flash.display.Shape;
@@ -10,6 +10,7 @@ package quantum.gui
 	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.SoundMgr;
+	import quantum.gui.Colors;
 		
 	/**
 	 * ...
@@ -140,7 +141,7 @@ package quantum.gui
 					break;
 			}
 			
-			tf.htmlText = main.stQuantumMgr.colorText("#FFFFFF", text);
+			tf.htmlText = main.qnMgrGim.colorText("#FFFFFF", text);
 			
 			backRect.width = tf.textWidth + 50;
 			backRect.height = tf.textHeight + 4;

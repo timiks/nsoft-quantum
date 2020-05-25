@@ -6,6 +6,8 @@ package quantum.adr.processing
 	 */
 	public class ResultObject
 	{
+		private static const defaultPhone:String = "+1234567890";
+		
 		public var name:String;
 		public var country:String;
 		public var city:String;
@@ -19,7 +21,7 @@ package quantum.adr.processing
 		
 		public function ResultObject():void
 		{
-			phone = "+1234567890";
+			phone = defaultPhone;
 		}
 		
 		public function reset():void
@@ -33,6 +35,7 @@ package quantum.adr.processing
 			postCode = null;
 			sourceAdr = null;
 			sourceAdrLines = null;
+			phone = defaultPhone;
 		}
 	}
 }
