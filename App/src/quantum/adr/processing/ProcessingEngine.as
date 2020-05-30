@@ -1177,6 +1177,12 @@ package quantum.adr.processing
 			if (country == "Switzerland") 
 				postCode = postCode.replace(/^CH-/, "");
 			else
+			if (country == "United Kingdom" && postCode.search(/^[A-Z\d]{6}$/i) != -1)
+				postCode = postCode.slice(0, 3) + " " + postCode.slice(3);
+			else
+			if (country == "United Kingdom" && postCode.search(/^[A-Z\d]{7}$/i) != -1)
+				postCode = postCode.slice(0, 4) + " " + postCode.slice(4);
+			else
 			if (country == "Poland" && postCode.search("-") == -1)
 				postCode = postCode.slice(0, 2) + "-" + postCode.slice(2);
 			else
