@@ -399,7 +399,7 @@ namespace Quantum.EbayHub
 
                 if (ebayOrderEntry.ShippingAddress.Phone != "Invalid Request" && phoneCodesBase.ContainsKey(phoneCountryCodeUsed))
                     adrPhoneEl.Attribute(XmlStoreAttributeName_Value).Value =
-                        phoneCodesBase[phoneCountryCodeUsed].PhoneCode + ebayOrderEntry.ShippingAddress.Phone;
+                        phoneCodesBase[phoneCountryCodeUsed].PhoneCode + " " + ebayOrderEntry.ShippingAddress.Phone;
 
                 orderEl.Add(orderIdEl);
                 orderEl.Add(createdTimeEl);
