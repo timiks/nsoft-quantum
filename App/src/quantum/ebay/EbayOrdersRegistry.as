@@ -63,7 +63,7 @@ package quantum.ebay
 				return null;
 				
 			var ordersQuery:XMLList = storeEl.Order
-				.(ShippingAddress.Street1.@Val == adrLine1);
+				.(stringToLowerCase(ShippingAddress.Street1.@Val as String) == adrLine1.toLowerCase());
 			
 			var adrClientPhone:String = null;
 			var theOrder:XML;
@@ -85,7 +85,7 @@ package quantum.ebay
 			if (xmlDoc == null)
 				return null;
 				
-			var query:XMLList = storeEl.Order.ShippingAddress.(Street1.@Val == adrLine1);
+			var query:XMLList = storeEl.Order.ShippingAddress.(stringToLowerCase(Street1.@Val) == adrLine1.toLowerCase());
 			var shipAdrEl:XML;
 			var ebayAdr:EbayAddress = null;
 			
@@ -137,6 +137,11 @@ package quantum.ebay
 			fstream.close();
 			
 			return xmlString;
+		}
+		
+		private function stringToLowerCase(inputStr:String):String 
+		{
+			return inputStr != null ? inputStr.toLowerCase() : "";
 		}
 		
 		public function get events():EventDispatcher
