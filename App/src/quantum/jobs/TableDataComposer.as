@@ -1,4 +1,4 @@
-package quantum
+package quantum.jobs
 {
 	import fl.controls.CheckBox;
 	import fl.controls.TextArea;
@@ -10,6 +10,9 @@ package quantum
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
 	import flash.text.TextFormat;
+	import quantum.Main;
+	import quantum.Settings;
+	import quantum.SoundMgr;
 	import quantum.adr.AdrFormatMgr;
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;

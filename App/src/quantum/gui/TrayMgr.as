@@ -1,4 +1,4 @@
-package quantum
+package quantum.gui
 {
 	import flash.desktop.NativeApplication;
 	import flash.desktop.SystemTrayIcon;
@@ -9,6 +9,8 @@ package quantum
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.ScreenMouseEvent;
+	import quantum.Main;
+	import quantum.Settings;
 	import quantum.events.SettingEvent;
 	
 	/**
@@ -17,10 +19,10 @@ package quantum
 	 */
 	public class TrayMgr extends EventDispatcher
 	{
-		[Embed(source = "/../lib/app-icons/adr-icon-16-bright.png")]
+		[Embed(source = "../../../lib/app-icons/adr-icon-16-bright.png")]
 		private var Icon16:Class;
 		
-		[Embed(source = "/../lib/app-icons/adr-ico16-bgmode-green.png")]
+		[Embed(source = "../../../lib/app-icons/adr-ico16-bgmode-green.png")]
 		private var Icon16BgMode:Class;
 		
 		private var main:Main;

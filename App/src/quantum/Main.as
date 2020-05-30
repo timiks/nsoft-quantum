@@ -16,6 +16,7 @@ package quantum
 	import quantum.ebay.EbayHubController;
 	import quantum.ebay.EbayOrdersRegistry;
 	import quantum.gui.GraphicsLibMgr;
+	import quantum.gui.TrayMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.EbayGim;
 	import quantum.gui.modules.SysErrorGim;
