@@ -1,5 +1,5 @@
-package quantum.adr {
-
+package quantum.adr
+{
 	import flash.desktop.Clipboard;
 	import flash.desktop.ClipboardFormats;
 	import flash.desktop.NativeApplication;
@@ -25,150 +25,156 @@ package quantum.adr {
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class BgProcessor {
-
+	public class BgProcessor
+	{
 		private var main:Main;
 		private var serviceProcess:NativeProcess;
 		private var serviceProcessFile:File;
 		private var serviceProcessFileNotFound:Boolean = false;
-
+		
 		private const serviceProcessFileName:String = "AddressyService.exe";
 		private const cbChangedOutputValue:String = "1";
-
+		
 		private var tmrDelay:Timer;
-
-		public function BgProcessor():void {
+		
+		public function BgProcessor():void
+		{
 			main = Main.ins;
 			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
-
+			
 			serviceProcessFile = File.applicationDirectory.resolvePath(serviceProcessFileName);
-			if (!serviceProcessFile.exists) {
-
+			
+			if (!serviceProcessFile.exists)
+			{
 				main.logRed("Service Process File not found");
 				serviceProcessFileNotFound = true;
 				// [To-Do Here ↓]: Global Error
-
-			} else {
-
+			} 
+			else 
+			{
 				trace("Service Process File found: " + serviceProcessFile.nativePath);
-
 				tmrDelay = new Timer(1300, 1);
-
 			}
 		}
-
-		private function onSettingChange(e:SettingEvent):void {
-			if (e.settingName == Settings.bgClipboardProcessing) {
+		
+		private function onSettingChange(e:SettingEvent):void
+		{
+			if (e.settingName == Settings.bgClipboardProcessing)
+			{
 				e.newValue == true ? main.logRed("BgProcessor ON") : main.logRed("BgProcessor OFF");
-
-				if (e.newValue == true) {
-
+				
+				if (e.newValue == true)
 					on();
-
-				} else {
-
+				else
 					off();
-
-				}
-
+				
 				// Sound
 				main.soundMgr.play(SoundMgr.sndBgPrcToggle);
 			}
 		}
-
-		public function on():void {
-			if (serviceProcessFileNotFound) return;
+		
+		public function on():void
+		{
+			if (serviceProcessFileNotFound) 
+				return;
+				
 			launchServiceProcess();
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING, onExitApp);
 		}
-
-		public function off():void {
-			if (serviceProcessFileNotFound) return;
+		
+		public function off():void
+		{
+			if (serviceProcessFileNotFound) 
+				return;
+				
 			closeServiceProcess();
-			if (tmrDelay.running) tmrDelay.stop();
+			
+			if (tmrDelay.running)
+				tmrDelay.stop();
+			
 			NativeApplication.nativeApplication.removeEventListener(Event.EXITING, onExitApp);
 		}
-
-		private function launchServiceProcess():void {
-			if (serviceProcess != null && serviceProcess.running) {
+		
+		private function launchServiceProcess():void
+		{
+			if (serviceProcess != null && serviceProcess.running)
 				return;
-			}
-
+			
 			var processStartupInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
 			processStartupInfo.executable = serviceProcessFile;
-
+			
 			var processArgs:Vector.<String> = new Vector.<String>();
 			processArgs[0] = "/run";
 			processArgs[1] = Capabilities.isDebugger ? "adl" : AppVars.AppMainFileName;
 			processStartupInfo.arguments = processArgs;
-
+			
 			serviceProcess = new NativeProcess();
 			serviceProcess.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
 			serviceProcess.addEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
-			//serviceProcess.addEventListener(ProgressEvent.STANDARD_ERROR_DATA, onErrorData);
-			//serviceProcess.addEventListener(IOErrorEvent.STANDARD_OUTPUT_IO_ERROR, onIOError);
-			//serviceProcess.addEventListener(IOErrorEvent.STANDARD_ERROR_IO_ERROR, onIOError);
-
+			
 			serviceProcess.start(processStartupInfo);
 		}
-
-		private function closeServiceProcess():void {
-			if (serviceProcess == null && !serviceProcess.running) {
+		
+		private function closeServiceProcess():void
+		{
+			if (serviceProcess == null && !serviceProcess.running)
 				return;
-			}
-
+			
 			serviceProcess.removeEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
 			serviceProcess.removeEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
 			serviceProcess.exit();
 			serviceProcess = null;
 		}
 
-		private function onProcessOutput(e:ProgressEvent):void {
+		private function onProcessOutput(e:ProgressEvent):void
+		{
 			var output:String = serviceProcess.standardOutput.readUTFBytes(serviceProcess.standardOutput.bytesAvailable);
-
+			
 			trace("");
 			main.logRed("Output from Service Process: " + output + (output == cbChangedOutputValue ? " (Clipboard Changed)" : ""));
-
-			if (output == cbChangedOutputValue) {
-
-				if (tmrDelay.running) return;
-
+			
+			if (output == cbChangedOutputValue)
+			{
+				if (tmrDelay.running)
+					return;
+				
 				if (!Clipboard.generalClipboard.hasFormat(ClipboardFormats.TEXT_FORMAT))
 					return;
-
+				
 				trace("BgProcessor has called processing");
 				processClipboard();
-
 			}
 		}
-
-		private function onProcessExit(e:NativeProcessExitEvent):void {
+		
+		private function onProcessExit(e:NativeProcessExitEvent):void
+		{
 			main.logRed("Service Process has exited with code " + e.exitCode);
-
+			
 			/*
 			Алгоритм
 			> if bgProcessing on and exited > relaunch
 			*/
-			if (main.settings.getKey(Settings.bgClipboardProcessing)) {
+			if (main.settings.getKey(Settings.bgClipboardProcessing))
+			{
 				main.logRed("Сервис-процесс завершился несанкционированно. Перезапуск");
 				launchServiceProcess();
 			}
 		}
-
-		private function processClipboard():void {
-
+		
+		private function processClipboard():void
+		{
 			var clipboardText:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
 			trace("CB IN:\n" + clipboardText);
-
+			
 			var prcResult:ProcessingResult = main.prcEng.process(clipboardText);
 			var snd:Sound;
-
+			
 			/**
 			 * SUCCESS
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_OK) {
-
+			if (prcResult.status == ProcessingResult.STATUS_OK)
+			{
 				var currentFormat:String = main.settings.getKey(Settings.outputFormat);
 				var formattedStr:String = main.formatMgr.format(prcResult.resultObj, currentFormat);
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, formattedStr);
@@ -196,26 +202,24 @@ package quantum.adr {
 				// Show result in Main Window if it's visible
 				if (main.adrUiGim.isVisible)
 					main.adrUiGim.showBgProcessingResult(prcResult.resultObj);
-
-			} else
+			}
+			
+			else
 
 			/**
 			 * ERROR
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_ERROR) {
-
+			if (prcResult.status == ProcessingResult.STATUS_ERROR)
+			{
 				main.soundMgr.play(SoundMgr.sndError);
-
 			}
-
 		}
-
-		private function onExitApp(e:Event):void {
+		
+		private function onExitApp(e:Event):void
+		{
 			closeServiceProcess();
 			trace("Service Process was closed due to App exiting");
 		}
-
 	}
-
 }
