@@ -8,8 +8,8 @@ package quantum
 	import flash.globalization.LocaleID;
 	import flash.globalization.NumberFormatter;
 	import flash.system.Capabilities;
-	import quantum.adr.BgProcessor;
-	import quantum.adr.FormatMgr;
+	import quantum.adr.AdrBgProcessor;
+	import quantum.adr.AdrFormatMgr;
 	import quantum.adr.processing.ProcessingEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
@@ -51,8 +51,8 @@ package quantum
 		
 		// · Addressy
 		private var $prcEng:ProcessingEngine;
-		private var $bgProcessor:BgProcessor;
-		private var $formatMgr:FormatMgr;
+		private var $adrBgProcessor:AdrBgProcessor;
+		private var $formatMgr:AdrFormatMgr;
 		
 		// · Ebay
 		private var $ebayHub:EbayHubController;
@@ -165,12 +165,12 @@ package quantum
 			$prcEng = new ProcessingEngine();
 			
 			// Addressy's Format Manager
-			$formatMgr = new FormatMgr();
+			$formatMgr = new AdrFormatMgr();
 			
 			// Addressy's Background Processing Service
-			$bgProcessor = new BgProcessor();
+			$adrBgProcessor = new AdrBgProcessor();
 			if (settings.getKey(Settings.bgClipboardProcessing))
-				$bgProcessor.on();
+				$adrBgProcessor.on();
 			
 			// UI Components Manager
 			$uiCmpMgr = new UIComponentsMgr();
@@ -318,14 +318,14 @@ package quantum
 			}
 		}
 		
-		public function get formatMgr():FormatMgr
+		public function get formatMgr():AdrFormatMgr
 		{
 			return $formatMgr;
 		}
 		
-		public function get bgProcessor():BgProcessor
+		public function get adrBgProcessor():AdrBgProcessor
 		{
-			return $bgProcessor;
+			return $adrBgProcessor;
 		}
 		
 		public function get adrUiGim():AddressyUiGim

@@ -10,7 +10,7 @@ package quantum
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
 	import flash.text.TextFormat;
-	import quantum.adr.FormatMgr;
+	import quantum.adr.AdrFormatMgr;
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
@@ -206,28 +206,28 @@ package quantum
 			{
 				case Warehouse.CANTON:
 					WHT_tableDataFileTitle = "canton";
-					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_CNT_STR2;
 					WHT_linesGroupSearchPattern = groupTitle;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
 					break;
 					
 				case Warehouse.BEIJING:
 					WHT_tableDataFileTitle = "beijing";
-					WHT_adrPrcFormat = FormatMgr.FRM_BJN_STR;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_BJN_STR;
 					WHT_linesGroupSearchPattern = "^" + groupTitle;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_BeijingStr;
 					break;
 					
 				case Warehouse.SHENZHEN_SEO:
 					WHT_tableDataFileTitle = "shenzhen-seo";
-					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_SHZ1;
 					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;
 					
 				case Warehouse.SHENZHEN_CFF:
 					WHT_tableDataFileTitle = "shenzhen-cff";
-					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_SHZ1;
 					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;

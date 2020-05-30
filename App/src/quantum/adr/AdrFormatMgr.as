@@ -6,7 +6,7 @@ package quantum.adr
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class FormatMgr
+	public class AdrFormatMgr
 	{
 		// Special formats
 		public static const FRM_ADR_CONCLUSION:String = "frmAdrConclusion";
@@ -25,7 +25,7 @@ package quantum.adr
 		
 		private static const STRING_DELIM:String = "\t";
 		
-		public function FormatMgr():void {}
+		public function AdrFormatMgr():void {}
 		
 		public function format(resultObj:ResultObject, formatType:String = null):String
 		{

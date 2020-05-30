@@ -17,15 +17,15 @@ package quantum.adr
 	import quantum.events.SettingEvent;
 	import quantum.Settings;
 	import quantum.SoundMgr;
-
+	
 	import quantum.adr.processing.ProcessingResult;
 	import quantum.Main;
-
+	
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class BgProcessor
+	public class AdrBgProcessor
 	{
 		private var main:Main;
 		private var serviceProcess:NativeProcess;
@@ -37,7 +37,7 @@ package quantum.adr
 		
 		private var tmrDelay:Timer;
 		
-		public function BgProcessor():void
+		public function AdrBgProcessor():void
 		{
 			main = Main.ins;
 			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
