@@ -52,7 +52,9 @@ package quantum.adr
 			var phone:String = resultObj.phone;
 			
 			var addrs:String = addr1;
-			if (addr2 != null) addrs += ", " + addr2;
+			
+			if (addr2 != null)
+				addrs += ", " + addr2;
 			
 			var format:String = formatType;
 			var output:String = "";
@@ -61,6 +63,7 @@ package quantum.adr
 			switch (format)
 			{
 				case FRM_ADR_CONCLUSION:
+					
 					output += "Имя: " + name + "\n";
 					output += "Адрес: " + addrs + "\n";
 					output += "Страна: " + country + "\n";
