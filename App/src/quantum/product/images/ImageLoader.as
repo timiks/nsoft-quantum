@@ -13,7 +13,7 @@ package quantum.product.images
 	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	import quantum.data.DataMgr;
-	import quantum.gui.SquareItem;
+	import quantum.gui.elements.GroupItem;
 	import quantum.product.Product;
 	import quantum.product.ProductsMgr;
 	import sk.yoz.image.ImageResizer;
@@ -28,7 +28,7 @@ package quantum.product.images
 		[Embed(source = "/../lib/graphics/missing-file-red-icon.png")]
 		private static var MissingFilePic:Class; // 200 x 200
 		
-		public static const IMG_SQUARE_SIZE:int = SquareItem.SQUARE_SIZE;
+		public static const IMG_SQUARE_SIZE:int = GroupItem.SQUARE_SIZE;
 		
 		private var pm:ProductsMgr
 		private var cacheMgr:ImageCacheMgr;

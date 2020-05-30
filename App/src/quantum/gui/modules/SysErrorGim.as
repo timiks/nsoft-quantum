@@ -21,12 +21,12 @@ package quantum.gui.modules
 	* ...
 	* @author Tim Yusupov
 	*/
-	public class GimGlobalError extends Sprite
+	public class SysErrorGim extends Sprite
 	{
 		[Embed(source = "/../lib/graphics/global-error-window-back.png")]
 		private var ErrorWindowBackImage:Class;
 		
-		private const standartMessage:String = "Квантум столкнулся с системной ошибкой. Дальнейшая корректная работа может быть частично или полностью нарушена.";
+		private const standartMessage:String = "Системная ошибка";
 		
 		private var main:Main;
 		
@@ -35,7 +35,7 @@ package quantum.gui.modules
 		
 		private var inited:Boolean = false;
 		
-		public function GimGlobalError():void {}
+		public function SysErrorGim():void {}
 		
 		public function init():void 
 		{
@@ -76,6 +76,8 @@ package quantum.gui.modules
 			msgTxt.text = "";
 			addChild(msgTxt);
 			
+			msgTxt.htmlText = "<b>"+standartMessage+"</b>" + "\n";
+			
 			win.stage.addChild(this);
 			
 			win.addEventListener(Event.CLOSING, function(e:Event):void
@@ -101,11 +103,12 @@ package quantum.gui.modules
 		 * ================================================================================
 		 */
 		
-		public function showError(errorCode:String):void 
+		public function showError(errorNote:String):void 
 		{
 			if (!inited) init();
 			
-			msgTxt.text = standartMessage + " Код ошибки: " + errorCode;
+			// Collect all error codes in window
+			msgTxt.htmlText += errorNote + "\n";
 			
 			if (!isVisible)
 			{

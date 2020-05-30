@@ -1,4 +1,4 @@
-package quantum.gui
+package quantum.gui.elements
 {
 	import flash.display.MovieClip;
 	import flash.events.Event;
@@ -11,8 +11,8 @@ package quantum.gui
 	import flash.text.TextFieldType;
 	import flash.text.TextFormat;
 	import flash.ui.Keyboard;
-	import quantum.gui.modules.GroupsContainer;
-	import quantum.gui.modules.StQuantumManager;
+	import quantum.gui.modules.GroupsGim;
+	import quantum.gui.modules.QnManagerGim;
 	
 	/**
 	 * ...
@@ -20,8 +20,8 @@ package quantum.gui
 	 */
 	public class BigTextInput
 	{
-		private var baseState:StQuantumManager;
-		private var grpCnt:GroupsContainer;
+		private var baseState:QnManagerGim;
+		private var grpCnt:GroupsGim;
 		private var tfstripe:MovieClip;
 		private var preservedText:String;
 		
@@ -32,7 +32,7 @@ package quantum.gui
 		
 		public function BigTextInput():void {}
 		
-		public function init(baseState:StQuantumManager, grpCnt:GroupsContainer, tfstripe:MovieClip):void
+		public function init(baseState:QnManagerGim, grpCnt:GroupsGim, tfstripe:MovieClip):void
 		{
 			this.baseState = baseState;
 			this.grpCnt = grpCnt;

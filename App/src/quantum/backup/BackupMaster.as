@@ -125,7 +125,7 @@ package quantum.backup
 			dataFile.copyToAsync(dataFileBackup, true);
 			
 			// Save image
-			if (main.settings.getKey(Settings.backupCreateImage) && !main.stQuantumMgr.grpCnt.empty)
+			if (main.settings.getKey(Settings.backupCreateImage) && !main.qnMgrGim.grpCnt.empty)
 			{
 				if (tmrImageSave == null) tmrImageSave = new Timer(3000);
 				tmrImageSave.addEventListener(TimerEvent.TIMER, checkImageSave);
@@ -133,7 +133,7 @@ package quantum.backup
 				
 				function checkImageSave(e:TimerEvent):void 
 				{
-					if (main.stQuantumMgr.productsMgr.imagesLoadingActive)
+					if (main.qnMgrGim.productsMgr.imagesLoadingActive)
 					{
 						return;
 					}
@@ -145,7 +145,7 @@ package quantum.backup
 					
 					var backupImg:File = backupDir.resolvePath(dateDirName + "\\" + "image-" + dstr + ".jpg");
 					
-					var img:Bitmap = main.stQuantumMgr.grpCnt.image;
+					var img:Bitmap = main.qnMgrGim.grpCnt.image;
 					
 					var jpegEncoder:AsyncJPGEncoder = new AsyncJPGEncoder(90);
 					jpegEncoder.addEventListener(AsyncImageEncoderEvent.COMPLETE, imageEncodeComplete);

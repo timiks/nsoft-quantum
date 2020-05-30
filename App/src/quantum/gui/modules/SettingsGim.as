@@ -29,7 +29,7 @@ package quantum.gui.modules
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class StSettings extends Sprite
+	public class SettingsGim extends Sprite
 	{
 		private var main:Main;
 		private var st:Settings;
@@ -41,7 +41,7 @@ package quantum.gui.modules
 		private var topBar:Sprite;
 		private var contentCnt:Sprite;
 		
-		public function StSettings():void {}
+		public function SettingsGim():void {}
 		
 		public function init():void
 		{
@@ -272,8 +272,8 @@ package quantum.gui.modules
 			{
 				win.visible = false;
 				
-				if (main.stQuantumMgr.stage.nativeWindow.visible)
-					main.stQuantumMgr.stage.nativeWindow.activate();
+				if (main.qnMgrGim.stage.nativeWindow.visible)
+					main.qnMgrGim.stage.nativeWindow.activate();
 			}
 		}
 		

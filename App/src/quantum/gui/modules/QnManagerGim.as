@@ -10,19 +10,23 @@ package quantum.gui.modules
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
 	import flash.events.TextEvent;
+	import flash.events.TimerEvent;
 	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.ui.Keyboard;
+	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.Settings;
 	import quantum.TableDataComposer;
-	import quantum.gui.BigTextInput;
+	import quantum.events.EbayHubEvent;
+	import quantum.gui.elements.BigTextInput;
 	import quantum.gui.Colors;
 	import quantum.gui.HintMgr;
-	import quantum.gui.QnInfoPanel;
+	import quantum.gui.elements.EbayOrdersCheckButton;
+	import quantum.gui.elements.QnInfoPanel;
 	import quantum.gui.UIComponentsMgr;
-	import quantum.gui.modules.GroupsContainer;
+	import quantum.gui.modules.GroupsGim;
 	import quantum.product.ProductsMgr;
 	import timicore.TimUtils;
 	
@@ -30,22 +34,25 @@ package quantum.gui.modules
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class StQuantumManager extends Sprite
+	public class QnManagerGim extends Sprite
 	{
 		private var main:Main;
 		private var ui:QnManagerComposition;
 		private var win:NativeWindow;
 		private var hintsCnt:Sprite;
 		
+		private var delayedTasksTimer:Timer;
+		
 		// Public modules
-		private var $grpCnt:GroupsContainer;
+		private var $grpCnt:GroupsGim;
 		private var $tableDataComposer:TableDataComposer;
 		private var $grpTitleTextInput:BigTextInput;
+		private var $ebayOrdersCheckButton:EbayOrdersCheckButton;
 		private var $hintMgr:HintMgr;
 		private var $infoPanel:QnInfoPanel;
 		private var $productsMgr:ProductsMgr;
 		
-		public function StQuantumManager():void
+		public function QnManagerGim():void
 		{
 			stage ? init() : addEventListener(Event.ADDED_TO_STAGE, init);
 		}
@@ -62,7 +69,6 @@ package quantum.gui.modules
 			
 			// State visual composition
 			ui = new QnManagerComposition();
-			//addChild(ui);
 			
 			// Window and Tray functionality
 			initWindowAndTray();
@@ -90,14 +96,14 @@ package quantum.gui.modules
 			ui.btnShowAdrUI.tabEnabled = false;
 			ui.btnShowAdrUI.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
-				main.stAdrUI.showWindow(true);
+				main.adrUiGim.showWindow(true);
 			});
 			
 			// · Settings window show
 			ui.btnSettings.tabEnabled = false;
 			ui.btnSettings.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
-				main.stSettings.showWindow(true);
+				main.settingsGim.showWindow(true);
 			});
 			
 			// · New group
@@ -105,6 +111,14 @@ package quantum.gui.modules
 			ui.btnNewGroup.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
 			{
 				grpCnt.addNewGroup();
+			});
+			
+			// · eBay button
+			ui.btnEbay.tabEnabled = false;
+			ui.btnEbay.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+			{
+				trace("eBay win open");
+				main.ebayGim.showWindow(true);
 			});
 			
 			// Selected item properties editors
@@ -139,7 +153,7 @@ package quantum.gui.modules
 			{
 				grpCnt.updateUiElementData("selItemProductSKU", TimUtils.trimSpaces(ui.tiSku.text));
 			});
-						
+			
 			// Styles
 			var uicm:UIComponentsMgr = main.uiCmpMgr;
 			uicm.setStyle(ui.taAdr);
@@ -149,6 +163,7 @@ package quantum.gui.modules
 			uicm.setStyle(ui.tiSku);
 			uicm.setStyle(ui.tiPrice);
 			uicm.setStyle(ui.tiWeight);
+			uicm.setStyle(ui.btnEbayOrdersCheck);
 			
 			// Show whole composition after everything looks well
 			addChild(ui);
@@ -176,7 +191,7 @@ package quantum.gui.modules
 			$productsMgr.init();
 			
 			// Groups Container
-			$grpCnt = new GroupsContainer(this);
+			$grpCnt = new GroupsGim(this);
 			
 			// Table data composer
 			$tableDataComposer = new TableDataComposer(grpCnt, ui.taAdr);
@@ -186,6 +201,10 @@ package quantum.gui.modules
 			$grpTitleTextInput = new BigTextInput();
 			$grpTitleTextInput.tf = ui.tiGrpTitle;
 			$grpTitleTextInput.init(this, grpCnt, ui.tfstripe);
+			
+			// Ebay orders check button
+			$ebayOrdersCheckButton = new EbayOrdersCheckButton(ui.btnEbayOrdersCheck);
+			$ebayOrdersCheckButton.init();
 			
 			// Layers display order
 			ui.addChildAt(grpCnt, 0);
@@ -199,6 +218,41 @@ package quantum.gui.modules
 			hintMgr.registerHintWithHandler(ui.tiWeight, grpCnt.selItemWeightEditHintTextHandler);
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+			
+			// Task in the callback will be executed with specified delay after UI has shown up
+			delayedTasksTimer = new Timer(500, 1);
+			delayedTasksTimer.addEventListener(TimerEvent.TIMER_COMPLETE, executeAfterDelay);
+			delayedTasksTimer.start();
+		}
+		
+		private function executeAfterDelay(e:TimerEvent):void 
+		{
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onEbayHubEvent);
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_ERROR, onEbayHubEvent);
+			main.ebayHub.SendCheckSignal();
+		}
+		
+		private function onEbayHubEvent(e:EbayHubEvent):void 
+		{
+			main.ebayHub.events.removeEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onEbayHubEvent);
+			main.ebayHub.events.removeEventListener(EbayHubEvent.ORDERS_CHECK_ERROR, onEbayHubEvent);
+			
+			if (e.type == EbayHubEvent.ORDERS_CHECK_SUCCESS) 
+			{
+				
+				var resultMessage:String;
+				
+				if (e.storeNewEntries == 0)
+					resultMessage = "Информация о заказах с Ибея в актуальном состоянии";
+				else
+					resultMessage = "Информация о заказах с Ибея обновлена: +" + e.storeNewEntries;
+				
+				infoPanel.showMessage(resultMessage, Colors.MESSAGE);
+			}
+			else if (e.type == EbayHubEvent.ORDERS_CHECK_ERROR) 
+			{
+				infoPanel.showMessage("Не вышло обновить информацию о заказах с Ибея", Colors.WARN);
+			}
 		}
 		
 		private function validateDecimalInput(e:TextEvent):void 
@@ -391,6 +445,11 @@ package quantum.gui.modules
 			return $grpTitleTextInput;
 		}
 		
+		public function get ebayOrdersCheckButton():EbayOrdersCheckButton
+		{
+			return $ebayOrdersCheckButton;
+		}
+		
 		public function get tableDataComposer():TableDataComposer
 		{
 			return $tableDataComposer;
@@ -401,7 +460,7 @@ package quantum.gui.modules
 			return $hintMgr;
 		}
 		
-		public function get grpCnt():GroupsContainer
+		public function get grpCnt():GroupsGim
 		{
 			return $grpCnt;
 		}
