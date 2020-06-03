@@ -166,7 +166,7 @@ package quantum.adr
 			var clipboardText:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
 			trace("CB IN:\n" + clipboardText);
 			
-			var prcResult:AdrPrcResult = main.prcEng.process(clipboardText);
+			var prcResult:AdrPrcResult = main.adrPrcEng.process(clipboardText);
 			var snd:Sound;
 			
 			/**
@@ -176,7 +176,7 @@ package quantum.adr
 			if (prcResult.status == AdrPrcResult.STATUS_OK)
 			{
 				var currentFormat:String = main.settings.getKey(Settings.outputFormat);
-				var formattedStr:String = main.formatMgr.format(prcResult.resultObj, currentFormat);
+				var formattedStr:String = main.adrFormatMgr.format(prcResult.resultObj, currentFormat);
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, formattedStr);
 				trace("FRM OUT:\n" + formattedStr);
 

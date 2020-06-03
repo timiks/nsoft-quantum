@@ -113,7 +113,7 @@ package quantum.jobs
 			}
 			
 			// Process address
-			var prcResult:AdrPrcResult = main.prcEng.process(adrInputTextArea.text);
+			var prcResult:AdrPrcResult = main.adrPrcEng.process(adrInputTextArea.text);
 			
 			/**
 			 * SUCCESS
@@ -249,7 +249,7 @@ package quantum.jobs
 			tableDataFile = File.applicationStorageDirectory.resolvePath(WHT_tableDataFileTitle + ".txt");
 			
 			// Format address
-			processedAddress = main.formatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
+			processedAddress = main.adrFormatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
 			
 			// Read file into memory (to tableDataFileLines)
 			readFile();

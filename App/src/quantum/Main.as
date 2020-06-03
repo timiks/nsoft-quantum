@@ -51,9 +51,9 @@ package quantum
 		private var $numFrm:NumberFormatter;
 		
 		// · Addressy
-		private var $prcEng:AdrPrcEngine;
+		private var $adrPrcEng:AdrPrcEngine;
 		private var $adrBgProcessor:AdrBgProcessor;
-		private var $formatMgr:AdrFormatMgr;
+		private var $adrFormatMgr:AdrFormatMgr;
 		
 		// · Ebay
 		private var $ebayHub:EbayHubController;
@@ -163,10 +163,10 @@ package quantum
 			$soundMgr = new SoundMgr();
 			
 			// Addressy's Processing Engine
-			$prcEng = new AdrPrcEngine();
+			$adrPrcEng = new AdrPrcEngine();
 			
 			// Addressy's Format Manager
-			$formatMgr = new AdrFormatMgr();
+			$adrFormatMgr = new AdrFormatMgr();
 			
 			// Addressy's Background Processing Service
 			$adrBgProcessor = new AdrBgProcessor();
@@ -305,9 +305,9 @@ package quantum
 		/**
 		 * Движок обработки Addressy
 		 */
-		public function get prcEng():AdrPrcEngine
+		public function get adrPrcEng():AdrPrcEngine
 		{
-			if ($prcEng == null)
+			if ($adrPrcEng == null)
 			{
 				throw new Error("ProcessingEngine hasn't initialized yet");
 				return null;
@@ -315,13 +315,13 @@ package quantum
 			
 			else
 			{
-				return $prcEng;
+				return $adrPrcEng;
 			}
 		}
 		
-		public function get formatMgr():AdrFormatMgr
+		public function get adrFormatMgr():AdrFormatMgr
 		{
-			return $formatMgr;
+			return $adrFormatMgr;
 		}
 		
 		public function get adrBgProcessor():AdrBgProcessor

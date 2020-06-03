@@ -261,7 +261,7 @@ package quantum.gui.modules {
 			if (e.keyCode == Keyboard.F8) {
 
 				ui.taL.text = "";
-				ui.taL.text = main.prcEng.getRandomAddress();
+				ui.taL.text = main.adrPrcEng.getRandomAddress();
 				onTextChange(null);
 
 			} else
@@ -298,8 +298,8 @@ package quantum.gui.modules {
 			ui.taL.text = "";
 
 			// Show
-			main.prcEng.setOwnAddress();
-			showResult(main.prcEng.resultObject);
+			main.adrPrcEng.setOwnAddress();
+			showResult(main.adrPrcEng.resultObject);
 
 			// Copy
 			var copyResultOutput:String;
@@ -324,7 +324,7 @@ package quantum.gui.modules {
 			+ Show panel with corresponding information and color
 			*/
 
-			var prcResult:AdrPrcResult = main.prcEng.process(ui.taL.text);
+			var prcResult:AdrPrcResult = main.adrPrcEng.process(ui.taL.text);
 
 			/**
 			 * SUCCESS
@@ -407,7 +407,7 @@ package quantum.gui.modules {
 		}
 
 		private function changeResultFormat():void {
-			var resObj:AdrResult = main.prcEng.resultObject;
+			var resObj:AdrResult = main.adrPrcEng.resultObject;
 			if (resObj.name == null) return;
 
 			showResult(resObj);
@@ -439,7 +439,7 @@ package quantum.gui.modules {
 
 			// Format
 			var format:String = ui.selFormat.selectedItem.data;
-			var formattedStr:String = main.formatMgr.format(resultObj, format);
+			var formattedStr:String = main.adrFormatMgr.format(resultObj, format);
 			ui.taR.text = resultStr = formattedStr;
 
 			// Preview Box
@@ -491,7 +491,7 @@ package quantum.gui.modules {
 
 		private function copyQue():void {
 
-			var resObj:AdrResult = main.prcEng.resultObject;
+			var resObj:AdrResult = main.adrPrcEng.resultObject;
 
 			if (resObj.name == null) {
 				showPanel("Нечего копировать", Colors.WARN);
