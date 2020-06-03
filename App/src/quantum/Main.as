@@ -10,7 +10,7 @@ package quantum
 	import flash.system.Capabilities;
 	import quantum.adr.AdrBgProcessor;
 	import quantum.adr.AdrFormatMgr;
-	import quantum.adr.processing.ProcessingEngine;
+	import quantum.adr.processing.AdrPrcEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.ebay.EbayHubController;
@@ -51,7 +51,7 @@ package quantum
 		private var $numFrm:NumberFormatter;
 		
 		// · Addressy
-		private var $prcEng:ProcessingEngine;
+		private var $prcEng:AdrPrcEngine;
 		private var $adrBgProcessor:AdrBgProcessor;
 		private var $formatMgr:AdrFormatMgr;
 		
@@ -163,7 +163,7 @@ package quantum
 			$soundMgr = new SoundMgr();
 			
 			// Addressy's Processing Engine
-			$prcEng = new ProcessingEngine();
+			$prcEng = new AdrPrcEngine();
 			
 			// Addressy's Format Manager
 			$formatMgr = new AdrFormatMgr();
@@ -305,7 +305,7 @@ package quantum
 		/**
 		 * Движок обработки Addressy
 		 */
-		public function get prcEng():ProcessingEngine
+		public function get prcEng():AdrPrcEngine
 		{
 			if ($prcEng == null)
 			{

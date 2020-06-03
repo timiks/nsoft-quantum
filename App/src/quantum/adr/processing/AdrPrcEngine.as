@@ -1,7 +1,7 @@
 package quantum.adr.processing
 {
 	import quantum.Main;
-	import quantum.adr.processing.ResultObject;
+	import quantum.adr.processing.AdrResult;
 	import quantum.ebay.EbayAddress;
 	
 	/**
@@ -9,7 +9,7 @@ package quantum.adr.processing
 	 * @author Tim Yusupov
 	 * @copy ©2015
 	 */
-	public class ProcessingEngine
+	public class AdrPrcEngine
 	{
 		// Version
 		private const $version:int = 26;
@@ -28,10 +28,10 @@ package quantum.adr.processing
 		private var auRegions:Vector.<Object>;
 		private var ndRegions:Vector.<Object>;
 		
-		private var $resultObj:ResultObject;
+		private var $resultObj:AdrResult;
 		private var addrExamples:Array;
 		
-		public function ProcessingEngine():void
+		public function AdrPrcEngine():void
 		{
 			//{ region Country Regions Arrays Initialization
 
@@ -157,7 +157,7 @@ package quantum.adr.processing
 			//} endregion
 
 			// Result Object Initialization
-			$resultObj = new ResultObject();
+			$resultObj = new AdrResult();
 
 			// Main link
 			main = Main.ins;
@@ -168,7 +168,7 @@ package quantum.adr.processing
 		 * @param inputText Входная строка
 		 * @return Информация о результате обработки
 		 */
-		public function process(inputText:String, specialMode:int = 0):ProcessingResult
+		public function process(inputText:String, specialMode:int = 0):AdrPrcResult
 		{
 			var tx:String = inputText;
 			var ctrlCharPattern:RegExp = /(\r|\n|\r\n)/;
@@ -182,8 +182,8 @@ package quantum.adr.processing
 			// Check: empty or one line
 			if (tx.length < 1 || tx.search(ctrlCharPattern) == -1)
 			{
-				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
-				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+				processingEnd(AdrPrcResult.STATUS_NOT_PROCESSED);
+				return new AdrPrcResult(AdrPrcResult.STATUS_NOT_PROCESSED);
 			}
 			
 			var lines:Array;
@@ -231,10 +231,10 @@ package quantum.adr.processing
 				{
 					name = processName(lines[0]);
 					$resultObj.name = name;
-					processingEnd(ProcessingResult.STATUS_OK);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_OK,
-						new ProcessingDetails("Обработано в спец. режиме", tplType, PrcSpecialMode1),
+					processingEnd(AdrPrcResult.STATUS_OK);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_OK,
+						new AdrPrcDetails("Обработано в спец. режиме", tplType, PrcSpecialMode1),
 						$resultObj
 					);
 				}
@@ -373,10 +373,10 @@ package quantum.adr.processing
 					// Check error
 					if (japanTemplateError)
 					{
-						processingEnd(ProcessingResult.STATUS_ERROR);
-						return new ProcessingResult(
-							ProcessingResult.STATUS_ERROR,
-							new ProcessingDetails("Неверный формат спец. шаблона Японии")
+						processingEnd(AdrPrcResult.STATUS_ERROR);
+						return new AdrPrcResult(
+							AdrPrcResult.STATUS_ERROR,
+							new AdrPrcDetails("Неверный формат спец. шаблона Японии")
 						);
 					}
 					
@@ -442,8 +442,8 @@ package quantum.adr.processing
 			// No sense to proceed without country
 			else
 			{
-				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
-				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+				processingEnd(AdrPrcResult.STATUS_NOT_PROCESSED);
+				return new AdrPrcResult(AdrPrcResult.STATUS_NOT_PROCESSED);
 			}
 				
 			// ================================================================================
@@ -555,10 +555,10 @@ package quantum.adr.processing
 				case 6:
 				break;
 				default:
-					processingEnd(ProcessingResult.STATUS_WARN);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_WARN,
-						new ProcessingDetails(ProcessingDetails.ERR_UNKNOWN_FORMAT)
+					processingEnd(AdrPrcResult.STATUS_WARN);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_WARN,
+						new AdrPrcDetails(AdrPrcDetails.ERR_UNKNOWN_FORMAT)
 					);
 				break;
 			}
@@ -607,10 +607,10 @@ package quantum.adr.processing
 			{
 				processFromEbayAddress(ebayAddress, tx);
 				
-				processingEnd(ProcessingResult.STATUS_OK);
-				return new ProcessingResult(
-					ProcessingResult.STATUS_OK,
-					new ProcessingDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+				processingEnd(AdrPrcResult.STATUS_OK);
+				return new AdrPrcResult(
+					AdrPrcResult.STATUS_OK,
+					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
 					$resultObj
 				);
 			}
@@ -637,10 +637,10 @@ package quantum.adr.processing
 				
 				if (lineXObj == null)
 				{
-					processingEnd(ProcessingResult.STATUS_ERROR);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_ERROR,
-						new ProcessingDetails("Ошибка обработки")
+					processingEnd(AdrPrcResult.STATUS_ERROR);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_ERROR,
+						new AdrPrcDetails("Ошибка обработки")
 					);
 				} 
 				else
@@ -662,10 +662,10 @@ package quantum.adr.processing
 				
 				if (lineXObj == null)
 				{
-					processingEnd(ProcessingResult.STATUS_ERROR);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_ERROR,
-						new ProcessingDetails("Ошибка обработки")
+					processingEnd(AdrPrcResult.STATUS_ERROR);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_ERROR,
+						new AdrPrcDetails("Ошибка обработки")
 					);
 				} 
 				else
@@ -705,10 +705,10 @@ package quantum.adr.processing
 				$resultObj.phone = phone;
 			
 			// Успешный финал обработки
-			processingEnd(ProcessingResult.STATUS_OK);
-			return new ProcessingResult(
-				ProcessingResult.STATUS_OK,
-				new ProcessingDetails("Обработано", tplType, 0, phone == null ? true : false),
+			processingEnd(AdrPrcResult.STATUS_OK);
+			return new AdrPrcResult(
+				AdrPrcResult.STATUS_OK,
+				new AdrPrcDetails("Обработано", tplType, 0, phone == null ? true : false),
 				$resultObj
 			);
 		}
@@ -747,7 +747,7 @@ package quantum.adr.processing
 			// Do some stuff when processing has finished either ok or bad
 			// e.g. reset resultObject
 			
-			if (status != ProcessingResult.STATUS_OK)
+			if (status != AdrPrcResult.STATUS_OK)
 				resetResultObject();
 		}
 		
@@ -1245,7 +1245,7 @@ package quantum.adr.processing
 		/**
 		 * Объект с отдельными полями результата
 		 */
-		public function get resultObject():ResultObject
+		public function get resultObject():AdrResult
 		{
 			return $resultObj;
 		}

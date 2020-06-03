@@ -18,7 +18,7 @@ package quantum.adr
 	import quantum.Settings;
 	import quantum.SoundMgr;
 	
-	import quantum.adr.processing.ProcessingResult;
+	import quantum.adr.processing.AdrPrcResult;
 	import quantum.Main;
 	
 	/**
@@ -166,14 +166,14 @@ package quantum.adr
 			var clipboardText:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String;
 			trace("CB IN:\n" + clipboardText);
 			
-			var prcResult:ProcessingResult = main.prcEng.process(clipboardText);
+			var prcResult:AdrPrcResult = main.prcEng.process(clipboardText);
 			var snd:Sound;
 			
 			/**
 			 * SUCCESS
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_OK)
+			if (prcResult.status == AdrPrcResult.STATUS_OK)
 			{
 				var currentFormat:String = main.settings.getKey(Settings.outputFormat);
 				var formattedStr:String = main.formatMgr.format(prcResult.resultObj, currentFormat);
@@ -210,7 +210,7 @@ package quantum.adr
 			 * ERROR
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_ERROR)
+			if (prcResult.status == AdrPrcResult.STATUS_ERROR)
 			{
 				main.soundMgr.play(SoundMgr.sndError);
 			}

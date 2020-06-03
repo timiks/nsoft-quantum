@@ -14,7 +14,7 @@ package quantum.jobs
 	import quantum.Settings;
 	import quantum.SoundMgr;
 	import quantum.adr.AdrFormatMgr;
-	import quantum.adr.processing.ProcessingResult;
+	import quantum.adr.processing.AdrPrcResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
 	import quantum.gui.elements.ItemsGroup;
@@ -40,7 +40,7 @@ package quantum.jobs
 		private var tableDataFileLines:Array;
 		private var lineEnding:String;
 		private var lastContent:String;
-		private var lastResult:ProcessingResult;
+		private var lastResult:AdrPrcResult;
 		private var shippingValues:Object;
 		private var shippingFileLoadingTS:Number;
 		
@@ -93,7 +93,7 @@ package quantum.jobs
 			adrInputTextArea.addEventListener("change", onTextChange);
 			
 			lastContent = "";
-			lastResult = new ProcessingResult(-1);
+			lastResult = new AdrPrcResult(-1);
 			
 			// Shipping file
 			loadShippingFile(true);
@@ -113,13 +113,13 @@ package quantum.jobs
 			}
 			
 			// Process address
-			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
+			var prcResult:AdrPrcResult = main.prcEng.process(adrInputTextArea.text);
 			
 			/**
 			 * SUCCESS
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_OK)
+			if (prcResult.status == AdrPrcResult.STATUS_OK)
 			{
 				composeAndPack(prcResult);
 				
@@ -137,7 +137,7 @@ package quantum.jobs
 			 * ERROR
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_ERROR)
+			if (prcResult.status == AdrPrcResult.STATUS_ERROR)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0xCC171C));
 				
@@ -151,7 +151,7 @@ package quantum.jobs
 			 * WARNING
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_WARN)
+			if (prcResult.status == AdrPrcResult.STATUS_WARN)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x7D7D7D));
 				
@@ -165,7 +165,7 @@ package quantum.jobs
 			 * NOT PROCESSED
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_NOT_PROCESSED)
+			if (prcResult.status == AdrPrcResult.STATUS_NOT_PROCESSED)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x000000));
 			}
@@ -174,7 +174,7 @@ package quantum.jobs
 			lastResult = prcResult;
 		}
 		
-		private function composeAndPack(adrPrcResult:ProcessingResult):void 
+		private function composeAndPack(adrPrcResult:AdrPrcResult):void 
 		{
 			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
 			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;

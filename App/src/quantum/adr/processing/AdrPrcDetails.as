@@ -5,7 +5,7 @@ package quantum.adr.processing
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class ProcessingDetails
+	public class AdrPrcDetails
 	{
 		public static const ERR_ONE_LINE:String = "Одна строка";
 		public static const ERR_UNKNOWN_FORMAT:String = "Неизвестный формат";
@@ -15,7 +15,7 @@ package quantum.adr.processing
 		private var $mode:int;
 		private var $phoneNotFound:Boolean = false;
 		
-		public function ProcessingDetails(msg:String, templateType:int = 0, mode:int = 0, phoneNotFound:Boolean = false):void
+		public function AdrPrcDetails(msg:String, templateType:int = 0, mode:int = 0, phoneNotFound:Boolean = false):void
 		{
 			this.message = msg;
 			this.templateType = templateType;

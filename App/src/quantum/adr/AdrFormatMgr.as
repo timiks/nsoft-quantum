@@ -1,6 +1,6 @@
 package quantum.adr
 {
-	import quantum.adr.processing.ResultObject;
+	import quantum.adr.processing.AdrResult;
 	
 	/**
 	 * ...
@@ -27,7 +27,7 @@ package quantum.adr
 		
 		public function AdrFormatMgr():void {}
 		
-		public function format(resultObj:ResultObject, formatType:String = null):String
+		public function format(resultObj:AdrResult, formatType:String = null):String
 		{
 			/*
 			Алгоритм
