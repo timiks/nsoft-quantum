@@ -93,17 +93,49 @@ package quantum.ebay
 			{
 				shipAdrEl = query[0] as XML;
 				
-				ebayAdr = new EbayAddress();
-				ebayAdr.clientName = shipAdrEl.ClientName.@Val;
-				ebayAdr.country = shipAdrEl.CountryName.@Val;
-				ebayAdr.region = shipAdrEl.Region.@Val;
-				ebayAdr.city = shipAdrEl.City.@Val;
-				ebayAdr.street1 = shipAdrEl.Street1.@Val;
-				ebayAdr.street2 = shipAdrEl.Street2.@Val;
-				ebayAdr.postCode = shipAdrEl.PostCode.@Val;
-				ebayAdr.phone = shipAdrEl.Phone.@Val;
+				ebayAdr = readEbayAddressFromXML(shipAdrEl);
 			}
 			
+			return ebayAdr;
+		}
+		
+		public function getEbayAddressViaOrderID(ebayOrderID:String):EbayAddress 
+		{
+			if (xmlDoc == null)
+				return null;
+			
+			var query:XMLList;
+			var shipAdrEl:XML;
+			var ebayAdr:EbayAddress = null;
+			
+			query = storeEl.Order.(OrderID.@Val == ebayOrderID);
+			
+			if (query.length() > 0) 
+			{
+				query = (query[0] as XML).ShippingAddress;
+				
+				if (query.length() == 0) 
+					return null;
+				else
+					shipAdrEl = query[0] as XML;
+					
+				ebayAdr = readEbayAddressFromXML(shipAdrEl);
+			}
+			
+			return ebayAdr;
+		}
+		
+		private function readEbayAddressFromXML(shippingAdrXmlEl:XML):EbayAddress 
+		{
+			var ebayAdr:EbayAddress = new EbayAddress();
+			ebayAdr.clientName = shippingAdrXmlEl.ClientName.@Val;
+			ebayAdr.country = shippingAdrXmlEl.CountryName.@Val;
+			ebayAdr.region = shippingAdrXmlEl.Region.@Val;
+			ebayAdr.city = shippingAdrXmlEl.City.@Val;
+			ebayAdr.street1 = shippingAdrXmlEl.Street1.@Val;
+			ebayAdr.street2 = shippingAdrXmlEl.Street2.@Val;
+			ebayAdr.postCode = shippingAdrXmlEl.PostCode.@Val;
+			ebayAdr.phone = shippingAdrXmlEl.Phone.@Val;
 			return ebayAdr;
 		}
 		

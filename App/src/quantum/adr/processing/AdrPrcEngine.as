@@ -172,6 +172,7 @@ package quantum.adr.processing
 		{
 			var tx:String = inputText;
 			var ctrlCharPattern:RegExp = /(\r|\n|\r\n)/;
+			var ebayAddress:EbayAddress;
 			
 			// ================================================================================
 			//
@@ -179,11 +180,37 @@ package quantum.adr.processing
 			//
 			// ================================================================================
 			
-			// Check: empty or one line
-			if (tx.length < 1 || tx.search(ctrlCharPattern) == -1)
+			// Check: empty
+			if (tx.length < 1)
 			{
 				processingEnd(AdrPrcResult.STATUS_NOT_PROCESSED);
 				return new AdrPrcResult(AdrPrcResult.STATUS_NOT_PROCESSED);
+			}
+			
+			// Check: one line
+			if (tx.search(ctrlCharPattern) == -1) 
+			{
+				// #SPECIAL: Processing based on Ebay order ID (if info is found, else › regular processing)
+				ebayAddress = main.ebayOrders.getEbayAddressViaOrderID(trimSpaces(tx));
+				if (ebayAddress != null) 
+				{
+					processFromEbayAddress(ebayAddress, tx);
+					
+					processingEnd(AdrPrcResult.STATUS_OK);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_OK,
+						new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+						$resultObj
+					);
+				}
+				else
+				{
+					processingEnd(AdrPrcResult.STATUS_WARN);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_WARN,
+						new AdrPrcDetails(AdrPrcDetails.ERR_UNKNOWN_EBAY_ORDER_ID, 0, PrcSpecialMode2, false, true)
+					);
+				}
 			}
 			
 			var lines:Array;
@@ -602,7 +629,7 @@ package quantum.adr.processing
 			addr1 = lines[1];
 			
 			// #SPECIAL: Processing based on Ebay address info (if info is found, else › regular processing)
-			var ebayAddress:EbayAddress = getEbayAddress(addr1);
+			ebayAddress = getEbayAddress(addr1);
 			if (ebayAddress != null) 
 			{
 				processFromEbayAddress(ebayAddress, tx);
@@ -738,7 +765,7 @@ package quantum.adr.processing
 			if (phone != null)
 				$resultObj.phone = phone;
 		}
-
+		
 		/**
 		 * Вызывается всякий раз при завершении обработки (включая неудачную обработку)
 		 */

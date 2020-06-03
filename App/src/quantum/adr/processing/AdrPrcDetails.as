@@ -9,17 +9,21 @@ package quantum.adr.processing
 	{
 		public static const ERR_ONE_LINE:String = "Одна строка";
 		public static const ERR_UNKNOWN_FORMAT:String = "Неизвестный формат";
+		public static const ERR_UNKNOWN_EBAY_ORDER_ID:String = "Заказ с таким ID не найден";
 		
 		private var $message:String;
 		private var $templateType:int;
 		private var $mode:int;
 		private var $phoneNotFound:Boolean = false;
+		private var $ebayOrderIdNotFound:Boolean = false;
 		
-		public function AdrPrcDetails(msg:String, templateType:int = 0, mode:int = 0, phoneNotFound:Boolean = false):void
+		public function AdrPrcDetails(msg:String, templateType:int = 0, mode:int = 0,
+			phoneNotFound:Boolean = false, ebayOrderIdNotFound:Boolean = false):void
 		{
 			this.message = msg;
 			this.templateType = templateType;
 			this.phoneNotFound = phoneNotFound;
+			this.ebayOrderIdNotFound = ebayOrderIdNotFound;
 		}
 		
 		public function get message():String
@@ -60,6 +64,16 @@ package quantum.adr.processing
 		public function set phoneNotFound(value:Boolean):void 
 		{
 			$phoneNotFound = value;
+		}
+		
+		public function get ebayOrderIdNotFound():Boolean 
+		{
+			return $ebayOrderIdNotFound;
+		}
+		
+		public function set ebayOrderIdNotFound(value:Boolean):void 
+		{
+			$ebayOrderIdNotFound = value;
 		}
 	}
 }
