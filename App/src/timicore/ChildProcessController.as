@@ -28,7 +28,8 @@ package timicore
 		
 		private var process:NativeProcess;
 		private var processFile:File;
-		private var processOutputHandler:Function;
+		private var $processOutputHandler:Function;
+		private var $processOutputRawDataHandler:Function;
 		private var processArguments:Vector.<String>; // Saved
 		private var processRestartTriesCount:int = 0;
 		
@@ -38,16 +39,21 @@ package timicore
 		private var processFileNotFound:Boolean = false;
 		private var processIsOnDuty:Boolean = false;
 		private var comSocketReady:Boolean = false;
+		private var $noComInputMode:Boolean = false;
+		private var $rawOutputHandleMode:Boolean = false;
 		
-		public function ChildProcessController(processFilePath:String, processOutputHandler:Function = null):void 
+		public function ChildProcessController(processFile:File, processOutputHandler:Function = null, 
+			noComInputMode:Boolean = false, rawOutputHandleMode:Boolean = false):void 
 		{
-			if (processFilePath == null)
-				throw new Error("Process file path is null");
+			if (processFile == null)
+				throw new Error("Process file is null");
 			
-			processFile = new File(processFilePath);
-			this.processOutputHandler = processOutputHandler;
+			this.processFile = processFile;
+			this.$processOutputHandler = processOutputHandler;
+			this.$noComInputMode = noComInputMode;
+			this.$rawOutputHandleMode = rawOutputHandleMode;
 			
-			if (!processFile.exists)
+			if (!this.processFile.exists)
 			{
 				trace("Process file not found");
 				processFileNotFound = true;
@@ -105,8 +111,8 @@ package timicore
 				processStartupInfo.arguments = args;
 			}
 			
-			if (processOutputHandler != null)
-				process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, processOutputHandler);
+			if ($processOutputHandler != null)
+				process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, $processOutputHandler);
 					
 			process.addEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
 			process.addEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
@@ -179,12 +185,14 @@ package timicore
 			process.removeEventListener(NativeProcessExitEvent.EXIT, onProcessExit);
 			process.removeEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, onProcessOutput);
 			
-			if (processOutputHandler != null)
-				process.removeEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, processOutputHandler);
+			if ($processOutputHandler != null)
+				process.removeEventListener(ProgressEvent.STANDARD_OUTPUT_DATA, $processOutputHandler);
 				
 			// Com socket
 			if (comSocket != null && comSocket.connected)
 				comSocket.close();
+				
+			comSocketReady = false;
 			
 			NativeApplication.nativeApplication.removeEventListener(Event.EXITING, onAppExit);
 		}
@@ -245,9 +253,23 @@ package timicore
 			}
 		}
 		
+		private function handleRawOutput(rawInputStr:String):void 
+		{
+			// Pass further
+			if ($rawOutputHandleMode && $processOutputRawDataHandler != null)
+				$processOutputRawDataHandler(rawInputStr);
+		}
+		
 		private function onProcessOutput(e:ProgressEvent):void 
 		{
 			var rawOutput:String = outputStream.readUTFBytes(outputStream.bytesAvailable);
+			
+			if ($rawOutputHandleMode) 
+			{
+				handleRawOutput(rawOutput);
+				return;
+			}
+			
 			var rawMessages:Vector.<String> = new Vector.<String>();
 			
 			while (rawOutput.indexOf(ProcessComProtocol.EndOfMessageSign) != -1) 
@@ -282,6 +304,7 @@ package timicore
 				{ 
 					startProcess(processArguments); // Restart with any saved arguments
 					processRestartTriesCount++;
+					events.dispatchEvent(new ProcessEvent(ProcessEvent.RESTARTED));
 					trace("Process restart " + processRestartTriesCount);
 				}
 				else 
@@ -313,6 +336,51 @@ package timicore
 		public function get processFileIsOk():Boolean
 		{
 			return !processFileNotFound;
+		}
+		
+		public function get processIsActive():Boolean
+		{
+			return processIsOnDuty;
+		}
+		
+		public function get noComInputMode():Boolean 
+		{
+			return $noComInputMode;
+		}
+		
+		public function set noComInputMode(value:Boolean):void 
+		{
+			$noComInputMode = value;
+		}
+		
+		public function get rawOutputHandleMode():Boolean 
+		{
+			return $rawOutputHandleMode;
+		}
+		
+		public function set rawOutputHandleMode(value:Boolean):void 
+		{
+			$rawOutputHandleMode = value;
+		}
+		
+		public function get processOutputHandler():Function 
+		{
+			return $processOutputHandler;
+		}
+		
+		public function set processOutputHandler(value:Function):void 
+		{
+			$processOutputHandler = value;
+		}
+		
+		public function get processOutputRawDataHandler():Function 
+		{
+			return $processOutputRawDataHandler;
+		}
+		
+		public function set processOutputRawDataHandler(value:Function):void 
+		{
+			$processOutputRawDataHandler = value;
 		}
 	}
 }

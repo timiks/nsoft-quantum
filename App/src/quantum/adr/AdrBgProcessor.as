@@ -69,7 +69,7 @@ package quantum.adr
 					off();
 				
 				// Sound
-				main.soundMgr.play(SoundMgr.sndBgPrcToggle);
+				main.soundMgr.play(SoundMgr.sndToggle);
 			}
 		}
 		

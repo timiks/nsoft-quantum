@@ -19,18 +19,21 @@ package quantum.gui
 	 */
 	public class TrayMgr extends EventDispatcher
 	{
-		[Embed(source = "../../../lib/app-icons/adr-icon-16-bright.png")]
+		[Embed(source = "../../../lib/app-icons/app-icon-16.png")]
 		private var Icon16:Class;
 		
-		[Embed(source = "../../../lib/app-icons/adr-ico16-bgmode-green.png")]
-		private var Icon16BgMode:Class;
+		[Embed(source = "../../../lib/app-icons/app-icon-16-green.png")]
+		private var Icon16Green:Class;
+		
+		[Embed(source = "../../../lib/app-icons/app-icon-16-blue.png")]
+		private var Icon16Blue:Class;
 		
 		private var main:Main;
 		private var trayIcon:SystemTrayIcon;
 		private var trayMenu:NativeMenu;
 		
 		private var itemMainWindowCall:NativeMenuItem;
-		private var itemBgPrcSwitch:NativeMenuItem;
+		private var itemAdrBgPrcSwitch:NativeMenuItem;
 		//private var itemSoundSwitch:NativeMenuItem;
 		private var itemExit:NativeMenuItem;
 		
@@ -41,7 +44,8 @@ package quantum.gui
 		//private const soundSwitchLabelOff:String = "Отключить звуки";
 		
 		private var ico16:Bitmap;
-		private var ico16BgMode:Bitmap;
+		private var ico16green:Bitmap;
+		private var ico16blue:Bitmap;
 		
 		public function TrayMgr():void
 		{
@@ -51,21 +55,13 @@ package quantum.gui
 		public function initTray():void
 		{
 			ico16 = new Icon16() as Bitmap;
-			ico16BgMode = new Icon16BgMode() as Bitmap;
+			ico16green = new Icon16Green() as Bitmap;
+			ico16blue = new Icon16Blue() as Bitmap;
 			
 			trayIcon = NativeApplication.nativeApplication.icon as SystemTrayIcon;
 			trayIcon.tooltip = main.appName /* + " " + main.version*/;
 			
-			// Иконка
-			if (main.settings.getKey(Settings.bgClipboardProcessing))
-			{
-				trayIcon.bitmaps = [ico16BgMode.bitmapData];
-			}
-			
-			else
-			{
-				trayIcon.bitmaps = [ico16.bitmapData];
-			}
+			controlIconDisplay();
 			
 			/**
 			 * Пункт меню: Главное окно
@@ -81,35 +77,36 @@ package quantum.gui
 			 * Пункт меню: Переключатель фоновой обработки
 			 * ================================================================================
 			 */
-			itemBgPrcSwitch = new NativeMenuItem();
+			itemAdrBgPrcSwitch = new NativeMenuItem();
 			
 			var bgPrcSet:Boolean = main.settings.getKey(Settings.bgClipboardProcessing);
 			if (bgPrcSet)
 			{
-				itemBgPrcSwitch.label = bgPrcSwitchLabelOff;
+				itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOff;
 			}
 			
 			else
 			{
-				itemBgPrcSwitch.label = bgPrcSwitchLabelOn;
+				itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOn;
 			}
 			
-			itemBgPrcSwitch.addEventListener(Event.SELECT, function(e:Event):void
+			itemAdrBgPrcSwitch.addEventListener(Event.SELECT, function(e:Event):void
 			{
-				if (itemBgPrcSwitch.label == bgPrcSwitchLabelOff)
+				if (itemAdrBgPrcSwitch.label == bgPrcSwitchLabelOff)
 				{
-					itemBgPrcSwitch.label = bgPrcSwitchLabelOn;
+					itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOn;
 					main.settings.setKey(Settings.bgClipboardProcessing, false);
 				}
 				
 				else
 				{
-					itemBgPrcSwitch.label = bgPrcSwitchLabelOff;
+					itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOff;
 					main.settings.setKey(Settings.bgClipboardProcessing, true);
 				}
 			});
 			
 			main.settings.eventDsp.addEventListener(SettingEvent.VALUE_CHANGED, onSettingChange);
+			main.charuStackMode.events.addEventListener(Event.CHANGE, onCharuStackModeUpdate);
 			
 			/**
 			 * Пункт меню: Переключатель работы звуков
@@ -134,7 +131,7 @@ package quantum.gui
 			 */
 			trayMenu = new NativeMenu();
 			trayMenu.addItem(itemMainWindowCall);
-			trayMenu.addItem(itemBgPrcSwitch);
+			trayMenu.addItem(itemAdrBgPrcSwitch);
 			//trayMenu.addItem(itemSoundSwitch);
 			trayMenu.addItem(itemExit);
 			
@@ -147,33 +144,51 @@ package quantum.gui
 			});
 		}
 		
+		private function controlIconDisplay():void 
+		{
+			if (main.charuStackMode.modeActive) 
+			{
+				// Charu stack job (mode)
+				trayIcon.bitmaps = [ico16blue.bitmapData];
+				return;
+			}
+			
+			if (main.settings.getKey(Settings.bgClipboardProcessing))
+			{
+				// Addressy's background processing mode
+				trayIcon.bitmaps = [ico16green.bitmapData];
+				return;
+			}
+			
+			else
+			{
+				// Default app icon
+				trayIcon.bitmaps = [ico16.bitmapData];
+			}
+		}
+		
+		private function onCharuStackModeUpdate(e:Event):void 
+		{
+			controlIconDisplay();
+		}
+		
 		private function onSettingChange(e:SettingEvent):void
 		{
-			
 			if (e.settingName == Settings.bgClipboardProcessing)
 			{
-				
 				// Пункт меню в трее
-				if (e.newValue && itemBgPrcSwitch.label == bgPrcSwitchLabelOn)
+				if (e.newValue && itemAdrBgPrcSwitch.label == bgPrcSwitchLabelOn)
 				{
-					itemBgPrcSwitch.label = bgPrcSwitchLabelOff;
+					itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOff;
 				}
 				
-				else if (!e.newValue && itemBgPrcSwitch.label == bgPrcSwitchLabelOff)
+				else if (!e.newValue && itemAdrBgPrcSwitch.label == bgPrcSwitchLabelOff)
 				{
-					itemBgPrcSwitch.label = bgPrcSwitchLabelOn;
+					itemAdrBgPrcSwitch.label = bgPrcSwitchLabelOn;
 				}
 				
 				// Иконка
-				if (e.newValue)
-				{
-					trayIcon.bitmaps = [ico16BgMode.bitmapData];
-				}
-				
-				else if (!e.newValue)
-				{
-					trayIcon.bitmaps = [ico16.bitmapData];
-				}
+				controlIconDisplay();
 			}
 		}
 	}

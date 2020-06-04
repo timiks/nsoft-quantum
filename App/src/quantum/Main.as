@@ -1,5 +1,6 @@
 package quantum
 {
+	import flash.desktop.Clipboard;
 	import flash.desktop.NativeApplication;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -23,6 +24,7 @@ package quantum
 	import quantum.gui.modules.AddressyUiGim;
 	import quantum.gui.modules.QnManagerGim;
 	import quantum.gui.modules.SettingsGim;
+	import quantum.jobs.CharuStackController;
 	
 	/**
 	 * Quantum Application Main Module (CEM — Chief Executive Module)
@@ -49,6 +51,7 @@ package quantum
 		private var $soundMgr:SoundMgr;
 		private var $backupMst:BackupMaster;
 		private var $numFrm:NumberFormatter;
+		private var $clipboardSvc:ClipboardSvc;
 		
 		// · Addressy
 		private var $adrPrcEng:AdrPrcEngine;
@@ -58,6 +61,9 @@ package quantum
 		// · Ebay
 		private var $ebayHub:EbayHubController;
 		private var $ebayOrders:EbayOrdersRegistry;
+		
+		// · Jobs
+		private var $charuStackMode:CharuStackController;
 		
 		// · UI
 		private var $graphicsLibMgr:GraphicsLibMgr;
@@ -91,7 +97,14 @@ package quantum
 				}
 				
 				else
-					
+				
+				if (args[0] == "/toggleCharuStackMode1")
+				{
+					charuStackMode.toggleMode();
+				}
+				
+				else
+				
 				if (args[0] == "/showWindow")
 				{
 					qnMgrGim.activateWindow();
@@ -154,6 +167,14 @@ package quantum
 			// Ebay Orders Registry
 			$ebayOrders = new EbayOrdersRegistry();
 			$ebayOrders.init();
+			
+			// Clipboard Service
+			$clipboardSvc = new ClipboardSvc();
+			$clipboardSvc.init();
+			
+			// Job › CharuStackMode
+			$charuStackMode = new CharuStackController();
+			$charuStackMode.init();
 			
 			// Tray
 			$trayMgr = new TrayMgr();
@@ -382,6 +403,16 @@ package quantum
 		public function get numFrm():NumberFormatter 
 		{
 			return $numFrm;
+		}
+		
+		public function get clipboardSvc():ClipboardSvc 
+		{
+			return $clipboardSvc;
+		}
+		
+		public function get charuStackMode():CharuStackController 
+		{
+			return $charuStackMode;
 		}
 		
 		public function get graphicsLibMgr():GraphicsLibMgr 

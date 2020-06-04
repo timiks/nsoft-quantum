@@ -312,9 +312,9 @@ package quantum.gui.modules
 			else
 			
 			// F7
-			if (e.keyCode == Keyboard.F7)
+			if (e.keyCode == Keyboard.F7 && Capabilities.isDebugger)
 			{
-				
+				main.charuStackMode.toggleMode();
 			}
 		}
 

@@ -8,6 +8,7 @@ package timicore.communication
 	 */
 	public class ProcessEvent extends Event 
 	{
+		public static const RESTARTED:String = "RESTARTED";
 		public static const RESTART_OVERFLOW:String = "RESTART_OVERFLOW";
 		public static const COMMUNICATION_ERROR:String = "COMMUNICATION_ERROR";
 		public static const SYSTEM_ERROR:String = "SYSTEM_ERROR";
