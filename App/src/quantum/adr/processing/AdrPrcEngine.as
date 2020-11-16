@@ -575,11 +575,14 @@ package quantum.adr.processing
 			
 			// Identifying template
 			// ================================================================================
+			
+			// General check
 			switch (lc)
 			{
 				case 4:
 				case 5:
 				case 6:
+				case 7:
 				break;
 				default:
 					processingEnd(AdrPrcResult.STATUS_WARN);
@@ -590,8 +593,8 @@ package quantum.adr.processing
 				break;
 			}
 			
-			// IDENTIFY TEMPLATE
-			var tplType:int; // 1 or 2
+			// IDENTIFY BASIC TEMPLATE
+			var tplType:int; // Supported: #1, #2, #3
 			var postalCodePattern:RegExp = /^([A-Za-z\d]{1,4}|\d{4,8})[-| ]?([A-Za-z\d]{1,4}|\d{4,8})$/;
 			
 			if (lc == 4)
@@ -614,13 +617,26 @@ package quantum.adr.processing
 			}
 			
 			else
-
-			if (lc == 6)
+			
+			if (lc == 6) 
 			{
-				tplType = 2;
+				var lineBottom3:String = trimSpaces(lines[lines.length-3]);
+				var tpl2ControlSign:Object = processSpecialLine(lineBottom3, country, 2);
+				
+				if (tpl2ControlSign == null || tpl2ControlSign.region == null) 
+					tplType = 3;
+				else
+					tplType = 2;
 			}
 			
-			//trace("Template type is " + tplType);
+			else
+			
+			if (lc == 7)
+			{
+				tplType = 3;
+			}
+			
+			trace("[Addressy] Template is " + tplType);
 			
 			// NAME (Line 1 — Index 0) and ADDRESS #1 (Line 2 — Index 1)
 			// ================================================================================
@@ -632,7 +648,7 @@ package quantum.adr.processing
 			ebayAddress = getEbayAddress(addr1);
 			if (ebayAddress != null) 
 			{
-				processFromEbayAddress(ebayAddress, tx);
+				processFromEbayAddress(ebayAddress, tx, country);
 				
 				processingEnd(AdrPrcResult.STATUS_OK);
 				return new AdrPrcResult(
@@ -647,7 +663,7 @@ package quantum.adr.processing
 			// ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
 			// ================================================================================
 			
-			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6))
+			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6) || (tplType == 3 && lc == 7))
 			{
 				addr2 = lines[2];
 			}
@@ -702,6 +718,15 @@ package quantum.adr.processing
 				}
 			}
 			
+			else 
+			
+			if (tplType == 3) 
+			{
+				postCode = lines[lastLineIndex-1];
+				region = lines[lastLineIndex-2];
+				city = lines[lastLineIndex-3];
+			}
+			
 			// Process region
 			if (region != null) 
 				region = processRegion(region, country);
@@ -740,10 +765,10 @@ package quantum.adr.processing
 			);
 		}
 		
-		private function processFromEbayAddress(ebayAddress:EbayAddress, sourceTextAddress:String):void 
+		private function processFromEbayAddress(ebayAddress:EbayAddress, sourceTextAddress:String, country:String = null):void 
 		{
 			var name:String = processName(ebayAddress.clientName);
-			var country:String = ebayAddress.country;
+			var country:String = country != null ? country : ebayAddress.country;
 			var region:String = (ebayAddress.region != null && ebayAddress.region != "") ? processRegion(ebayAddress.region, country) : null;
 			var city:String = ebayAddress.city;
 			var addr1:String = ebayAddress.street1;
