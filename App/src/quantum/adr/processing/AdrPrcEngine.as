@@ -1,7 +1,7 @@
 package quantum.adr.processing
 {
 	import quantum.Main;
-	import quantum.adr.processing.ResultObject;
+	import quantum.adr.processing.AdrResult;
 	import quantum.ebay.EbayAddress;
 	
 	/**
@@ -9,7 +9,7 @@ package quantum.adr.processing
 	 * @author Tim Yusupov
 	 * @copy ©2015
 	 */
-	public class ProcessingEngine
+	public class AdrPrcEngine
 	{
 		// Version
 		private const $version:int = 26;
@@ -28,10 +28,10 @@ package quantum.adr.processing
 		private var auRegions:Vector.<Object>;
 		private var ndRegions:Vector.<Object>;
 		
-		private var $resultObj:ResultObject;
+		private var $resultObj:AdrResult;
 		private var addrExamples:Array;
 		
-		public function ProcessingEngine():void
+		public function AdrPrcEngine():void
 		{
 			//{ region Country Regions Arrays Initialization
 
@@ -157,7 +157,7 @@ package quantum.adr.processing
 			//} endregion
 
 			// Result Object Initialization
-			$resultObj = new ResultObject();
+			$resultObj = new AdrResult();
 
 			// Main link
 			main = Main.ins;
@@ -168,10 +168,11 @@ package quantum.adr.processing
 		 * @param inputText Входная строка
 		 * @return Информация о результате обработки
 		 */
-		public function process(inputText:String, specialMode:int = 0):ProcessingResult
+		public function process(inputText:String, specialMode:int = 0):AdrPrcResult
 		{
 			var tx:String = inputText;
 			var ctrlCharPattern:RegExp = /(\r|\n|\r\n)/;
+			var ebayAddress:EbayAddress;
 			
 			// ================================================================================
 			//
@@ -179,11 +180,37 @@ package quantum.adr.processing
 			//
 			// ================================================================================
 			
-			// Check: empty or one line
-			if (tx.length < 1 || tx.search(ctrlCharPattern) == -1)
+			// Check: empty
+			if (tx.length < 1)
 			{
-				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
-				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+				processingEnd(AdrPrcResult.STATUS_NOT_PROCESSED);
+				return new AdrPrcResult(AdrPrcResult.STATUS_NOT_PROCESSED);
+			}
+			
+			// Check: one line
+			if (tx.search(ctrlCharPattern) == -1) 
+			{
+				// #SPECIAL: Processing based on Ebay order ID (if info is found, else › regular processing)
+				ebayAddress = main.ebayOrders.getEbayAddressViaOrderID(trimSpaces(tx));
+				if (ebayAddress != null) 
+				{
+					processFromEbayAddress(ebayAddress, tx);
+					
+					processingEnd(AdrPrcResult.STATUS_OK);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_OK,
+						new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+						$resultObj
+					);
+				}
+				else
+				{
+					processingEnd(AdrPrcResult.STATUS_WARN);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_WARN,
+						new AdrPrcDetails(AdrPrcDetails.ERR_UNKNOWN_EBAY_ORDER_ID, 0, PrcSpecialMode2, false, true)
+					);
+				}
 			}
 			
 			var lines:Array;
@@ -231,10 +258,10 @@ package quantum.adr.processing
 				{
 					name = processName(lines[0]);
 					$resultObj.name = name;
-					processingEnd(ProcessingResult.STATUS_OK);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_OK,
-						new ProcessingDetails("Обработано в спец. режиме", tplType, PrcSpecialMode1),
+					processingEnd(AdrPrcResult.STATUS_OK);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_OK,
+						new AdrPrcDetails("Обработано в спец. режиме", tplType, PrcSpecialMode1),
 						$resultObj
 					);
 				}
@@ -373,10 +400,10 @@ package quantum.adr.processing
 					// Check error
 					if (japanTemplateError)
 					{
-						processingEnd(ProcessingResult.STATUS_ERROR);
-						return new ProcessingResult(
-							ProcessingResult.STATUS_ERROR,
-							new ProcessingDetails("Неверный формат спец. шаблона Японии")
+						processingEnd(AdrPrcResult.STATUS_ERROR);
+						return new AdrPrcResult(
+							AdrPrcResult.STATUS_ERROR,
+							new AdrPrcDetails("Неверный формат спец. шаблона Японии")
 						);
 					}
 					
@@ -442,8 +469,8 @@ package quantum.adr.processing
 			// No sense to proceed without country
 			else
 			{
-				processingEnd(ProcessingResult.STATUS_NOT_PROCESSED);
-				return new ProcessingResult(ProcessingResult.STATUS_NOT_PROCESSED);
+				processingEnd(AdrPrcResult.STATUS_NOT_PROCESSED);
+				return new AdrPrcResult(AdrPrcResult.STATUS_NOT_PROCESSED);
 			}
 				
 			// ================================================================================
@@ -548,23 +575,26 @@ package quantum.adr.processing
 			
 			// Identifying template
 			// ================================================================================
+			
+			// General check
 			switch (lc)
 			{
 				case 4:
 				case 5:
 				case 6:
+				case 7:
 				break;
 				default:
-					processingEnd(ProcessingResult.STATUS_WARN);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_WARN,
-						new ProcessingDetails(ProcessingDetails.ERR_UNKNOWN_FORMAT)
+					processingEnd(AdrPrcResult.STATUS_WARN);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_WARN,
+						new AdrPrcDetails(AdrPrcDetails.ERR_UNKNOWN_FORMAT)
 					);
 				break;
 			}
 			
-			// IDENTIFY TEMPLATE
-			var tplType:int; // 1 or 2
+			// IDENTIFY BASIC TEMPLATE
+			var tplType:int; // Supported: #1, #2, #3
 			var postalCodePattern:RegExp = /^([A-Za-z\d]{1,4}|\d{4,8})[-| ]?([A-Za-z\d]{1,4}|\d{4,8})$/;
 			
 			if (lc == 4)
@@ -587,13 +617,26 @@ package quantum.adr.processing
 			}
 			
 			else
-
-			if (lc == 6)
+			
+			if (lc == 6) 
 			{
-				tplType = 2;
+				var lineBottom3:String = trimSpaces(lines[lines.length-3]);
+				var tpl2ControlSign:Object = processSpecialLine(lineBottom3, country, 2);
+				
+				if (tpl2ControlSign == null || tpl2ControlSign.region == null) 
+					tplType = 3;
+				else
+					tplType = 2;
 			}
 			
-			//trace("Template type is " + tplType);
+			else
+			
+			if (lc == 7)
+			{
+				tplType = 3;
+			}
+			
+			trace("[Addressy] Template is " + tplType);
 			
 			// NAME (Line 1 — Index 0) and ADDRESS #1 (Line 2 — Index 1)
 			// ================================================================================
@@ -602,15 +645,15 @@ package quantum.adr.processing
 			addr1 = lines[1];
 			
 			// #SPECIAL: Processing based on Ebay address info (if info is found, else › regular processing)
-			var ebayAddress:EbayAddress = getEbayAddress(addr1);
+			ebayAddress = getEbayAddress(addr1);
 			if (ebayAddress != null) 
 			{
-				processFromEbayAddress(ebayAddress, tx);
+				processFromEbayAddress(ebayAddress, tx, country);
 				
-				processingEnd(ProcessingResult.STATUS_OK);
-				return new ProcessingResult(
-					ProcessingResult.STATUS_OK,
-					new ProcessingDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+				processingEnd(AdrPrcResult.STATUS_OK);
+				return new AdrPrcResult(
+					AdrPrcResult.STATUS_OK,
+					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
 					$resultObj
 				);
 			}
@@ -620,7 +663,7 @@ package quantum.adr.processing
 			// ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
 			// ================================================================================
 			
-			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6))
+			if ((tplType == 1 && lc == 5) || (tplType == 2 && lc == 6) || (tplType == 3 && lc == 7))
 			{
 				addr2 = lines[2];
 			}
@@ -637,10 +680,10 @@ package quantum.adr.processing
 				
 				if (lineXObj == null)
 				{
-					processingEnd(ProcessingResult.STATUS_ERROR);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_ERROR,
-						new ProcessingDetails("Ошибка обработки")
+					processingEnd(AdrPrcResult.STATUS_ERROR);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_ERROR,
+						new AdrPrcDetails("Ошибка обработки")
 					);
 				} 
 				else
@@ -662,10 +705,10 @@ package quantum.adr.processing
 				
 				if (lineXObj == null)
 				{
-					processingEnd(ProcessingResult.STATUS_ERROR);
-					return new ProcessingResult(
-						ProcessingResult.STATUS_ERROR,
-						new ProcessingDetails("Ошибка обработки")
+					processingEnd(AdrPrcResult.STATUS_ERROR);
+					return new AdrPrcResult(
+						AdrPrcResult.STATUS_ERROR,
+						new AdrPrcDetails("Ошибка обработки")
 					);
 				} 
 				else
@@ -673,6 +716,15 @@ package quantum.adr.processing
 					city = lineXObj.city;
 					region = lineXObj.region;
 				}
+			}
+			
+			else 
+			
+			if (tplType == 3) 
+			{
+				postCode = lines[lastLineIndex-1];
+				region = lines[lastLineIndex-2];
+				city = lines[lastLineIndex-3];
 			}
 			
 			// Process region
@@ -705,18 +757,18 @@ package quantum.adr.processing
 				$resultObj.phone = phone;
 			
 			// Успешный финал обработки
-			processingEnd(ProcessingResult.STATUS_OK);
-			return new ProcessingResult(
-				ProcessingResult.STATUS_OK,
-				new ProcessingDetails("Обработано", tplType, 0, phone == null ? true : false),
+			processingEnd(AdrPrcResult.STATUS_OK);
+			return new AdrPrcResult(
+				AdrPrcResult.STATUS_OK,
+				new AdrPrcDetails("Обработано", tplType, 0, phone == null ? true : false),
 				$resultObj
 			);
 		}
 		
-		private function processFromEbayAddress(ebayAddress:EbayAddress, sourceTextAddress:String):void 
+		private function processFromEbayAddress(ebayAddress:EbayAddress, sourceTextAddress:String, country:String = null):void 
 		{
 			var name:String = processName(ebayAddress.clientName);
-			var country:String = ebayAddress.country;
+			var country:String = country != null ? country : ebayAddress.country;
 			var region:String = (ebayAddress.region != null && ebayAddress.region != "") ? processRegion(ebayAddress.region, country) : null;
 			var city:String = ebayAddress.city;
 			var addr1:String = ebayAddress.street1;
@@ -738,7 +790,7 @@ package quantum.adr.processing
 			if (phone != null)
 				$resultObj.phone = phone;
 		}
-
+		
 		/**
 		 * Вызывается всякий раз при завершении обработки (включая неудачную обработку)
 		 */
@@ -747,7 +799,7 @@ package quantum.adr.processing
 			// Do some stuff when processing has finished either ok or bad
 			// e.g. reset resultObject
 			
-			if (status != ProcessingResult.STATUS_OK)
+			if (status != AdrPrcResult.STATUS_OK)
 				resetResultObject();
 		}
 		
@@ -1245,7 +1297,7 @@ package quantum.adr.processing
 		/**
 		 * Объект с отдельными полями результата
 		 */
-		public function get resultObject():ResultObject
+		public function get resultObject():AdrResult
 		{
 			return $resultObj;
 		}

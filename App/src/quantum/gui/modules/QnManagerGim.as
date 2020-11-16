@@ -18,7 +18,7 @@ package quantum.gui.modules
 	import flash.utils.Timer;
 	import quantum.Main;
 	import quantum.Settings;
-	import quantum.TableDataComposer;
+	import quantum.jobs.TableDataComposer;
 	import quantum.events.EbayHubEvent;
 	import quantum.gui.elements.BigTextInput;
 	import quantum.gui.Colors;
@@ -312,9 +312,9 @@ package quantum.gui.modules
 			else
 			
 			// F7
-			if (e.keyCode == Keyboard.F7)
+			if (e.keyCode == Keyboard.F7 && Capabilities.isDebugger)
 			{
-				
+				main.charuStackMode.toggleMode();
 			}
 		}
 

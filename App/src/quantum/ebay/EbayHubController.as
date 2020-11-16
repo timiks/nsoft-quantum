@@ -41,7 +41,7 @@ package quantum.ebay
 			processFileDir = File.applicationDirectory;
 			
 			childProcessCtrl =
-				new ChildProcessController(processFileDir.resolvePath(processFileName).nativePath);
+				new ChildProcessController(processFileDir.resolvePath(processFileName));
 			childProcessCtrl.init();
 			
 			if (!childProcessCtrl.processFileIsOk)

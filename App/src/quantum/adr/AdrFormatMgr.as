@@ -1,12 +1,12 @@
 package quantum.adr
 {
-	import quantum.adr.processing.ResultObject;
+	import quantum.adr.processing.AdrResult;
 	
 	/**
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class FormatMgr
+	public class AdrFormatMgr
 	{
 		// Special formats
 		public static const FRM_ADR_CONCLUSION:String = "frmAdrConclusion";
@@ -25,9 +25,9 @@ package quantum.adr
 		
 		private static const STRING_DELIM:String = "\t";
 		
-		public function FormatMgr():void {}
+		public function AdrFormatMgr():void {}
 		
-		public function format(resultObj:ResultObject, formatType:String = null):String
+		public function format(resultObj:AdrResult, formatType:String = null):String
 		{
 			/*
 			Алгоритм
@@ -52,7 +52,9 @@ package quantum.adr
 			var phone:String = resultObj.phone;
 			
 			var addrs:String = addr1;
-			if (addr2 != null) addrs += ", " + addr2;
+			
+			if (addr2 != null)
+				addrs += ", " + addr2;
 			
 			var format:String = formatType;
 			var output:String = "";
@@ -61,6 +63,7 @@ package quantum.adr
 			switch (format)
 			{
 				case FRM_ADR_CONCLUSION:
+					
 					output += "Имя: " + name + "\n";
 					output += "Адрес: " + addrs + "\n";
 					output += "Страна: " + country + "\n";

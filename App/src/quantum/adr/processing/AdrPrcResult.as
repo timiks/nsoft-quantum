@@ -4,7 +4,7 @@ package quantum.adr.processing {
 	 * ...
 	 * @author Tim Yusupov
 	 */
-	public class ProcessingResult {
+	public class AdrPrcResult {
 
 		public static const STATUS_OK:int = 0;
 		public static const STATUS_WARN:int = 1;
@@ -12,10 +12,10 @@ package quantum.adr.processing {
 		public static const STATUS_NOT_PROCESSED:int = 3;
 
 		private var $status:int;
-		private var $details:ProcessingDetails;
-		private var $resultObj:ResultObject;
+		private var $details:AdrPrcDetails;
+		private var $resultObj:AdrResult;
 
-		public function ProcessingResult(status:int, details:ProcessingDetails = null, resultObject:ResultObject = null):void {
+		public function AdrPrcResult(status:int, details:AdrPrcDetails = null, resultObject:AdrResult = null):void {
 			this.status = status;
 			this.details = details;
 			$resultObj = resultObject;
@@ -36,18 +36,18 @@ package quantum.adr.processing {
 		// PROPERTY: details
 		// ================================================================================
 
-		public function get details():ProcessingDetails {
+		public function get details():AdrPrcDetails {
 			return $details;
 		}
 
-		public function set details(value:ProcessingDetails):void {
+		public function set details(value:AdrPrcDetails):void {
 			$details = value;
 		}
 
 		// PROPERTY: resultObj
 		// ================================================================================
 
-		public function get resultObj():ResultObject {
+		public function get resultObj():AdrResult {
 			return $resultObj;
 		}
 

@@ -30,11 +30,11 @@ package quantum.gui.modules {
 	import quantum.gui.UIComponentsMgr;
 
 	import quantum.Main;
-	import quantum.adr.FormatMgr;
+	import quantum.adr.AdrFormatMgr;
 	import quantum.Settings;
-	import quantum.adr.processing.ProcessingDetails;
-	import quantum.adr.processing.ProcessingResult;
-	import quantum.adr.processing.ResultObject;
+	import quantum.adr.processing.AdrPrcDetails;
+	import quantum.adr.processing.AdrPrcResult;
+	import quantum.adr.processing.AdrResult;
 
 	/**
 	 * ...
@@ -145,10 +145,10 @@ package quantum.gui.modules {
 			ui.selFormat.tabEnabled = false;
 			
 			// [!] Actual formats first
-			ui.selFormat.addItem({label: "Шэньчжень (SEO)", data: FormatMgr.FRM_SHZ1});
-			ui.selFormat.addItem({label: "Вывод Адресси", data: FormatMgr.FRM_ADR_CONCLUSION});
-			ui.selFormat.addItem({label: "Кантон: формат 2", data: FormatMgr.FRM_CNT_STR2});
-			ui.selFormat.addItem({label: "Кантон: формат 1", data: FormatMgr.FRM_CNT_STR1});
+			ui.selFormat.addItem({label: "Шэньчжень (SEO)", data: AdrFormatMgr.FRM_SHZ1});
+			ui.selFormat.addItem({label: "Вывод Адресси", data: AdrFormatMgr.FRM_ADR_CONCLUSION});
+			ui.selFormat.addItem({label: "Кантон", data: AdrFormatMgr.FRM_CNT_STR2});
+			//ui.selFormat.addItem({label: "Кантон: формат 1", data: AdrFormatMgr.FRM_CNT_STR1});
 			//ui.selFormat.addItem({label: "Пекин: с именами полей", data: FormatMgr.FRM_BJN_TITLES});
 			//ui.selFormat.addItem({label: "Пекин: строка с разделителем", data: FormatMgr.FRM_BJN_STR});
 			//ui.selFormat.addItem({label: "Пекин: блок для таблицы", data: FormatMgr.FRM_BJN_BLOCK});
@@ -261,7 +261,7 @@ package quantum.gui.modules {
 			if (e.keyCode == Keyboard.F8) {
 
 				ui.taL.text = "";
-				ui.taL.text = main.prcEng.getRandomAddress();
+				ui.taL.text = main.adrPrcEng.getRandomAddress();
 				onTextChange(null);
 
 			} else
@@ -298,8 +298,8 @@ package quantum.gui.modules {
 			ui.taL.text = "";
 
 			// Show
-			main.prcEng.setOwnAddress();
-			showResult(main.prcEng.resultObject);
+			main.adrPrcEng.setOwnAddress();
+			showResult(main.adrPrcEng.resultObject);
 
 			// Copy
 			var copyResultOutput:String;
@@ -324,13 +324,13 @@ package quantum.gui.modules {
 			+ Show panel with corresponding information and color
 			*/
 
-			var prcResult:ProcessingResult = main.prcEng.process(ui.taL.text);
+			var prcResult:AdrPrcResult = main.adrPrcEng.process(ui.taL.text);
 
 			/**
 			 * SUCCESS
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_OK) {
+			if (prcResult.status == AdrPrcResult.STATUS_OK) {
 
 				/*
 				Алгоритм
@@ -372,7 +372,7 @@ package quantum.gui.modules {
 			 * ERROR
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_ERROR) {
+			if (prcResult.status == AdrPrcResult.STATUS_ERROR) {
 
 				clearResultArea();
 				if (prcResult.details != null) showPanel(prcResult.details.message, Colors.BAD);
@@ -384,7 +384,7 @@ package quantum.gui.modules {
 			 * WARNING
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_WARN) {
+			if (prcResult.status == AdrPrcResult.STATUS_WARN) {
 
 				clearResultArea();
 				if (prcResult.details != null) showPanel(prcResult.details.message, Colors.WARN);
@@ -395,7 +395,7 @@ package quantum.gui.modules {
 			 * NOT PROCESSED
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_NOT_PROCESSED) {
+			if (prcResult.status == AdrPrcResult.STATUS_NOT_PROCESSED) {
 				clearResultArea();
 			}
 
@@ -407,7 +407,7 @@ package quantum.gui.modules {
 		}
 
 		private function changeResultFormat():void {
-			var resObj:ResultObject = main.prcEng.resultObject;
+			var resObj:AdrResult = main.adrPrcEng.resultObject;
 			if (resObj.name == null) return;
 
 			showResult(resObj);
@@ -415,7 +415,7 @@ package quantum.gui.modules {
 			if (copyOutput != "") showPanel(copyOutput, Colors.SUCCESS);
 		}
 
-		private function showResult(resultObj:ResultObject):void {
+		private function showResult(resultObj:AdrResult):void {
 
 			if (resultObj.name == null) {
 				trace("Cannot show result. Result Object is null");
@@ -439,7 +439,7 @@ package quantum.gui.modules {
 
 			// Format
 			var format:String = ui.selFormat.selectedItem.data;
-			var formattedStr:String = main.formatMgr.format(resultObj, format);
+			var formattedStr:String = main.adrFormatMgr.format(resultObj, format);
 			ui.taR.text = resultStr = formattedStr;
 
 			// Preview Box
@@ -491,7 +491,7 @@ package quantum.gui.modules {
 
 		private function copyQue():void {
 
-			var resObj:ResultObject = main.prcEng.resultObject;
+			var resObj:AdrResult = main.adrPrcEng.resultObject;
 
 			if (resObj.name == null) {
 				showPanel("Нечего копировать", Colors.WARN);
@@ -629,7 +629,7 @@ package quantum.gui.modules {
 		 * ================================================================================
 		 */
 
-		public function showBgProcessingResult(resObj:ResultObject):void {
+		public function showBgProcessingResult(resObj:AdrResult):void {
 			showResult(resObj);
 			showPanel("Обработано на фоне", Colors.TXLB_PURPLE);
 		}

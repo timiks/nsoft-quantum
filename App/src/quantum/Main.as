@@ -1,5 +1,6 @@
 package quantum
 {
+	import flash.desktop.Clipboard;
 	import flash.desktop.NativeApplication;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -8,20 +9,22 @@ package quantum
 	import flash.globalization.LocaleID;
 	import flash.globalization.NumberFormatter;
 	import flash.system.Capabilities;
-	import quantum.adr.BgProcessor;
-	import quantum.adr.FormatMgr;
-	import quantum.adr.processing.ProcessingEngine;
+	import quantum.adr.AdrBgProcessor;
+	import quantum.adr.AdrFormatMgr;
+	import quantum.adr.processing.AdrPrcEngine;
 	import quantum.backup.BackupMaster;
 	import quantum.data.DataMgr;
 	import quantum.ebay.EbayHubController;
 	import quantum.ebay.EbayOrdersRegistry;
 	import quantum.gui.GraphicsLibMgr;
+	import quantum.gui.TrayMgr;
 	import quantum.gui.UIComponentsMgr;
 	import quantum.gui.modules.EbayGim;
 	import quantum.gui.modules.SysErrorGim;
 	import quantum.gui.modules.AddressyUiGim;
 	import quantum.gui.modules.QnManagerGim;
 	import quantum.gui.modules.SettingsGim;
+	import quantum.jobs.CharuStackController;
 	
 	/**
 	 * Quantum Application Main Module (CEM — Chief Executive Module)
@@ -33,7 +36,7 @@ package quantum
 		
 		// App Version
 		private const $version:int 					= 6;
-		private const $versionService:int 			= 0;
+		private const $versionService:int 			= 2;
 		private const $betaVersionNumber:int        = 0;
 		
 		private const $betaVersion:Boolean 			= Boolean(0);
@@ -48,15 +51,19 @@ package quantum
 		private var $soundMgr:SoundMgr;
 		private var $backupMst:BackupMaster;
 		private var $numFrm:NumberFormatter;
+		private var $clipboardSvc:ClipboardSvc;
 		
 		// · Addressy
-		private var $prcEng:ProcessingEngine;
-		private var $bgProcessor:BgProcessor;
-		private var $formatMgr:FormatMgr;
+		private var $adrPrcEng:AdrPrcEngine;
+		private var $adrBgProcessor:AdrBgProcessor;
+		private var $adrFormatMgr:AdrFormatMgr;
 		
 		// · Ebay
 		private var $ebayHub:EbayHubController;
 		private var $ebayOrders:EbayOrdersRegistry;
+		
+		// · Jobs
+		private var $charuStackMode:CharuStackController;
 		
 		// · UI
 		private var $graphicsLibMgr:GraphicsLibMgr;
@@ -90,7 +97,14 @@ package quantum
 				}
 				
 				else
-					
+				
+				if (args[0] == "/toggleCharuStackMode1")
+				{
+					charuStackMode.toggleMode();
+				}
+				
+				else
+				
 				if (args[0] == "/showWindow")
 				{
 					qnMgrGim.activateWindow();
@@ -154,6 +168,14 @@ package quantum
 			$ebayOrders = new EbayOrdersRegistry();
 			$ebayOrders.init();
 			
+			// Clipboard Service
+			$clipboardSvc = new ClipboardSvc();
+			$clipboardSvc.init();
+			
+			// Job › CharuStackMode
+			$charuStackMode = new CharuStackController();
+			$charuStackMode.init();
+			
 			// Tray
 			$trayMgr = new TrayMgr();
 			$trayMgr.initTray();
@@ -162,15 +184,15 @@ package quantum
 			$soundMgr = new SoundMgr();
 			
 			// Addressy's Processing Engine
-			$prcEng = new ProcessingEngine();
+			$adrPrcEng = new AdrPrcEngine();
 			
 			// Addressy's Format Manager
-			$formatMgr = new FormatMgr();
+			$adrFormatMgr = new AdrFormatMgr();
 			
 			// Addressy's Background Processing Service
-			$bgProcessor = new BgProcessor();
+			$adrBgProcessor = new AdrBgProcessor();
 			if (settings.getKey(Settings.bgClipboardProcessing))
-				$bgProcessor.on();
+				$adrBgProcessor.on();
 			
 			// UI Components Manager
 			$uiCmpMgr = new UIComponentsMgr();
@@ -304,9 +326,9 @@ package quantum
 		/**
 		 * Движок обработки Addressy
 		 */
-		public function get prcEng():ProcessingEngine
+		public function get adrPrcEng():AdrPrcEngine
 		{
-			if ($prcEng == null)
+			if ($adrPrcEng == null)
 			{
 				throw new Error("ProcessingEngine hasn't initialized yet");
 				return null;
@@ -314,18 +336,18 @@ package quantum
 			
 			else
 			{
-				return $prcEng;
+				return $adrPrcEng;
 			}
 		}
 		
-		public function get formatMgr():FormatMgr
+		public function get adrFormatMgr():AdrFormatMgr
 		{
-			return $formatMgr;
+			return $adrFormatMgr;
 		}
 		
-		public function get bgProcessor():BgProcessor
+		public function get adrBgProcessor():AdrBgProcessor
 		{
-			return $bgProcessor;
+			return $adrBgProcessor;
 		}
 		
 		public function get adrUiGim():AddressyUiGim
@@ -381,6 +403,16 @@ package quantum
 		public function get numFrm():NumberFormatter 
 		{
 			return $numFrm;
+		}
+		
+		public function get clipboardSvc():ClipboardSvc 
+		{
+			return $clipboardSvc;
+		}
+		
+		public function get charuStackMode():CharuStackController 
+		{
+			return $charuStackMode;
 		}
 		
 		public function get graphicsLibMgr():GraphicsLibMgr 

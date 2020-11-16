@@ -1,4 +1,4 @@
-package quantum
+package quantum.jobs
 {
 	import fl.controls.CheckBox;
 	import fl.controls.TextArea;
@@ -10,8 +10,11 @@ package quantum
 	import flash.filesystem.FileStream;
 	import flash.globalization.DateTimeFormatter;
 	import flash.text.TextFormat;
-	import quantum.adr.FormatMgr;
-	import quantum.adr.processing.ProcessingResult;
+	import quantum.Main;
+	import quantum.Settings;
+	import quantum.SoundMgr;
+	import quantum.adr.AdrFormatMgr;
+	import quantum.adr.processing.AdrPrcResult;
 	import quantum.data.DataMgr;
 	import quantum.gui.Colors;
 	import quantum.gui.elements.ItemsGroup;
@@ -27,7 +30,7 @@ package quantum
 	 */
 	public class TableDataComposer
 	{
-		[Embed(source = "/../lib/app-icons/adr-ico16-grey.png")]
+		[Embed(source = "/../lib/app-icons/app-icon-16-grey.png")]
 		private var AdrIcon16Grey:Class;
 		
 		private var $adrInputTextArea:TextArea;
@@ -37,7 +40,7 @@ package quantum
 		private var tableDataFileLines:Array;
 		private var lineEnding:String;
 		private var lastContent:String;
-		private var lastResult:ProcessingResult;
+		private var lastResult:AdrPrcResult;
 		private var shippingValues:Object;
 		private var shippingFileLoadingTS:Number;
 		
@@ -90,7 +93,7 @@ package quantum
 			adrInputTextArea.addEventListener("change", onTextChange);
 			
 			lastContent = "";
-			lastResult = new ProcessingResult(-1);
+			lastResult = new AdrPrcResult(-1);
 			
 			// Shipping file
 			loadShippingFile(true);
@@ -110,13 +113,13 @@ package quantum
 			}
 			
 			// Process address
-			var prcResult:ProcessingResult = main.prcEng.process(adrInputTextArea.text);
+			var prcResult:AdrPrcResult = main.adrPrcEng.process(adrInputTextArea.text);
 			
 			/**
 			 * SUCCESS
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_OK)
+			if (prcResult.status == AdrPrcResult.STATUS_OK)
 			{
 				composeAndPack(prcResult);
 				
@@ -134,7 +137,7 @@ package quantum
 			 * ERROR
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_ERROR)
+			if (prcResult.status == AdrPrcResult.STATUS_ERROR)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0xCC171C));
 				
@@ -148,7 +151,7 @@ package quantum
 			 * WARNING
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_WARN)
+			if (prcResult.status == AdrPrcResult.STATUS_WARN)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x7D7D7D));
 				
@@ -162,7 +165,7 @@ package quantum
 			 * NOT PROCESSED
 			 * ================================================================================
 			 */
-			if (prcResult.status == ProcessingResult.STATUS_NOT_PROCESSED)
+			if (prcResult.status == AdrPrcResult.STATUS_NOT_PROCESSED)
 			{
 				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x000000));
 			}
@@ -171,7 +174,7 @@ package quantum
 			lastResult = prcResult;
 		}
 		
-		private function composeAndPack(adrPrcResult:ProcessingResult):void 
+		private function composeAndPack(adrPrcResult:AdrPrcResult):void 
 		{
 			var groupWarehouse:String = grpCnt.selectedItem.parentItemsGroup.warehouseID;
 			var groupTitle:String = grpCnt.selectedItem.parentItemsGroup.title;
@@ -206,28 +209,28 @@ package quantum
 			{
 				case Warehouse.CANTON:
 					WHT_tableDataFileTitle = "canton";
-					WHT_adrPrcFormat = FormatMgr.FRM_CNT_STR2;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_CNT_STR2;
 					WHT_linesGroupSearchPattern = groupTitle;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Canton2;
 					break;
 					
 				case Warehouse.BEIJING:
 					WHT_tableDataFileTitle = "beijing";
-					WHT_adrPrcFormat = FormatMgr.FRM_BJN_STR;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_BJN_STR;
 					WHT_linesGroupSearchPattern = "^" + groupTitle;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_BeijingStr;
 					break;
 					
 				case Warehouse.SHENZHEN_SEO:
 					WHT_tableDataFileTitle = "shenzhen-seo";
-					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_SHZ1;
 					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;
 					
 				case Warehouse.SHENZHEN_CFF:
 					WHT_tableDataFileTitle = "shenzhen-cff";
-					WHT_adrPrcFormat = FormatMgr.FRM_SHZ1;
+					WHT_adrPrcFormat = AdrFormatMgr.FRM_SHZ1;
 					WHT_linesGroupSearchPattern = adrPrcResult.resultObj.name;
 					WHT_composingLineTemplateExecutor = cmpLnTplExtr_Shenzhen;
 					break;
@@ -246,7 +249,7 @@ package quantum
 			tableDataFile = File.applicationStorageDirectory.resolvePath(WHT_tableDataFileTitle + ".txt");
 			
 			// Format address
-			processedAddress = main.formatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
+			processedAddress = main.adrFormatMgr.format(adrPrcResult.resultObj, WHT_adrPrcFormat);
 			
 			// Read file into memory (to tableDataFileLines)
 			readFile();

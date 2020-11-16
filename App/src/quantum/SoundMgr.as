@@ -14,8 +14,11 @@ package quantum
 		public static const sndSuccess:String = "sndSuccess";
 		public static const sndError:String = "sndError";
 		public static const sndMessage:String = "sndMessage";
-		public static const sndBgPrcToggle:String = "sndBgPrcToggle";
+		public static const sndToggle:String = "sndToggle";
 		public static const sndGlobalError:String = "sndGlobalError";
+		public static const sndLightFeedback:String = "sndLightFeedback";
+		public static const sndClick:String = "sndClick";
+		public static const sndFail:String = "sndFail";
 		
 		// Assets
 		[Embed(source = "/../lib/sounds/snd-ok.mp3")]
@@ -27,11 +30,20 @@ package quantum
 		[Embed(source = "/../lib/sounds/snd-message.mp3")]
 		private var MessageSound:Class;
 		
-		[Embed(source = "/../lib/sounds/snd-toggle-bg-prc.mp3")]
-		private var ToggleBgPrcSound:Class;
+		[Embed(source = "/../lib/sounds/snd-toggle.mp3")]
+		private var ToggleSound:Class;
 		
 		[Embed(source = "/../lib/sounds/snd-global-error.mp3")]
 		private var GlobalErrorSound:Class;
+		
+		[Embed(source = "/../lib/sounds/snd-light-feedback.mp3")]
+		private var LightFeedbackSound:Class;
+		
+		[Embed(source = "/../lib/sounds/snd-click.mp3")]
+		private var ClickSound:Class;
+		
+		[Embed(source = "/../lib/sounds/snd-fail.mp3")]
+		private var FailSound:Class;
 		
 		private var snd:Sound;
 		private var playing:Boolean;
@@ -63,14 +75,30 @@ package quantum
 					snd.play();
 					break;
 				
-				case sndBgPrcToggle: 
-					snd = new ToggleBgPrcSound() as Sound;
+				case sndToggle: 
+					snd = new ToggleSound() as Sound;
 					snd.play();
 					break;
 				
 				case sndGlobalError:
 					snd = new GlobalErrorSound() as Sound;
 					snd.play();
+					break;
+					
+				case sndLightFeedback:
+					snd = new LightFeedbackSound() as Sound;
+					snd.play();
+					break;
+					
+				case sndClick:
+					snd = new ClickSound() as Sound;
+					snd.play();
+					break;
+					
+				case sndFail:
+					snd = new FailSound() as Sound;
+					snd.play();
+					break;
 					
 				default: 
 					return;
