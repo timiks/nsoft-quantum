@@ -644,20 +644,6 @@ package quantum.adr.processing
 			name = processName(lines[0]);
 			addr1 = lines[1];
 			
-			// #SPECIAL: Processing based on Ebay address info (if info is found, else › regular processing)
-			ebayAddress = getEbayAddress(addr1);
-			if (ebayAddress != null) 
-			{
-				processFromEbayAddress(ebayAddress, tx, country);
-				
-				processingEnd(AdrPrcResult.STATUS_OK);
-				return new AdrPrcResult(
-					AdrPrcResult.STATUS_OK,
-					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
-					$resultObj
-				);
-			}
-			
 			// === HARD POINT ===
 			
 			// ADDRESS #2 (TPL #1, TPL #2: Line 3 — Index 2)
@@ -727,6 +713,20 @@ package quantum.adr.processing
 				city = lines[lastLineIndex-3];
 			}
 			
+			// #SPECIAL: Processing based on Ebay address info (if info is found, else › regular processing)
+			ebayAddress = main.ebayOrders.getEbayAddressViaNameCity(name, city); // getEbayAddress(addr1)
+			if (ebayAddress != null) 
+			{
+				processFromEbayAddress(ebayAddress, tx, country);
+				
+				processingEnd(AdrPrcResult.STATUS_OK);
+				return new AdrPrcResult(
+					AdrPrcResult.STATUS_OK,
+					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+					$resultObj
+				);
+			}
+			
 			// Process region
 			if (region != null) 
 				region = processRegion(region, country);
@@ -735,7 +735,7 @@ package quantum.adr.processing
 			postCode = processPostalCode(postCode, country);
 			
 			// Process phone
-			phone = getPhone(name, addr1);
+			phone = (ebayAddress != null && ebayAddress.phone != null) ? ebayAddress.phone : null;
 			
 			// ================================================================================
 			//
@@ -1247,15 +1247,19 @@ package quantum.adr.processing
 			return postCode;
 		}
 		
+		/*
 		private function getPhone(adrName:String, adrLine1:String):String 
 		{
 			return main.ebayOrders.getAdrPhone(adrName, adrLine1); // [!] May return null
 		}
+		*/
 		
+		/*
 		private function getEbayAddress(adrLine1:String):EbayAddress 
 		{
-			return main.ebayOrders.getEbayAddress(adrLine1); // [!] May return null
+			return main.ebayOrders.getEbayAddressViaAdrLine1(adrLine1); // [!] May return null
 		}
+		*/
 		
 		private function resetResultObject():void
 		{

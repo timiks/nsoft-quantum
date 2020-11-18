@@ -80,12 +80,33 @@ package quantum.ebay
 			return adrClientPhone;
 		}
 		
-		public function getEbayAddress(adrLine1:String):EbayAddress 
+		public function getEbayAddressViaAdrLine1(adrLine1:String):EbayAddress 
 		{
 			if (xmlDoc == null)
 				return null;
 				
 			var query:XMLList = storeEl.Order.ShippingAddress.(stringToLowerCase(Street1.@Val) == adrLine1.toLowerCase());
+			var shipAdrEl:XML;
+			var ebayAdr:EbayAddress = null;
+			
+			if (query.length() > 0) 
+			{
+				shipAdrEl = query[0] as XML;
+				
+				ebayAdr = readEbayAddressFromXML(shipAdrEl);
+			}
+			
+			return ebayAdr;
+		}
+		
+		public function getEbayAddressViaNameCity(clientAdrName:String, adrCity:String):EbayAddress
+		{
+			if (xmlDoc == null)
+				return null;
+				
+			var query:XMLList = storeEl.Order.ShippingAddress.
+				(stringToLowerCase(ClientName.@Val) == clientAdrName.toLowerCase() && 
+				stringToLowerCase(City.@Val) == adrCity.toLowerCase());
 			var shipAdrEl:XML;
 			var ebayAdr:EbayAddress = null;
 			
