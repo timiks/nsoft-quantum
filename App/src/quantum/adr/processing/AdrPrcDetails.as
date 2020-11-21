@@ -16,14 +16,16 @@ package quantum.adr.processing
 		private var $mode:int;
 		private var $phoneNotFound:Boolean = false;
 		private var $ebayOrderIdNotFound:Boolean = false;
+		private var $clientNameMismatch:Boolean = false;
 		
 		public function AdrPrcDetails(msg:String, templateType:int = 0, mode:int = 0,
-			phoneNotFound:Boolean = false, ebayOrderIdNotFound:Boolean = false):void
+			phoneNotFound:Boolean = false, ebayOrderIdNotFound:Boolean = false, clientNameMismatch:Boolean = false):void
 		{
 			this.message = msg;
 			this.templateType = templateType;
 			this.phoneNotFound = phoneNotFound;
 			this.ebayOrderIdNotFound = ebayOrderIdNotFound;
+			this.clientNameMismatch = clientNameMismatch;
 		}
 		
 		public function get message():String
@@ -74,6 +76,16 @@ package quantum.adr.processing
 		public function set ebayOrderIdNotFound(value:Boolean):void 
 		{
 			$ebayOrderIdNotFound = value;
+		}
+		
+		public function get clientNameMismatch():Boolean 
+		{
+			return $clientNameMismatch;
+		}
+		
+		public function set clientNameMismatch(value:Boolean):void 
+		{
+			$clientNameMismatch = value;
 		}
 	}
 }

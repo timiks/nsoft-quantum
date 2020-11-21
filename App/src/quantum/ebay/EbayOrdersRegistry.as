@@ -4,6 +4,7 @@ package quantum.ebay
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
+	import flash.utils.Dictionary;
 	import quantum.Main;
 	import quantum.ebay.EbayAddress;
 	import quantum.events.EbayHubEvent;
@@ -21,6 +22,7 @@ package quantum.ebay
 		private var xmlDoc:XML;
 		private var storeFile:File;
 		private var fstream:FileStream;
+		private var adrSimWords:Dictionary;
 		
 		private var $events:EventDispatcher;
 		
@@ -43,6 +45,20 @@ package quantum.ebay
 			storeFile = File.applicationStorageDirectory.resolvePath(storeFileName);
 			fstream = new FileStream();
 			
+			var adrSimWordsDeclaration:Array =
+			[
+				["street", "str", "st"], 
+				["avenue", "ave", "av"], 
+				["drive", "dr", "drv"], 
+				["road", "rd"]
+			];
+			
+			adrSimWords = new Dictionary();
+			
+			for each (var ar:Array in adrSimWordsDeclaration) 
+				for each (var word:String in ar) 
+					adrSimWords[word] = ar;
+			
 			// Load file at start
 			checkStoreFile();
 			
@@ -57,6 +73,7 @@ package quantum.ebay
 			checkStoreFile();
 		}
 		
+		/*
 		public function getAdrPhone(adrClientName:String, adrLine1:String):String 
 		{
 			if (xmlDoc == null)
@@ -79,20 +96,89 @@ package quantum.ebay
 			
 			return adrClientPhone;
 		}
+		*/
 		
-		public function getEbayAddress(adrLine1:String):EbayAddress 
+		public function getEbayAddressViaAdrLine1(adrLine1:String):EbayAddress 
 		{
 			if (xmlDoc == null)
 				return null;
-				
-			var query:XMLList = storeEl.Order.ShippingAddress.(stringToLowerCase(Street1.@Val) == adrLine1.toLowerCase());
+			
 			var shipAdrEl:XML;
 			var ebayAdr:EbayAddress = null;
+			var query:XMLList;
+			
+			// 1: Strict comparison
+			
+			query = storeEl.Order.ShippingAddress.(stringToLowerCase(Street1.@Val) == adrLine1.toLowerCase());
 			
 			if (query.length() > 0) 
 			{
 				shipAdrEl = query[0] as XML;
+				ebayAdr = readEbayAddressFromXML(shipAdrEl);
+				return ebayAdr;
+			}
+			
+			// 2: Advanced search
+			
+			const reWordSplit:RegExp = /\b[^\s]+\b/g;
+			var word:String;
+			var splitWords:Array;
+			var selOrder:XML;
+			var selOrderID:String;
+			var preRating:Dictionary = new Dictionary();
+			
+			splitWords = adrLine1.match(reWordSplit);
+			
+			function selectOrders():void 
+			{
+				for each (selOrder in query) 
+				{
+					selOrderID = selOrder.OrderID.@Val;
+					
+					if (preRating[selOrderID] == null)
+						preRating[selOrderID] = { orderEntry: selOrder, score: 0 };
+					preRating[selOrderID].score++;
+				}
+			}
+			
+			for each (word in splitWords) 
+			{
+				word = word.toLowerCase();
 				
+				if (adrSimWords[word] != null) 
+				{
+					var wordSims:Array = adrSimWords[word];
+					
+					var wstrre:String = wordSims.join("|");
+					var wre:RegExp = new RegExp("\\b(" + wstrre + ")\\b", "i");
+					
+					query = storeEl.Order.(stringToLowerCase(ShippingAddress.Street1.@Val).search(wre) != -1);
+					
+					if (query.length() > 0) 
+						selectOrders();
+				}
+				else 
+				{
+					query = storeEl.Order.
+						(stringToLowerCase(ShippingAddress.Street1.@Val).search(new RegExp("\\b" + word + "\\b", "i")) != -1);
+						
+					if (query.length() > 0) 
+						selectOrders();
+				}
+			}
+			
+			var rating:Array = [];
+			for (selOrderID in preRating) 
+			{
+				rating.push({ order: preRating[selOrderID].orderEntry, score: preRating[selOrderID].score });
+			}
+			
+			if (rating.length > 0) 
+			{
+				rating = rating.sortOn("score", Array.NUMERIC | Array.DESCENDING);
+				
+				selOrder = rating[0].order as XML; trace("Adr line › Words score: " + rating[0].score);
+				shipAdrEl = selOrder.ShippingAddress[0];
 				ebayAdr = readEbayAddressFromXML(shipAdrEl);
 			}
 			
