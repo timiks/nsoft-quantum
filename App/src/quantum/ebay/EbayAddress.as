@@ -98,7 +98,7 @@ package quantum.ebay
 		
 		public function set phone(value:String):void 
 		{
-			$phone = value;
+			$phone = value != "" ? value : null;
 		}
 	}
 }

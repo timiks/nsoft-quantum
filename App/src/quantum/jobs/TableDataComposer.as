@@ -121,14 +121,23 @@ package quantum.jobs
 			 */
 			if (prcResult.status == AdrPrcResult.STATUS_OK)
 			{
-				composeAndPack(prcResult);
+				if (prcResult.details.clientNameMismatch)
+				{
+					main.qnMgrGim.infoPanel.showMessage("ВНИМАНИЕ: Имя клиента из адреса не совпадает с базой Ибея", Colors.BAD, true);
+					adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0xCC171C));
+				}
 				
-				if (prcResult.details.phoneNotFound) 
-					main.qnMgrGim.infoPanel.showMessage("Номер телефона не найден для этого адреса. Выставлена заглушка", Colors.WARN);
-				
-				// Clear text area (success)
-				adrInputTextArea.text = "";
-				adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x000000));
+				else
+				{
+					composeAndPack(prcResult);
+						
+					if (prcResult.details.phoneNotFound) 
+						main.qnMgrGim.infoPanel.showMessage("Номер телефона не найден для этого адреса. Выставлена заглушка", Colors.WARN);
+					
+					// Clear text area (success)
+					adrInputTextArea.text = "";
+					adrInputTextArea.setStyle("textFormat", new TextFormat("Tahoma", 12, 0x000000));
+				}
 			} 
 			
 			else

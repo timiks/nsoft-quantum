@@ -650,10 +650,15 @@ package quantum.adr.processing
 			{
 				processFromEbayAddress(ebayAddress, tx, country);
 				
+				var isClientNameMismatch:Boolean = false;
+				if (name.toLowerCase() != ebayAddress.clientName.toLowerCase()) 
+					isClientNameMismatch = true;
+				
 				processingEnd(AdrPrcResult.STATUS_OK);
 				return new AdrPrcResult(
 					AdrPrcResult.STATUS_OK,
-					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2),
+					new AdrPrcDetails("Обработано на основе адреса из Ибея", 0, PrcSpecialMode2, 
+						ebayAddress.phone == null ? true : false, false, isClientNameMismatch),
 					$resultObj
 				);
 			}
@@ -735,7 +740,7 @@ package quantum.adr.processing
 			postCode = processPostalCode(postCode, country);
 			
 			// Process phone
-			phone = getPhone(name, addr1);
+			phone = (ebayAddress != null && ebayAddress.phone != null) ? ebayAddress.phone : null;
 			
 			// ================================================================================
 			//
@@ -1247,14 +1252,16 @@ package quantum.adr.processing
 			return postCode;
 		}
 		
+		/*
 		private function getPhone(adrName:String, adrLine1:String):String 
 		{
 			return main.ebayOrders.getAdrPhone(adrName, adrLine1); // [!] May return null
 		}
+		*/
 		
 		private function getEbayAddress(adrLine1:String):EbayAddress 
 		{
-			return main.ebayOrders.getEbayAddress(adrLine1); // [!] May return null
+			return main.ebayOrders.getEbayAddressViaAdrLine1(adrLine1); // [!] May return null
 		}
 		
 		private function resetResultObject():void
