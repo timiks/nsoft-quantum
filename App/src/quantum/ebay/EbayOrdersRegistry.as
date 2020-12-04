@@ -63,6 +63,12 @@ package quantum.ebay
 			checkStoreFile();
 			
 			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CHECK_SUCCESS, onCheckSuccess);
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_FILE_UPDATED, onOrdersFileUpdated);
+		}
+		
+		private function onOrdersFileUpdated(e:EbayHubEvent):void 
+		{
+			checkStoreFile();
 		}
 		
 		private function onCheckSuccess(e:EbayHubEvent):void 
@@ -98,7 +104,7 @@ package quantum.ebay
 		}
 		*/
 		
-		public function getEbayAddressViaAdrLine1(adrLine1:String):EbayAddress 
+		public function getEbayAddressViaAdrLine1(adrLine1:String, country:String = null):EbayAddress 
 		{
 			if (xmlDoc == null)
 				return null;
@@ -159,6 +165,9 @@ package quantum.ebay
 				}
 				else 
 				{
+								
+					word = word.replace(/ß/i, "(ß|ss)");
+					
 					query = storeEl.Order.
 						(stringToLowerCase(ShippingAddress.Street1.@Val).search(new RegExp("\\b" + word + "\\b", "i")) != -1);
 						
@@ -177,8 +186,19 @@ package quantum.ebay
 			{
 				rating = rating.sortOn("score", Array.NUMERIC | Array.DESCENDING);
 				
+				// Sanity check 1
+				if (splitWords.length > 1 && rating[0].score == 1 && String(rating[0].score).search(/^\d+$/) != -1) 
+					return ebayAdr;
+				
 				selOrder = rating[0].order as XML; trace("Adr line › Words score: " + rating[0].score);
 				shipAdrEl = selOrder.ShippingAddress[0];
+				
+				// Sanity check 2
+				var adrLine1SelOrder:String = shipAdrEl.Street1.@Val;
+				splitWords = adrLine1SelOrder.match(reWordSplit);
+				if (splitWords.length > 1 && rating[0].score == 1 && String(rating[0].score).search(/^\d+$/) != -1)
+					return ebayAdr;
+				
 				ebayAdr = readEbayAddressFromXML(shipAdrEl);
 			}
 			
@@ -227,6 +247,8 @@ package quantum.ebay
 		
 		private function checkStoreFile():void 
 		{
+			trace("App is checking ebay order store file");
+			
 			if (!storeFile.exists) 
 			{
 				return;

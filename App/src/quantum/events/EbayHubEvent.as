@@ -12,6 +12,8 @@ package quantum.events
 		public static const ORDERS_CHECK_SUCCESS:String = "ORDERS_CHECK_SUCCESS";
 		public static const ORDERS_CHECK_ERROR:String = "ORDERS_CHECK_ERROR";
 		public static const ORDERS_REGISTRY_UPDATED:String = "ORDERS_REGISTRY_UPDATED";
+		public static const ORDERS_FILE_UPDATED:String = "ORDERS_FILE_UPDATED";
+		public static const ORDERS_CACHE_CLEARED:String = "ORDERS_CACHE_CLEARED";
 		public static const USER_AUTH_TOKEN_ERROR:String = "AUTH_TOKEN_ERROR";
 		public static const PROCESS_RESTART_OVERFLOW:String = "PROCESS_RESTART_OVERFLOW";
 		public static const PROCESS_COM_ERROR:String = "PROCESS_COM_ERROR";

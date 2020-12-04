@@ -223,6 +223,8 @@ package quantum.gui.modules
 			delayedTasksTimer = new Timer(500, 1);
 			delayedTasksTimer.addEventListener(TimerEvent.TIMER_COMPLETE, executeAfterDelay);
 			delayedTasksTimer.start();
+			
+			main.ebayHub.events.addEventListener(EbayHubEvent.ORDERS_CACHE_CLEARED, onEbayHubEvent);
 		}
 		
 		private function executeAfterDelay(e:TimerEvent):void 
@@ -252,6 +254,10 @@ package quantum.gui.modules
 			else if (e.type == EbayHubEvent.ORDERS_CHECK_ERROR) 
 			{
 				infoPanel.showMessage("Не вышло обновить информацию о заказах с Ибея", Colors.WARN);
+			}
+			else if (e.type == EbayHubEvent.ORDERS_CACHE_CLEARED) 
+			{
+				infoPanel.showMessage("Кэш базы заказов Ибея очищен", Colors.MESSAGE);
 			}
 		}
 		

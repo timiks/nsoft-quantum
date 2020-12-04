@@ -74,7 +74,7 @@ namespace Quantum.EbayHub
         private void SetupGetOrdersCallCommon(ref GetOrdersCall getOrdersCall)
         {
             getOrdersCall.OrderRole = TradingRoleCodeType.Seller;
-            getOrdersCall.OrderStatus = OrderStatusCodeType.Completed;
+            getOrdersCall.OrderStatus = OrderStatusCodeType.All;
             getOrdersCall.SortingOrder = SortOrderCodeType.Descending;
         }
 

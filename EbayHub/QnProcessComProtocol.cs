@@ -15,5 +15,9 @@ namespace Quantum.EbayHub
         public static int MsgCode_EbayOrdersStoreUpdated        = 104; // Signal
         public static int MsgCode_EbayAuthTokenError            = 105; // Signal
         public static int MsgCode_EbayAuthTokenExpiryWarning    = 106; // +Data (plain)
+        public static int MsgCode_ClearEbayOrdersCache          = 107; // +Signal
+        public static int MsgCode_ExecuteEbayOrdersCheckFull    = 108; // +Signal
+        public static int MsgCode_CancelEbayOrdersCheck         = 109; // +Signal
+        public static int MsgCode_EbayOrdersCacheCleared        = 110; // +Signal
     }
 }

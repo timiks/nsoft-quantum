@@ -66,6 +66,16 @@ package quantum.ebay
 			childProcessCtrl.sendMessageSignal(QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck);
 		}
 		
+		public function SendClearCacheSignal():void 
+		{
+			childProcessCtrl.sendMessageSignal(QnProcessComProtocol.MsgCode_ClearEbayOrdersCache);
+		}
+		
+		public function SendFullCheckSignal():void 
+		{
+			childProcessCtrl.sendMessageSignal(QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheckFull);
+		}
+		
 		private function onProcessEvent(e:ProcessEvent):void 
 		{
 			if (e.type == ProcessEvent.RESTART_OVERFLOW) 
@@ -110,6 +120,16 @@ package quantum.ebay
 			{
 				trace("Child process system error");
 				events.dispatchEvent(new EbayHubEvent(EbayHubEvent.PROCESS_SYS_ERROR));
+			}
+			else if (msg.code == QnProcessComProtocol.MsgCode_EbayOrdersStoreUpdated)
+			{
+				trace("Ebay orders store updated (from ebay child process)");
+				events.dispatchEvent(new EbayHubEvent(EbayHubEvent.ORDERS_FILE_UPDATED));
+			}
+			else if (msg.code == QnProcessComProtocol.MsgCode_EbayOrdersCacheCleared)
+			{
+				trace("Ebay orders store cache cleared (from ebay child process)");
+				events.dispatchEvent(new EbayHubEvent(EbayHubEvent.ORDERS_CACHE_CLEARED));
 			}
 		}
 		

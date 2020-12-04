@@ -16,7 +16,7 @@ namespace Quantum.EbayHub
 {
     class EbayOrdersFileStore
     {
-        const string StoreFormatVersion = "1.0";
+        const string StoreFormatVersion = "1.1";
         const string StoreFileName = "ebay-orders.xml";
         const string PhoneCountryCodesFileName = "PhoneCountryCodes.json";
         const int FullRequestOrdersBackInDays = 60; // 60
@@ -30,6 +30,7 @@ namespace Quantum.EbayHub
         const string XmlStoreElementName_Store = "Store";
         const string XmlStoreElementName_Order = "Order";
         const string XmlStoreElementName_OrderID = "OrderID";
+        const string XmlStoreElementName_OrderStatus = "OrderStatus";
         const string XmlStoreElementName_BuyerUserID = "BuyerUserID";
         const string XmlStoreElementName_CreatedTime = "CreatedTime";
         const string XmlStoreElementName_ShippingAddress = "ShippingAddress";
@@ -151,9 +152,19 @@ namespace Quantum.EbayHub
             }
         }
 
-        public async Task CheckAsync()
+        public async Task CheckAsync(bool fullMandatory = false)
         {
             msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckStarted);
+
+            //await Task.Delay(10000);
+            //object msgData2 = new { newEntriesCount = 911 };
+            //msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckSuccess, msgData2);
+            //return;
+
+            if (fullMandatory)
+                ClearCache();
+            else
+                ReloadFile();
 
             DateTime lastSavedOrderCreatedTime = default;
             bool fullRequestNeeded = false;
@@ -240,6 +251,14 @@ namespace Quantum.EbayHub
             storeXmlDom = XDocument.Load(storeFilePath);
         }
 
+        public void ClearCache()
+        {
+            DeleteFile();
+            CreateBlankStore();
+            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersStoreUpdated);
+            msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCacheCleared);
+        }
+
         private DateTime ParseUtcDateTime(string dateTimeString)
         {
             return DateTime.Parse(dateTimeString, null, System.Globalization.DateTimeStyles.RoundtripKind);
@@ -298,6 +317,7 @@ namespace Quantum.EbayHub
         {
             XElement orderEl;
             XElement orderIdEl;
+            XElement orderStatusEl;
             XElement createdTimeEl;
             XElement buyerUserIdEl;
             XElement shippingAdrEl;
@@ -316,11 +336,12 @@ namespace Quantum.EbayHub
 
             foreach (var ebayOrderEntry in resultOrders)
             {
-                if (ebayOrderEntry.OrderStatus != OrderStatusCodeType.Completed)
-                    continue;
+                //if (ebayOrderEntry.OrderStatus != OrderStatusCodeType.Completed)
+                    //continue;
                 
                 orderEl = new XElement(XmlStoreElementName_Order);
                 orderIdEl = new XElement(XmlStoreElementName_OrderID);
+                orderStatusEl = new XElement(XmlStoreElementName_OrderStatus);
                 createdTimeEl = new XElement(XmlStoreElementName_CreatedTime);
                 buyerUserIdEl = new XElement(XmlStoreElementName_BuyerUserID);
                 shippingAdrEl = new XElement(XmlStoreElementName_ShippingAddress);
@@ -334,6 +355,9 @@ namespace Quantum.EbayHub
                 adrPostCodeEl = new XElement(XmlStoreElementName_PostCode);
                 adrPhoneEl = new XElement(XmlStoreElementName_Phone);
                 adrPhoneCountryCodeEl = null;
+
+                orderStatusEl.Add(new XAttribute(XmlStoreAttributeName_Value, ""));
+                orderStatusEl.Attribute(XmlStoreAttributeName_Value).Value = ebayOrderEntry.OrderStatus.ToString();
 
                 orderIdEl.Add(new XAttribute(XmlStoreAttributeName_Value, ""));
                 orderIdEl.Attribute(XmlStoreAttributeName_Value).Value = ebayOrderEntry.OrderID;
@@ -402,6 +426,7 @@ namespace Quantum.EbayHub
                         phoneCodesBase[phoneCountryCodeUsed].PhoneCode + " " + ebayOrderEntry.ShippingAddress.Phone;
 
                 orderEl.Add(orderIdEl);
+                orderEl.Add(orderStatusEl);
                 orderEl.Add(createdTimeEl);
                 orderEl.Add(buyerUserIdEl);
                 orderEl.Add(shippingAdrEl);
@@ -463,6 +488,12 @@ namespace Quantum.EbayHub
             {
                 storeXmlDom.Save(xmlWriter);
             }
+        }
+
+        private void DeleteFile()
+        {
+            if (File.Exists(storeFilePath))
+                File.Delete(storeFilePath);
         }
     }
 

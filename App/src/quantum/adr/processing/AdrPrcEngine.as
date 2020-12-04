@@ -1,8 +1,10 @@
 package quantum.adr.processing
 {
+	import flash.net.dns.SRVRecord;
 	import quantum.Main;
 	import quantum.adr.processing.AdrResult;
 	import quantum.ebay.EbayAddress;
+	import timicore.TimUtils;
 	
 	/**
 	 * Движок обработки адресов “Addressy” · C 2016 — модуль Квантума
@@ -651,7 +653,10 @@ package quantum.adr.processing
 				processFromEbayAddress(ebayAddress, tx, country);
 				
 				var isClientNameMismatch:Boolean = false;
-				if (name.toLowerCase() != ebayAddress.clientName.toLowerCase()) 
+				var nameSourceHandled:String = TimUtils.normalizeSpaces(name).toLowerCase();
+				var ebayClientNameHandled:String = TimUtils.normalizeSpaces(ebayAddress.clientName).toLowerCase();
+				
+				if (nameSourceHandled != ebayClientNameHandled) 
 					isClientNameMismatch = true;
 				
 				processingEnd(AdrPrcResult.STATUS_OK);

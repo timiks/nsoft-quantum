@@ -30,5 +30,10 @@ package timicore
 		{
 			return str.replace(/^\s*(.*?)\s*$/, "$1");
 		}
+		
+		public static function normalizeSpaces(str:String):String
+		{
+			return str.replace(/\s{2,}/, " ");
+		}
 	}
 }

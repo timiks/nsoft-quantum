@@ -16,5 +16,9 @@ package quantum.communication
 		public static const MsgCode_EbayOrdersStoreUpdated:int 		= 104; // Signal
 		public static const MsgCode_EbayAuthTokenError:int 			= 105; // Signal
 		public static const MsgCode_EbayAuthTokenExpiryWarning:int 	= 106; // +Data (plain)
+		public static const MsgCode_ClearEbayOrdersCache:int        = 107; // +Signal
+        public static const MsgCode_ExecuteEbayOrdersCheckFull:int  = 108; // +Signal
+		public static const MsgCode_CancelEbayOrdersCheck:int       = 109; // +Signal
+		public static const MsgCode_EbayOrdersCacheCleared:int      = 110; // +Signal
 	}
 }

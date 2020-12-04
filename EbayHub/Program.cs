@@ -94,7 +94,6 @@ namespace Quantum.EbayHub
 
         private Socket comClientListener;
         private Task ebayOrdersStoreCheckTask;
-        private Action ebayOrdersStoreCheckFunc;
 
         private EbayApiMgr ebayApi;
         private EbayOrdersFileStore ebayOrdersStore;
@@ -111,8 +110,6 @@ namespace Quantum.EbayHub
 
             ebayOrdersStore = new EbayOrdersFileStore(this, ebayApi);
             ebayOrdersStore.Init();
-
-            ebayOrdersStoreCheckFunc = async () => await ebayOrdersStore.CheckAsync();
 
             IPHostEntry host = Dns.GetHostEntry("localhost");
             IPAddress ipAddress = host.AddressList[0];
@@ -179,10 +176,13 @@ namespace Quantum.EbayHub
             #if DEBUG
             while (true)
             {
+                ProcessReceivedMessage(new ProcessComProtocolMessage(QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck, 3, null));
                 Console.ReadLine();
                 //ebayOrdersStore.ReloadFile();
-                ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
+                //ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
                 //ebayOrdersStoreCheckTask.Wait();
+                ProcessReceivedMessage(new ProcessComProtocolMessage(QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck, 3, null));
+
             }
 #endif
         }
@@ -250,14 +250,43 @@ namespace Quantum.EbayHub
 
         private void ProcessReceivedMessage(ProcessComProtocolMessage msg)
         {
-            if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck)
+            if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck || msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheckFull)
             {
-                if (ebayOrdersStoreCheckTask == null || ebayOrdersStoreCheckTask.Status != TaskStatus.Running)
+                SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Execute order pass");
+                //if (ebayOrdersStoreCheckTask == null || 
+                //    (ebayOrdersStoreCheckTask.Status != TaskStatus.Running && ebayOrdersStoreCheckTask.Status != TaskStatus.RanToCompletion))
+                //{
+                if (ebayOrdersStoreCheckTask == null || ebayOrdersStoreCheckTask.IsCompleted)
                 {
-                    ebayOrdersStore.ReloadFile(); // TEST
-                    ebayOrdersStoreCheckTask = Task.Run(ebayOrdersStoreCheckFunc);
+
+                    SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Task run condition pass");
+
+                    ebayOrdersStoreCheckTask =
+                        msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck ?
+                            Task.Run(EbayOrdersStoreCheck) : Task.Run(EbayOrdersStoreFullCheck);
+                    ebayOrdersStoreCheckTask.ContinueWith(task => ebayOrdersStoreCheckTask = null);
+                }
+            }
+
+            else
+
+            if (msg.Code == QnProcessComProtocol.MsgCode_ClearEbayOrdersCache)
+            {
+                ebayOrdersStore.ClearCache();
+            }
+
+            else
+
+            if (msg.Code == QnProcessComProtocol.MsgCode_CancelEbayOrdersCheck)
+            {
+                if (ebayOrdersStoreCheckTask != null || ebayOrdersStoreCheckTask.Status == TaskStatus.Running)
+                {
+                    //ebayOrdersStoreCheckTask.Cancel()
                 }
             }
         }
+
+        private async Task EbayOrdersStoreCheck() => await ebayOrdersStore.CheckAsync();
+        private async Task EbayOrdersStoreFullCheck() => await ebayOrdersStore.CheckAsync(true);
     }
 }
