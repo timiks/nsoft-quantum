@@ -19,9 +19,11 @@ namespace Quantum.EbayHub
         const string StoreFormatVersion = "1.1";
         const string StoreFileName = "ebay-orders.xml";
         const string PhoneCountryCodesFileName = "PhoneCountryCodes.json";
-        const int FullRequestOrdersBackInDays = 60; // 60
+        const int FullRequestOrdersBackInDays = 30; // Was: 60
         const int StoreOrdersBackInDaysMax = 90; // 90
         const string dateStrFormat = "o";
+
+        #region Names
 
         const string XmlStoreElementName_Root = "QuantumEbayOrdersStore";
         const string XmlStoreElementName_MetaInfo = "MetaInfo";
@@ -56,6 +58,8 @@ namespace Quantum.EbayHub
         const string JsonStorePropName_CountryName = "countryName";
         const string JsonStorePropName_CountryCode = "countryCode";
         const string JsonStorePropName_PhoneCode = "phoneCode";
+
+        #endregion
 
         private HiddenForm msgLoopForm;
         private EbayApiMgr apiMgr;
@@ -156,17 +160,13 @@ namespace Quantum.EbayHub
         {
             msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckStarted);
 
-            //await Task.Delay(10000);
-            //object msgData2 = new { newEntriesCount = 911 };
-            //msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckSuccess, msgData2);
-            //return;
-
             if (fullMandatory)
                 ClearCache();
             else
                 ReloadFile();
 
             DateTime lastSavedOrderCreatedTime = default;
+            DateTime lastCheckTime = default;
             bool fullRequestNeeded = false;
 
             string lastCheckTimeValue = MetaInfoEl
@@ -174,10 +174,11 @@ namespace Quantum.EbayHub
                 .Attribute(XmlStoreAttributeName_Value).Value;
 
             if (lastCheckTimeValue == string.Empty || StoreOrdersCount == 0)
-            {
                 fullRequestNeeded = true;
-            }
             
+            if (lastCheckTimeValue != string.Empty)
+                lastCheckTime = ParseUtcDateTime(lastCheckTimeValue);
+
             if (StoreOrdersCount > 0)
             {
                 lastSavedOrderCreatedTime = ParseUtcDateTime(
@@ -199,7 +200,7 @@ namespace Quantum.EbayHub
 
             Action getEbayOrdersUpdateOnly = () =>
             {
-                DateTime ctimeFrom = lastSavedOrderCreatedTime.AddSeconds(1);
+                DateTime ctimeFrom = lastCheckTime;
                 DateTime ctimeTo = DateTime.UtcNow;
                 ordersRequestResult = apiMgr.GetOrders(ctimeFrom, ctimeTo, ResultSortOrder.Ascending); // Recent at the end
             };
@@ -228,8 +229,10 @@ namespace Quantum.EbayHub
                 return;
             }
 
+            int newEntriesCount = 0;
+
             if (ordersRequestResult != null)
-                ProcessOrdersRequestResult(ordersRequestResult, !fullRequestNeeded);
+                newEntriesCount = ProcessOrdersRequestResult(ordersRequestResult, !fullRequestNeeded);
 
             // Save current successful check time
             MetaInfoEl
@@ -241,8 +244,7 @@ namespace Quantum.EbayHub
 
             SaveFile();
 
-            string newEntriesCount = ordersRequestResult == null ? "0" : ordersRequestResult.Count.ToString();
-            object msgData = new { newEntriesCount = newEntriesCount };
+            object msgData = new { newEntriesCount = newEntriesCount.ToString() };
             msgLoopForm.SendComMessage(QnProcessComProtocol.MsgCode_EbayOrdersCheckSuccess, msgData);
         }
 
@@ -313,7 +315,7 @@ namespace Quantum.EbayHub
             }
         }
 
-        private void ProcessOrdersRequestResult(List<OrderType> resultOrders, bool updateMode)
+        private int ProcessOrdersRequestResult(List<OrderType> resultOrders, bool updateMode)
         {
             XElement orderEl;
             XElement orderIdEl;
@@ -333,12 +335,14 @@ namespace Quantum.EbayHub
             XElement adrPhoneCountryCodeEl;
 
             string phoneCountryCodeUsed;
+            int selectedOrdersCount = 0;
 
             foreach (var ebayOrderEntry in resultOrders)
             {
-                //if (ebayOrderEntry.OrderStatus != OrderStatusCodeType.Completed)
-                    //continue;
-                
+                if (ebayOrderEntry.OrderStatus == OrderStatusCodeType.Cancelled ||
+                    ebayOrderEntry.OrderStatus == OrderStatusCodeType.Invalid)
+                    continue;
+
                 orderEl = new XElement(XmlStoreElementName_Order);
                 orderIdEl = new XElement(XmlStoreElementName_OrderID);
                 orderStatusEl = new XElement(XmlStoreElementName_OrderStatus);
@@ -451,7 +455,11 @@ namespace Quantum.EbayHub
                     StoreEl.AddFirst(orderEl);
                 else
                     StoreEl.Add(orderEl);
+
+                selectedOrdersCount++;
             }
+
+            return selectedOrdersCount;
         }
 
         private void CreateBlankStore(bool saveToFile = true)

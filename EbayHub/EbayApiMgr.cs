@@ -74,11 +74,11 @@ namespace Quantum.EbayHub
         private void SetupGetOrdersCallCommon(ref GetOrdersCall getOrdersCall)
         {
             getOrdersCall.OrderRole = TradingRoleCodeType.Seller;
-            getOrdersCall.OrderStatus = OrderStatusCodeType.All;
+            getOrdersCall.OrderStatus = OrderStatusCodeType.Completed;
             getOrdersCall.SortingOrder = SortOrderCodeType.Descending;
         }
 
-        public List<OrderType> GetOrders(DateTime createTimeFrom, DateTime createTimeTo, ResultSortOrder resultSetSortOrder)
+        public List<OrderType> GetOrders(DateTime modTimeFrom, DateTime modTimeTo, ResultSortOrder resultSetSortOrder)
         {
             if (unableState)
                 return null;
@@ -86,9 +86,15 @@ namespace Quantum.EbayHub
             getOrdersCall = new GetOrdersCall(apiCtx);
             SetupGetOrdersCallCommon(ref getOrdersCall);
 
-            getOrdersCall.CreateTimeFrom = createTimeFrom;
-            getOrdersCall.CreateTimeTo = createTimeTo;
+            getOrdersCall.ModTimeFrom = modTimeFrom;
+            getOrdersCall.ModTimeTo = modTimeTo;
             getOrdersCall.Pagination = new PaginationType();
+
+            getOrdersCall.OutputSelector = new string[]
+            { 
+                "OrderID", "OrderStatus", "BuyerUserID", "CreatedTime", "ShippingAddress",
+                "OrdersPerPage", "PageNumber", "PaginationResult"
+            };
 
             var resultList = new List<OrderType>();
             int currentPageNumber = 0;
