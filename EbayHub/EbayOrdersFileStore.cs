@@ -21,6 +21,7 @@ namespace Quantum.EbayHub
         const string PhoneCountryCodesFileName = "PhoneCountryCodes.json";
         const int FullRequestOrdersBackInDays = 30; // Was: 60
         const int StoreOrdersBackInDaysMax = 90; // 90
+        const int StoreOrdersMaxRecords = 1300;
         const string dateStrFormat = "o";
 
         #region Names
@@ -193,16 +194,16 @@ namespace Quantum.EbayHub
             
             Action getEbayOrdersFull = () => 
             {
-                DateTime ctimeTo = DateTime.UtcNow;
-                DateTime ctimeFrom = ctimeTo.AddDays(-FullRequestOrdersBackInDays);
-                ordersRequestResult = apiMgr.GetOrders(ctimeFrom, ctimeTo, ResultSortOrder.Descending); // Recent first
+                DateTime mtimeTo = DateTime.UtcNow;
+                DateTime mtimeFrom = mtimeTo.AddDays(-FullRequestOrdersBackInDays);
+                ordersRequestResult = apiMgr.GetOrders(mtimeFrom, mtimeTo, ResultSortOrder.Descending); // Recent first
             };
 
             Action getEbayOrdersUpdateOnly = () =>
             {
-                DateTime ctimeFrom = lastCheckTime;
-                DateTime ctimeTo = DateTime.UtcNow;
-                ordersRequestResult = apiMgr.GetOrders(ctimeFrom, ctimeTo, ResultSortOrder.Ascending); // Recent at the end
+                DateTime mtimeFrom = lastCheckTime;
+                DateTime mtimeTo = DateTime.UtcNow;
+                ordersRequestResult = apiMgr.GetOrders(mtimeFrom, mtimeTo, ResultSortOrder.Ascending); // Recent at the end
             };
 
             if (fullRequestNeeded)
@@ -268,50 +269,11 @@ namespace Quantum.EbayHub
 
         private void CheckStoreOverflow()
         {
-            if (StoreOrdersCount < 10)
-                return;
-
-            XElement theMostRecentOrder;
-            XElement theOldestOrder;
-            DateTime theMostRecentOrderCreatedTime;
-            DateTime theOldestOrderCreatedTime;
-            TimeSpan timeDif;
-            double timeDifDays = default;
-
-            void Calculate()
-            {
-                var allOrdersQuery = StoreEl.Elements(XmlStoreElementName_Order);
-
-                theMostRecentOrder = allOrdersQuery.First();
-                theOldestOrder = allOrdersQuery.Last();
-
-                theMostRecentOrderCreatedTime = ParseUtcDateTime(
-                    theMostRecentOrder
-                    .Element(XmlStoreElementName_CreatedTime)
-                    .Attribute(XmlStoreAttributeName_Value).Value
-                );
-
-                theOldestOrderCreatedTime = ParseUtcDateTime(
-                    theOldestOrder
-                    .Element(XmlStoreElementName_CreatedTime)
-                    .Attribute(XmlStoreAttributeName_Value).Value
-                );
-
-                timeDif = theMostRecentOrderCreatedTime - theOldestOrderCreatedTime;
-                timeDifDays = Math.Abs(timeDif.TotalDays);
-            }
-
-            Calculate();
-
-            if (timeDifDays <= StoreOrdersBackInDaysMax)
-                return;
-
             XElement lastOrderEntry;
-            while (StoreOrdersCount > 0 && timeDifDays > StoreOrdersBackInDaysMax)
+            while (StoreOrdersCount > StoreOrdersMaxRecords)
             {
                 lastOrderEntry = StoreEl.Elements(XmlStoreElementName_Order).Last();
                 lastOrderEntry.Remove();
-                Calculate();
             }
         }
 
@@ -339,8 +301,17 @@ namespace Quantum.EbayHub
 
             foreach (var ebayOrderEntry in resultOrders)
             {
-                if (ebayOrderEntry.OrderStatus == OrderStatusCodeType.Cancelled ||
-                    ebayOrderEntry.OrderStatus == OrderStatusCodeType.Invalid)
+                if (ebayOrderEntry.OrderStatus != OrderStatusCodeType.Completed)
+                    continue;
+
+                // Skip already stored orders
+                var q = StoreEl.Elements(XmlStoreElementName_Order).Where(ord => 
+                    ord.Elements(XmlStoreElementName_OrderID).Attributes(XmlStoreAttributeName_Value).FirstOrDefault().Value == ebayOrderEntry.OrderID
+                        &&
+                    ord.Elements(XmlStoreElementName_OrderStatus).Attributes(XmlStoreAttributeName_Value).FirstOrDefault().Value == OrderStatusCodeType.Completed.ToString()
+                    );
+
+                if (q.Count() > 0)
                     continue;
 
                 orderEl = new XElement(XmlStoreElementName_Order);

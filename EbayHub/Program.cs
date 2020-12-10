@@ -252,17 +252,12 @@ namespace Quantum.EbayHub
         {
             if (msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck || msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheckFull)
             {
-                SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Execute order pass");
-                //if (ebayOrdersStoreCheckTask == null || 
-                //    (ebayOrdersStoreCheckTask.Status != TaskStatus.Running && ebayOrdersStoreCheckTask.Status != TaskStatus.RanToCompletion))
-                //{
+                //SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Execute order pass");
                 if (ebayOrdersStoreCheckTask == null || ebayOrdersStoreCheckTask.IsCompleted)
                 {
+                    //SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Task run condition pass");
 
-                    SendComMessage(ProcessComProtocol.MsgCode_PlainMessage, "Task run condition pass");
-
-                    ebayOrdersStoreCheckTask =
-                        msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck ?
+                    ebayOrdersStoreCheckTask = msg.Code == QnProcessComProtocol.MsgCode_ExecuteEbayOrdersCheck ?
                             Task.Run(EbayOrdersStoreCheck) : Task.Run(EbayOrdersStoreFullCheck);
                     ebayOrdersStoreCheckTask.ContinueWith(task => ebayOrdersStoreCheckTask = null);
                 }

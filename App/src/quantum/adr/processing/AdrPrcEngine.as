@@ -1103,6 +1103,7 @@ package quantum.adr.processing
 				case "USA":
 				case "US":
 				case "United States of America":
+				case "Vereinigte Staaten von Amerika":
 					cn = "United States";
 					break;
 				
